@@ -4,10 +4,9 @@
  */
 package spiralcraft.pioneer.data.text;
 
-//import com.spiralcraft.data.lang.ExpressionBinding;
-//import com.spiralcraft.data.lang.ValueContext;
-//import com.spiralcraft.data.lang.IterationContext;
-//import com.spiralcraft.data.lang.BoundIterator;
+import com.spiralcraft.data.lang.ValueContext;
+import com.spiralcraft.data.lang.IterationContext;
+import com.spiralcraft.data.lang.BoundIterator;
 
 import com.spiralcraft.data.ContextProvider;
 import com.spiralcraft.data.Context;
@@ -49,12 +48,20 @@ import spiralcraft.text.Encoder;
 
 import spiralcraft.util.StringUtil;
 
+import spiralcraft.lang.Channel;
+import spiralcraft.lang.Focus;
+import spiralcraft.lang.Expression;
+
+import spiralcraft.lang.decorators.IterationDecorator;
+
+import spiralcraft.pioneer.data.lang.DataFocus;
+import spiralcraft.pioneer.data.lang.ValueContextOptic;
+
 public class MergeTemplate
 {
 
-  private Map _contextProviders;
-  private DataEnvironment _dataEnvironment;
-  private ValueContext _defaultContext;
+  private DataFocus _defaultFocus=new DataFocus();
+
   private DateFormat _defaultDateFormat;
   private Stack _tagStack=new Stack();
   private Tag _currentTag=new DocumentTag();
@@ -122,41 +129,26 @@ public class MergeTemplate
   }
 
   public void setDataEnvironment(DataEnvironment env)
-  { _dataEnvironment=env;
+  { _defaultFocus.setDataEnvironment(env);
   }
 
   public void setContextProviders(Map contextProviders)
-  { _contextProviders=contextProviders;
+  { _defaultFocus.setContextProviders(contextProviders);
   }
 
   public void setDefaultContext(ValueContext context)
-  { _defaultContext=context;
+  { _defaultFocus.setDefaultContext(context);
   }
 
-  private ExpressionBinding makeBinding(String expression)
+  private Channel makeBinding(String expression)
     throws ParseException
   {
-    //* Channel instead of ExpressionBinding- this is really the
-    //*   guts of Focus
-    
-    ExpressionBinding binding = new ExpressionBinding();
-    binding.setExpression(expression);
-    if (_dataEnvironment!=null)
-    { binding.setDataEnvironment(_dataEnvironment);
-    }
-    if (_contextProviders!=null)
-    { binding.setContextProviders(_contextProviders);
-    }
-    if (_defaultContext!=null)
-    { binding.setDefaultContext(_defaultContext);
-    }
     try
-    { binding.compile();
+    { return _defaultFocus.bind(Expression.parse(expression));
     }
     catch (Exception x)
     { throw new ParseException(x);
     }
-    return binding;
   }
 
   class Handler
@@ -574,7 +566,7 @@ public class MergeTemplate
     { name="if";
     }
 
-    private ExpressionBinding _binding;
+    private Channel _channel;
     private List _positiveFragments;
     private List _negativeFragments;
     private boolean _boolean;
@@ -589,11 +581,11 @@ public class MergeTemplate
         String name=attribute.getName().intern();
         if (name=="expression")
         {
-          _binding=makeBinding(attribute.getValue());
+          _channel=makeBinding(attribute.getValue());
 
           
-          if (_binding.getValueClass(_classLoader)==Boolean.class
-              || _binding.getValueClass(_classLoader)==boolean.class
+          if (_channel.getContentType()==Boolean.class
+              || _channel.getContentType()==boolean.class
               )
           { _boolean=true;
           }
@@ -618,7 +610,7 @@ public class MergeTemplate
     {
       if (_boolean)
       {
-        if ( ((Boolean) _binding.getValue()).booleanValue())
+        if ( ((Boolean) _channel.get()).booleanValue())
         { 
           if (_positiveFragments!=null)
           { 
@@ -639,7 +631,7 @@ public class MergeTemplate
       }
       else
       {
-        if (_binding.getValue()!=null)
+        if (_channel.get()!=null)
         {
           if (_positiveFragments!=null)
           { 
@@ -744,8 +736,8 @@ public class MergeTemplate
     { name="iterate";
     }
 
-    private BoundIterator _iterator;
-    private ExpressionBinding _binding;
+    private IterationDecorator _iterator;
+    private Channel _channel;
     private String _variable;
     private ValueContext _oldDefaultContext;
     private boolean _first;
@@ -788,33 +780,52 @@ public class MergeTemplate
       { throw new ParseException("Attribute 'expression' required for <%iterate ... %>");
       }
           
-      _binding=makeBinding(_expression);
+      _channel=makeBinding(_expression);
       
-      if (!(_binding.getBoundContext()
-             instanceof IterationContext
-           )
-         )
+      // Ask if the content supports iteration (ie. it is some kind of 
+      //   container or collection
+//      if (!(_channel.getBoundContext()
+//             instanceof IterationContext
+//           )
+//         )
+
+      _iterator =(IterationDecorator) _channel.decorate(IterationDecorator.class);
+        
+      if (_iterator==null)
       {
         throw new ParseException
           ("Cannot iterate through "
-          +_binding.getExpression()
-          +" ("+_binding.getValueClass(_classLoader)+")"
+          +_channel.getExpression()
+          +" ("+_channel.getContentType()+")"
           );
       }
 
-      _oldDefaultContext=_defaultContext;
+      // Here we need to put up a new Focus where the subject is the
+      //   iterator. 
+      // _oldDefaultContext=_defaultContext;
 
-      _iterator=
-        ((IterationContext) _binding.getBoundContext())
-          .getBoundIterator();
+      
+//        ((IterationContext) _channel.getBoundContext())
+//          .getBoundIterator();
 
-      try
-      { _iterator.setOrder(_order);
-      }
-      catch (com.spiralcraft.data.lang.ParseException x)
-      { throw new ParseException(x);
-      }
-      _defaultContext=_iterator.getComponentContext();
+// IMPORTANT 
+//      try
+//      { _iterator.setOrder(_order);
+//      }
+//      catch (com.spiralcraft.data.lang.ParseException x)
+//      { throw new ParseException(x);
+//      }
+// /IMPORTANT
+
+      // NEW      
+      _defaultFocus=
+        new DataFocus
+          (_defaultFocus
+          ,_iterator
+          );
+      // /NEW
+      
+      //_defaultContext=_iterator.getComponentContext();
       
 
     }
@@ -841,17 +852,14 @@ public class MergeTemplate
 
 
     public void closeDefinition()
-    {
-      if (_oldDefaultContext!=null)
-      { _defaultContext=_oldDefaultContext;
-      }
+    { _defaultFocus=(DataFocus) _defaultFocus.getParentFocus();
     }
   }
 
   class ExpressionTag
     extends Tag
   {
-    private ExpressionBinding _binding;
+    private Channel _channel;
     private FieldTranslator _translator;
     private FieldDescriptor _descriptor;
     private boolean _useEncoding;
@@ -860,20 +868,20 @@ public class MergeTemplate
     public ExpressionTag(String expression,boolean useEncoding)
       throws ParseException
     {
-      _binding=makeBinding(expression);
+      _channel=makeBinding(expression);
       _useEncoding=useEncoding;
       
-      _descriptor
-        =_binding.getFieldDescriptor();
-      if (_descriptor!=null)
-      { _translator=_descriptor.getTranslator();
-      }
+//      _descriptor
+//        =_channel.getFieldDescriptor();
+//      if (_descriptor!=null)
+//      { _translator=_descriptor.getTranslator();
+//      }
     }
 
     public void write(Writer out)
       throws IOException
     { 
-      Object value=_binding.getValue();
+      Object value=_channel.get();
       String translatedValue;
       if (value!=null)
       { 
