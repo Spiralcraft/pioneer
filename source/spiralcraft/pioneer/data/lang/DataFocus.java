@@ -1,6 +1,7 @@
 package spiralcraft.pioneer.data.lang;
 
 import spiralcraft.lang.DefaultFocus;
+import spiralcraft.lang.Context;
 import spiralcraft.lang.Optic;
 
 import com.spiralcraft.data.DataEnvironment;
@@ -22,7 +23,8 @@ public class DataFocus
   private Optic defaultOptic;
   
   public DataFocus()
-  { }
+  { setContext(new ContextImpl()); 
+  }
   
   public DataFocus(DataFocus parent,Optic subject)
   { 
@@ -30,6 +32,7 @@ public class DataFocus
     this.contextProviders=parent.getContextProviders();
     this.defaultOptic=subject;
     setParentFocus(parent);
+    setContext(new ContextImpl());
   }
   
   public void setDataEnvironment(DataEnvironment val)
@@ -55,29 +58,39 @@ public class DataFocus
   public Optic getSubject()
   { return this.defaultOptic;
   }
-  
-  /**
-   * Context.resolve(String name)
-   */  
-  public Optic resolve(String name)
-  { 
-   
-    if (this.dataEnvironment!=null)
-    {
-      ValueContext context=this.dataEnvironment.getContextForName(name);
-      if (context!=null)
-      { return new ValueContextOptic(context);
-      }
-    }
 
-    if (this.contextProviders!=null)
-    {
-      ValueContext context=(ValueContext) this.contextProviders.get(name);
-      if (context!=null)
-      { return new ValueContextOptic(context);
+   
+  class ContextImpl
+    implements Context
+  {
+    /**
+     * Context.resolve(String name)
+     */  
+    public Optic resolve(String name)
+    { 
+     
+      if (dataEnvironment!=null)
+      {
+        ValueContext context=dataEnvironment.getContextForName(name);
+        if (context!=null)
+        { return new ValueContextOptic(context);
+        }
       }
+  
+      if (contextProviders!=null)
+      {
+        ValueContext context=(ValueContext) contextProviders.get(name);
+        if (context!=null)
+        { return new ValueContextOptic(context);
+        }
+      }
+      return null;
     }
     
-    return super.resolve(name);
+    public String[] getNames()
+    { return null;
+    }
+    
   }
+  
 }
