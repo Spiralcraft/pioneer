@@ -1,0 +1,4 @@
+<httpd:HttpServer
+  xmlns:httpd="java:/com/spiralcraft/httpd">
+  
+</httpd:HttpServer>

@@ -1,0 +1,24 @@
+<project name="spiralcraft-pioneer" default="build" basedir=".">
+
+
+  <target name="build">
+    <javac 
+      srcdir="source" 
+      classpath="${spiralcraft-core.jar}:${spiralcraft-pioneer-legacy.jar}:${java-servlet-2.3.jar}"
+      debug="true"
+    />
+  </target>
+
+  <target name="jar" depends="build">
+    <jar 
+      destfile="../../lib/spiralcraft-pioneer.jar" 
+      basedir="source"
+      includes="spiralcraft/**/*.class,spiralcraft/**/*.assembly.xml,spiralcraft/**/*.textgen"
+      >
+      <Manifest>
+        <attribute name="Class-Path" value="spiralcraft-core.jar spiralcraft-pioneer-legacy.jar java-servlet-2.3.jar"/>
+      </Manifest>
+    </jar>
+  </target>
+
+</project>
