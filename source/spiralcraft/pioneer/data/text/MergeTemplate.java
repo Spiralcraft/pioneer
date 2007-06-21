@@ -62,6 +62,7 @@ import spiralcraft.util.StringUtil;
 import spiralcraft.lang.Channel;
 import spiralcraft.lang.Focus;
 import spiralcraft.lang.Expression;
+import spiralcraft.lang.BindException;
 
 import spiralcraft.lang.decorators.IterationDecorator;
 
@@ -800,7 +801,12 @@ public class MergeTemplate
 //           )
 //         )
 
-      _iterator =(IterationDecorator) _channel.decorate(IterationDecorator.class);
+      try
+      { _iterator =(IterationDecorator) _channel.decorate(IterationDecorator.class);
+      }
+      catch (BindException x)
+      { throw new ParseException(x.toString());
+      }
         
       if (_iterator==null)
       {

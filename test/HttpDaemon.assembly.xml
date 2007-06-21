@@ -1,0 +1,65 @@
+<service:Daemon
+  xmlns:service="java:/spiralcraft/service"
+	xmlns:httpd="java:/spiralcraft/pioneer/httpd"
+	xmlns:phttpd="java:/com/spiralcraft/httpd"
+	xmlns:net="java:/com/solidis/net"
+  >
+
+  <services>
+  
+  	<httpd:HttpService>
+
+		  <listeners>
+		  	<net:Listener>
+
+		  		<port>8080
+		  		</port>
+
+		  	</net:Listener>
+		  </listeners>
+
+			<serviceContext>
+				<phttpd:SimpleHttpServiceContext>
+					
+					<documentRoot>webroot
+					</documentRoot>
+					
+					<servletMappings>
+					
+						<phttpd:ServletMapping>
+							
+							<servletName>file
+							</servletName>
+							
+							<URLPattern>/
+							</URLPattern>
+							
+							
+						</phttpd:ServletMapping>
+						
+					</servletMappings>
+					
+					<servletHolders>
+						
+						<phttpd:ServletHolder>
+							
+							<servletName>file
+							</servletName>
+							
+							<servletClass>com.spiralcraft.httpd.FileServlet
+							</servletClass>
+							
+						</phttpd:ServletHolder>
+						
+					</servletHolders>
+					
+				</phttpd:SimpleHttpServiceContext>
+			
+				
+			</serviceContext>
+			
+	  </httpd:HttpService>
+	  
+	</services>
+
+</service:Daemon>

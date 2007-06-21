@@ -19,9 +19,9 @@ import spiralcraft.exec.ExecutionContext;
 
 import spiralcraft.util.Arguments;
 
-import spiralcraft.stream.StreamUtil;
-import spiralcraft.stream.Resource;
-import spiralcraft.stream.Resolver;
+import spiralcraft.vfs.StreamUtil;
+import spiralcraft.vfs.Resource;
+import spiralcraft.vfs.Resolver;
 
 import com.spiralcraft.httpd.AccessLogReader;
 import com.spiralcraft.httpd.AccessLogFormat;
