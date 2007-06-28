@@ -16,7 +16,7 @@
 package spiralcraft.pioneer.data.text;
 
 import com.spiralcraft.data.lang.ValueContext;
-import com.spiralcraft.data.lang.IterationContext;
+//import com.spiralcraft.data.lang.IterationContext;
 import com.spiralcraft.data.lang.BoundIterator;
 
 import com.spiralcraft.data.ContextProvider;
@@ -63,8 +63,11 @@ import spiralcraft.lang.Channel;
 import spiralcraft.lang.Focus;
 import spiralcraft.lang.Expression;
 import spiralcraft.lang.BindException;
+import spiralcraft.lang.OpticFactory;
+import spiralcraft.lang.IterationDecorator;
+import spiralcraft.lang.IterationContext;
 
-import spiralcraft.lang.decorators.IterationDecorator;
+import spiralcraft.lang.optics.ThreadLocalBinding;
 
 import spiralcraft.pioneer.data.lang.DataFocus;
 import spiralcraft.pioneer.data.lang.ValueContextOptic;
@@ -748,7 +751,7 @@ public class MergeTemplate
     { name="iterate";
     }
 
-    private IterationDecorator _iterator;
+    private IterationDecorator _iterationDecorator;
     private Channel _channel;
     private String _variable;
     private ValueContext _oldDefaultContext;
@@ -756,6 +759,7 @@ public class MergeTemplate
     private OrderDescriptor _order;
     private String _filterExpression;
     private String _expression;
+    private ThreadLocalBinding iterationContextBinding;
     
     public IterateTag(List attributes)
       throws ParseException
@@ -802,13 +806,19 @@ public class MergeTemplate
 //         )
 
       try
-      { _iterator =(IterationDecorator) _channel.decorate(IterationDecorator.class);
+      { 
+        _iterationDecorator =(IterationDecorator) _channel.decorate(IterationDecorator.class);
+        iterationContextBinding
+          =new ThreadLocalBinding<IterationContext>
+            (OpticFactory.getInstance()
+                .<IterationContext>findPrism(IterationContext.class)
+            );
       }
       catch (BindException x)
       { throw new ParseException(x.toString());
       }
         
-      if (_iterator==null)
+      if (_iterationDecorator==null)
       {
         throw new ParseException
           ("Cannot iterate through "
@@ -827,22 +837,23 @@ public class MergeTemplate
 
 // IMPORTANT 
 //      try
-//      { _iterator.setOrder(_order);
+//      { _iterationDecorator.setOrder(_order);
 //      }
 //      catch (com.spiralcraft.data.lang.ParseException x)
 //      { throw new ParseException(x);
 //      }
 // /IMPORTANT
 
+      
       // NEW      
       _defaultFocus=
         new DataFocus
           (_defaultFocus
-          ,_iterator
+          ,_iterationDecorator.createComponentBinding(iterationContextBinding)
           );
       // /NEW
       
-      //_defaultContext=_iterator.getComponentContext();
+      //_defaultContext=_iterationDecorator.getComponentContext();
       
 
     }
@@ -854,16 +865,18 @@ public class MergeTemplate
     public void write(Writer out)
       throws IOException
     {
-      _iterator.reset();
+      IterationContext iterator=_iterationDecorator.iterator();
+      
+      iterationContextBinding.push(iterator);
       _first=true;
       
-      while (_iterator.hasNext())
+      while (iterator.hasNext())
       { 
-        _iterator.next();
+        iterator.next();
         super.write(out);
         _first=false;
       }
-      
+      iterationContextBinding.pop();
       
     }
 
