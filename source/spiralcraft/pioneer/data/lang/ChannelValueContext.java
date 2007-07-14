@@ -21,9 +21,9 @@ import spiralcraft.lang.Channel;
 public class ChannelValueContext
   implements ValueContext
 {
-  private final Channel channel;
+  private final Channel<?> channel;
   
-  public ChannelValueContext(Channel channel)
+  public ChannelValueContext(Channel<?> channel)
   { this.channel=channel;
   }
   
@@ -31,7 +31,7 @@ public class ChannelValueContext
   { return channel.get();
   }
   
-  public Class getValueClass(ClassLoader classLoader)
+  public Class<?> getValueClass(ClassLoader classLoader)
   { return channel.getContentType();
   }
 }

@@ -14,12 +14,11 @@
 //
 package spiralcraft.pioneer.data.lang;
 
-import spiralcraft.lang.DefaultFocus;
-import spiralcraft.lang.Context;
-import spiralcraft.lang.Optic;
+import spiralcraft.lang.SimpleFocus;
+import spiralcraft.lang.Channel;
 
 import com.spiralcraft.data.DataEnvironment;
-import com.spiralcraft.data.ContextProvider;
+
 
 import com.spiralcraft.data.lang.ValueContext;
 
@@ -28,25 +27,31 @@ import java.util.Map;
 /**
  * Adapts legacy data.lang package to use new lang package
  */
-public class DataFocus
-  extends DefaultFocus
+public class DataFocus<T>
+  extends SimpleFocus<T>
 { 
   
   private DataEnvironment dataEnvironment;
-  private Map contextProviders;
-  private Optic defaultOptic;
+  private Map<String,ValueContext> contextProviders;
+  private Channel<T> defaultOptic;
   
   public DataFocus()
-  { setContext(new ContextImpl()); 
+  { 
+    // XXX MUST FIX THIS: NEED TO GRAFT CHANNEL INTERFACE ONTO 
+    //  BOTH contextProviders Map and dataEnvironment
+    // setContext(new ContextImpl()); 
   }
   
-  public DataFocus(DataFocus parent,Optic subject)
+  public DataFocus(DataFocus<?> parent,Channel<T> subject)
   { 
     this.dataEnvironment=parent.getDataEnvironment();
     this.contextProviders=parent.getContextProviders();
     this.defaultOptic=subject;
     setParentFocus(parent);
-    setContext(new ContextImpl());
+    
+    // XXX MUST FIX THIS: NEED TO GRAFT CHANNEL INTERFACE ONTO 
+    //  BOTH contextProviders Map and dataEnvironment
+    // setContext(new ContextImpl());
   }
   
   public void setDataEnvironment(DataEnvironment val)
@@ -57,30 +62,30 @@ public class DataFocus
   { return this.dataEnvironment;
   }
   
-  public void setContextProviders(Map val)
+  public void setContextProviders(Map<String,ValueContext> val)
   { this.contextProviders=val;
   }
   
-  public Map getContextProviders()
+  public Map<String,ValueContext> getContextProviders()
   { return this.contextProviders;
   }
 
+  @SuppressWarnings("unchecked") // Interfacing with non-generic system
   public void setDefaultContext(ValueContext val)
   { this.defaultOptic=new ValueContextOptic(val);
   }
   
-  public Optic getSubject()
+  public Channel<T> getSubject()
   { return this.defaultOptic;
   }
 
    
   class ContextImpl
-    implements Context
   {
     /**
      * Context.resolve(String name)
      */  
-    public Optic resolve(String name)
+    public Channel<?> resolve(String name)
     { 
      
       if (dataEnvironment!=null)
@@ -93,7 +98,7 @@ public class DataFocus
   
       if (contextProviders!=null)
       {
-        ValueContext context=(ValueContext) contextProviders.get(name);
+        ValueContext context=contextProviders.get(name);
         if (context!=null)
         { return new ValueContextOptic(context);
         }

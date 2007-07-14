@@ -17,20 +17,12 @@ package spiralcraft.pioneer.data.text;
 
 import com.spiralcraft.data.lang.ValueContext;
 //import com.spiralcraft.data.lang.IterationContext;
-import com.spiralcraft.data.lang.BoundIterator;
 
-import com.spiralcraft.data.ContextProvider;
-import com.spiralcraft.data.Context;
-import com.spiralcraft.data.EntityDescriptor;
-import com.spiralcraft.data.Entity;
-import com.spiralcraft.data.EntityList;
-import com.spiralcraft.data.FieldDescriptor;
 import com.spiralcraft.data.FieldTranslator;
 import com.spiralcraft.data.DataEnvironment;
 import com.spiralcraft.data.SimpleOrderDescriptor;
 import com.spiralcraft.data.OrderDescriptor;
 
-import com.spiralcraft.data.util.RelationUtil;
 
 import com.solidis.template.Parser;
 import com.solidis.template.TemplateHandler;
@@ -60,28 +52,27 @@ import spiralcraft.text.Encoder;
 import spiralcraft.util.StringUtil;
 
 import spiralcraft.lang.Channel;
-import spiralcraft.lang.Focus;
 import spiralcraft.lang.Expression;
 import spiralcraft.lang.BindException;
-import spiralcraft.lang.OpticFactory;
 import spiralcraft.lang.IterationDecorator;
 import spiralcraft.lang.IterationContext;
 
-import spiralcraft.lang.optics.ThreadLocalBinding;
+import spiralcraft.lang.spi.ThreadLocalBinding;
+import spiralcraft.lang.spi.BeanReflector;
 
 import spiralcraft.pioneer.data.lang.DataFocus;
-import spiralcraft.pioneer.data.lang.ValueContextOptic;
 
 public class MergeTemplate
 {
 
-  private DataFocus _defaultFocus=new DataFocus();
+  @SuppressWarnings("unchecked") // Not generic
+  private DataFocus<?> _defaultFocus=new DataFocus();
 
   private DateFormat _defaultDateFormat;
-  private Stack _tagStack=new Stack();
+  private Stack<Tag> _tagStack=new Stack<Tag>();
   private Tag _currentTag=new DocumentTag();
   private TagReader _tagReader=new TagReader();
-  private ClassLoader _classLoader;
+  // private ClassLoader _classLoader;
   private Encoder _encoder;
   private boolean _stripWhitespace;
 
@@ -147,7 +138,7 @@ public class MergeTemplate
   { _defaultFocus.setDataEnvironment(env);
   }
 
-  public void setContextProviders(Map contextProviders)
+  public void setContextProviders(Map<String,ValueContext> contextProviders)
   { _defaultFocus.setContextProviders(contextProviders);
   }
 
@@ -155,7 +146,7 @@ public class MergeTemplate
   { _defaultFocus.setDefaultContext(context);
   }
 
-  private Channel makeBinding(String expression)
+  private Channel<?> makeBinding(String expression)
     throws ParseException
   {
     try
@@ -212,6 +203,7 @@ public class MergeTemplate
   {
     private Tag _tag;
 
+    @SuppressWarnings("unchecked") // TagReader is not genericized
     public TagFragment(String tag)
       throws ParseException
     { 
@@ -268,7 +260,7 @@ public class MergeTemplate
               ("Else tag must be closed (must end with \"/\")"
               );
           }
-          _tag=new ElseTag(_tagReader.getAttributeList());
+          _tag=new ElseTag( _tagReader.getAttributeList());
         }
         else if (name=="iterate")
         { _tag=new IterateTag(_tagReader.getAttributeList());
@@ -322,11 +314,11 @@ public class MergeTemplate
   abstract class Tag
   {
  
-    private String _expression;
-    protected List fragments=new LinkedList();
+    // private String _expression;
+    protected List<Fragment> fragments=new LinkedList<Fragment>();
     protected String name;
     private Tag parent;
-    private HashMap _styleMap;
+    private HashMap<String,StyleTag> _styleMap;
 
     public void setParent(Tag val)
     { parent=val;
@@ -343,7 +335,7 @@ public class MergeTemplate
     public void write(Writer out)
       throws IOException
     {
-      Iterator it=fragments.iterator();
+      Iterator<Fragment> it=fragments.iterator();
       while (it.hasNext())
       { ((Fragment) it.next()).write(out);
       }
@@ -354,7 +346,7 @@ public class MergeTemplate
     {
     }
 
-    public Tag findAncestorWithClass(Class val)
+    public Tag findAncestorWithClass(Class<?> val)
     { 
       if (val.isAssignableFrom(getClass()))
       { return this;
@@ -370,7 +362,7 @@ public class MergeTemplate
     public void putStyle(String name,StyleTag style)
     { 
       if (_styleMap==null)
-      { _styleMap=new HashMap();
+      { _styleMap=new HashMap<String,StyleTag>();
       }
       _styleMap.put(name,style);
     }
@@ -399,13 +391,13 @@ public class MergeTemplate
     public DocumentTag()
     { }
     
-    public DocumentTag(List attributes)
+    public DocumentTag(List<Attribute> attributes)
       throws ParseException
     {
-      Iterator it=attributes.iterator();
+      Iterator<Attribute> it=attributes.iterator();
       while (it.hasNext())
       {
-        Attribute attribute=(Attribute) it.next();
+        Attribute attribute=it.next();
         String name=attribute.getName().intern();
         if (name=="stripWhitespace")
         { _stripWhitespace=attribute.getValue().equals("true");
@@ -430,10 +422,10 @@ public class MergeTemplate
     private Tag _parent;
     
     
-    public StyleTag(List attributes)
+    public StyleTag(List<Attribute> attributes)
       throws ParseException
     {
-      Iterator it=attributes.iterator();
+      Iterator<Attribute> it=attributes.iterator();
       while (it.hasNext())
       {
         Attribute attribute=(Attribute) it.next();
@@ -520,10 +512,10 @@ public class MergeTemplate
     extends Tag
   {
 
-    public StylePartTag(List attributes)
+    public StylePartTag(List<Attribute> attributes)
       throws ParseException
     {
-      Iterator it=attributes.iterator();
+      Iterator<Attribute> it=attributes.iterator();
       while (it.hasNext())
       {
         if (false)
@@ -542,7 +534,7 @@ public class MergeTemplate
     { name="before";
     }
 
-    public StyleBeforeTag(List attributes)
+    public StyleBeforeTag(List<Attribute> attributes)
       throws ParseException
     { 
       super(attributes);
@@ -562,7 +554,7 @@ public class MergeTemplate
     { name="after";
     }
 
-    public StyleAfterTag(List attributes)
+    public StyleAfterTag(List<Attribute> attributes)
       throws ParseException
     { 
       super(attributes);
@@ -581,18 +573,18 @@ public class MergeTemplate
     { name="if";
     }
 
-    private Channel _channel;
-    private List _positiveFragments;
-    private List _negativeFragments;
+    private Channel<?> _channel;
+    private List<Fragment> _positiveFragments;
+    private List<Fragment> _negativeFragments;
     private boolean _boolean;
 
-    public IfTag(List attributes)
+    public IfTag(List<Attribute> attributes)
       throws ParseException
     {
-      Iterator it=attributes.iterator();
+      Iterator<Attribute> it=attributes.iterator();
       while (it.hasNext())
       {
-        Attribute attribute=(Attribute) it.next();
+        Attribute attribute=it.next();
         String name=attribute.getName().intern();
         if (name=="expression")
         {
@@ -616,7 +608,7 @@ public class MergeTemplate
     public void elsePart()
     { 
       _positiveFragments=fragments;
-      _negativeFragments=new LinkedList();
+      _negativeFragments=new LinkedList<Fragment>();
       fragments=_negativeFragments;
     }
 
@@ -674,7 +666,7 @@ public class MergeTemplate
     { name="crlf";
     }
     
-    public CrlfTag(List attributes)
+    public CrlfTag(List<Attribute> attributes)
       throws ParseException
     {
       if (attributes.size()>0)
@@ -701,7 +693,7 @@ public class MergeTemplate
 
     private IterateTag _iterateTag;
 
-    public HeaderTag(List attributes)
+    public HeaderTag(List<Attribute> attributes)
       throws ParseException
     {
       if (_currentTag!=null)
@@ -729,7 +721,7 @@ public class MergeTemplate
   class ElseTag
     extends Tag
   {
-    public ElseTag(List attributes)
+    public ElseTag(List<Attribute> attributes)
       throws ParseException
     {
       if (_currentTag instanceof IfTag)
@@ -745,6 +737,7 @@ public class MergeTemplate
     }
   }
   
+  @SuppressWarnings("unchecked") // We're interfacing with non-generic code
   class IterateTag
     extends Tag
   {
@@ -752,22 +745,29 @@ public class MergeTemplate
     }
 
     private IterationDecorator _iterationDecorator;
-    private Channel _channel;
+    private Channel<?> _channel;
+    
+    @SuppressWarnings("unused") // XXX Use unused
     private String _variable;
-    private ValueContext _oldDefaultContext;
+//    private ValueContext _oldDefaultContext;
     private boolean _first;
+    @SuppressWarnings("unused") // XXX Use unused
     private OrderDescriptor _order;
+    @SuppressWarnings("unused") // XXX Use unused
     private String _filterExpression;
     private String _expression;
-    private ThreadLocalBinding iterationContextBinding;
     
-    public IterateTag(List attributes)
+    @SuppressWarnings("unchecked") // Heterogeneous iteration
+    private ThreadLocalBinding<IterationContext> iterationContextBinding;
+    
+    @SuppressWarnings("unchecked") // Heterogeneous iteration
+    public IterateTag(List<Attribute> attributes)
       throws ParseException
     {
-      Iterator it=attributes.iterator();
+      Iterator<Attribute> it=attributes.iterator();
       while (it.hasNext())
       {
-        Attribute attribute=(Attribute) it.next();
+        Attribute attribute=it.next();
         String name=attribute.getName().intern();
         if (name=="expression")
         { _expression=attribute.getValue().intern();
@@ -807,11 +807,12 @@ public class MergeTemplate
 
       try
       { 
-        _iterationDecorator =(IterationDecorator) _channel.decorate(IterationDecorator.class);
+        _iterationDecorator =(IterationDecorator<?,?>)
+          _channel.<IterationDecorator>decorate(IterationDecorator.class);
+        
         iterationContextBinding
           =new ThreadLocalBinding<IterationContext>
-            (OpticFactory.getInstance()
-                .<IterationContext>findPrism(IterationContext.class)
+            (BeanReflector.<IterationContext>getInstance(IterationContext.class)
             );
       }
       catch (BindException x)
@@ -822,7 +823,6 @@ public class MergeTemplate
       {
         throw new ParseException
           ("Cannot iterate through "
-          +_channel.getExpression()
           +" ("+_channel.getContentType()+")"
           );
       }
@@ -865,7 +865,7 @@ public class MergeTemplate
     public void write(Writer out)
       throws IOException
     {
-      IterationContext iterator=_iterationDecorator.iterator();
+      IterationContext<?> iterator=_iterationDecorator.iterator();
       
       iterationContextBinding.push(iterator);
       _first=true;
@@ -882,16 +882,16 @@ public class MergeTemplate
 
 
     public void closeDefinition()
-    { _defaultFocus=(DataFocus) _defaultFocus.getParentFocus();
+    { _defaultFocus=(DataFocus<?>) _defaultFocus.getParentFocus();
     }
   }
 
   class ExpressionTag
     extends Tag
   {
-    private Channel _channel;
+    private Channel<?> _channel;
     private FieldTranslator _translator;
-    private FieldDescriptor _descriptor;
+//    private FieldDescriptor _descriptor;
     private boolean _useEncoding;
 
 

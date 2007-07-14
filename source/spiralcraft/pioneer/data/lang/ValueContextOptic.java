@@ -17,21 +17,22 @@ package spiralcraft.pioneer.data.lang;
 import java.util.List;
 import java.util.ArrayList;
 
-import spiralcraft.lang.Optic;
-import spiralcraft.lang.OpticAdapter;
+import spiralcraft.lang.Channel;
+import spiralcraft.lang.ChannelAdapter;
 import spiralcraft.lang.Focus;
 import spiralcraft.lang.Expression;
 import spiralcraft.lang.BindException;
-import spiralcraft.lang.OpticFactory;
+import spiralcraft.lang.Reflector;
 
-import spiralcraft.lang.optics.Prism;
+import spiralcraft.lang.spi.BeanReflector;
 
 import com.spiralcraft.data.lang.ValueContext;
 import com.spiralcraft.data.lang.NameContext;
 import com.spiralcraft.data.lang.MethodContext;
 
+@SuppressWarnings("unchecked") // Legacy code will never use generics
 public class ValueContextOptic
-  extends OpticAdapter
+  extends ChannelAdapter
 {
  
   private final ValueContext valueContext;
@@ -45,7 +46,7 @@ public class ValueContextOptic
   { return this.valueContext.getValue();
   }
   
-  public Optic resolve(Focus focus,String name,Expression[] parameters)
+  public Channel resolve(Focus focus,String name,Expression[] parameters)
     throws BindException
   { 
     if (parameters==null)
@@ -63,7 +64,8 @@ public class ValueContextOptic
 
     if (this.valueContext instanceof MethodContext)
     {
-      List params=new ArrayList(parameters.length);
+      List<ChannelValueContext> params
+        =new ArrayList<ChannelValueContext>(parameters.length);
       for (int i=0;i<parameters.length;i++)
       { params.add(new ChannelValueContext(focus.bind(parameters[i])));
       }
@@ -79,11 +81,11 @@ public class ValueContextOptic
     return null;    
   }  
   
-  public Prism getPrism()
+  public Reflector getReflector()
   { 
     try
     {
-      return OpticFactory.getInstance().findPrism
+      return BeanReflector.getInstance
         (this.valueContext.getValueClass
           (Thread.currentThread().getContextClassLoader()
           )

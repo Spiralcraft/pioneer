@@ -50,18 +50,22 @@ import java.text.SimpleDateFormat;
 /**
  * Reads legacy log formats 
  */
+@SuppressWarnings("unchecked") // Legacy code will never use generics
 public class LegacyLogReader
   implements Executable
 {
   private String hostName; 
   private String readerClassName;
-  private List resourceNames=new ArrayList();
+  private List<String> resourceNames=new ArrayList<String>();
   private ExecutionContext context;
+  
+  @SuppressWarnings("unused") // XXX Use this
   private String dateFormatString;
+  
   private DateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.S");
   private String headerResourceName;
   private byte[] header;
-  private HashMap ipLookup=new HashMap();
+  private HashMap<String,String> ipLookup=new HashMap<String,String>();
 
   public void execute(ExecutionContext context,String[] args)
   {
@@ -108,10 +112,10 @@ public class LegacyLogReader
     throws IOException,ClassNotFoundException,InstantiationException,IllegalAccessException
   { 
 
-    Iterator it=resourceNames.iterator();
+    Iterator<String> it=resourceNames.iterator();
     while (it.hasNext())
     {
-      String resourceName=(String) it.next();
+      String resourceName=it.next();
       this.context.out().println(resourceName);
       process(resourceName);
     }
