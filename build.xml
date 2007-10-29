@@ -2,11 +2,10 @@
 
   <property name="classpath" value="${spiralcraft-main.jar}"/>
 
-	<property name="module" value="pioneer"/>
+  <property name="module" value="pioneer"/>
   <property name="version" value="1.0.0"/>
 	    
   <import file="build-common.xml"/>
-	  
-
+	
 </project>
 
