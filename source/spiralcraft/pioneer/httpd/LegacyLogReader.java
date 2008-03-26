@@ -23,8 +23,6 @@ import spiralcraft.vfs.StreamUtil;
 import spiralcraft.vfs.Resource;
 import spiralcraft.vfs.Resolver;
 
-import com.spiralcraft.httpd.AccessLogReader;
-import com.spiralcraft.httpd.AccessLogFormat;
 
 import java.io.InputStream;
 import java.io.BufferedReader;

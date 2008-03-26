@@ -1,5 +1,5 @@
 //
-// Copyright (c) 1998,2005 Michael Toth
+// Copyright (c) 1998,2008 Michael Toth
 // Spiralcraft Inc., All Rights Reserved
 //
 // This package is part of the Spiralcraft project and is licensed under
@@ -12,12 +12,32 @@
 // Unless otherwise agreed to in writing, this software is distributed on an
 // "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
 //
-package spiralcraft.pioneer.main;
+package spiralcraft.pioneer.httpd;
 
-public class SpiralD
-  
+/**
+ * Maps a path to a servlet
+ */
+public class HostMapping
 {
-  public static void main(String[] args)
-  { com.spiralcraft.main.SpiralD.main(args);
+
+  private HttpServiceContext context;
+  private String[] hostNames;
+  
+  public void setHostNames(String[] hostNames)
+  { this.hostNames=hostNames;
   }
+  
+  public String[] getHostNames()
+  { return hostNames;
+  }
+  
+  public void setContext(HttpServiceContext context)
+  { this.context=context;
+  }
+  
+  public HttpServiceContext getContext()
+  { return context;
+  }
+  
+  
 }

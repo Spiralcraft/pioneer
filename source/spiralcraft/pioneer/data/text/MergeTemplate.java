@@ -55,9 +55,9 @@ import spiralcraft.lang.Channel;
 import spiralcraft.lang.Expression;
 import spiralcraft.lang.BindException;
 import spiralcraft.lang.IterationDecorator;
-import spiralcraft.lang.IterationContext;
+import spiralcraft.lang.IterationCursor;
 
-import spiralcraft.lang.spi.ThreadLocalBinding;
+import spiralcraft.lang.spi.ThreadLocalChannel;
 import spiralcraft.lang.spi.BeanReflector;
 
 import spiralcraft.pioneer.data.lang.DataFocus;
@@ -758,7 +758,7 @@ public class MergeTemplate
     private String _expression;
     
     @SuppressWarnings("unchecked") // Heterogeneous iteration
-    private ThreadLocalBinding<IterationContext> iterationContextBinding;
+    private ThreadLocalChannel<IterationCursor> iterationContextBinding;
     
     @SuppressWarnings("unchecked") // Heterogeneous iteration
     public IterateTag(List<Attribute> attributes)
@@ -811,8 +811,8 @@ public class MergeTemplate
           _channel.<IterationDecorator>decorate(IterationDecorator.class);
         
         iterationContextBinding
-          =new ThreadLocalBinding<IterationContext>
-            (BeanReflector.<IterationContext>getInstance(IterationContext.class)
+          =new ThreadLocalChannel<IterationCursor>
+            (BeanReflector.<IterationCursor>getInstance(IterationCursor.class)
             );
       }
       catch (BindException x)
@@ -865,7 +865,7 @@ public class MergeTemplate
     public void write(Writer out)
       throws IOException
     {
-      IterationContext<?> iterator=_iterationDecorator.iterator();
+      IterationCursor<?> iterator=_iterationDecorator.iterator();
       
       iterationContextBinding.push(iterator);
       _first=true;

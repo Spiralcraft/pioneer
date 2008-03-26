@@ -17,6 +17,7 @@ package spiralcraft.pioneer.data.lang;
 import java.util.List;
 import java.util.ArrayList;
 
+import spiralcraft.lang.AccessException;
 import spiralcraft.lang.Channel;
 import spiralcraft.lang.ChannelAdapter;
 import spiralcraft.lang.Focus;
@@ -96,5 +97,29 @@ public class ValueContextOptic
       x.printStackTrace(); 
       return null;
     }
+  }
+
+
+  @Override
+  public void cache(Object key, Channel channel)
+  {
+    // TODO Auto-generated method stub
+    
+  }
+
+
+  @Override
+  public Channel getCached(Object key)
+  {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+
+  @Override
+  public boolean isWritable() throws AccessException
+  {
+    // TODO Auto-generated method stub
+    return false;
   }
 }

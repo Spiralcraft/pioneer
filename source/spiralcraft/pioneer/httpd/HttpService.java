@@ -1,5 +1,5 @@
 //
-// Copyright (c) 1998,2005 Michael Toth
+// Copyright (c) 1998,2008 Michael Toth
 // Spiralcraft Inc., All Rights Reserved
 //
 // This package is part of the Spiralcraft project and is licensed under
@@ -15,12 +15,11 @@
 package spiralcraft.pioneer.httpd;
 
 
-import com.solidis.net.QueueConnectionHandler;
-import com.solidis.net.Listener;
-import com.solidis.log.Log;
-import com.solidis.log.LogManager;
+import spiralcraft.pioneer.net.QueueConnectionHandler;
+import spiralcraft.pioneer.net.Listener;
+import spiralcraft.pioneer.log.Log;
+import spiralcraft.pioneer.log.LogManager;
 
-import com.spiralcraft.httpd.HttpServer;
 
 import spiralcraft.service.AmbiguousServiceException;
 import spiralcraft.service.Service;
@@ -28,7 +27,7 @@ import spiralcraft.service.ServiceException;
 import spiralcraft.service.ServiceResolver;
 
 /**
- * Run the com.spiralcraft.httpd.HttpServer as a Daemon
+ * Run the HttpServer as a Daemon
  * 
  */
 public class HttpService
