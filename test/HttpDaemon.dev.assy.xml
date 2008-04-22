@@ -1,12 +1,14 @@
-<service:Daemon
-  xmlns:service="class:/spiralcraft/service"
-    xmlns:httpd="class:/spiralcraft/pioneer/httpd"
-    xmlns:net="class:/spiralcraft/pioneer/net"
+<?xml version="1.0" encoding="WINDOWS-1252"?>
+<here:HttpDaemon 
+  xmlns:service="class:/spiralcraft/service" 
+  xmlns:httpd="class:/spiralcraft/pioneer/httpd" 
+  xmlns:net="class:/spiralcraft/pioneer/net"
+  xmlns:here="./"
   >
 
   <services>
   
-    <httpd:HttpService>
+    <here:HttpService>
  
       <listeners>
         <net:Listener>
@@ -16,53 +18,11 @@
 
         </net:Listener>
       </listeners>
- 
-            <serviceContext>
-                <httpd:SimpleHttpServiceContext>
-                    
-                    <documentRoot>webroot
-                    </documentRoot>
-
-          <maxSessionInactiveInterval>7200
-          </maxSessionInactiveInterval>
-                    
-                    <servletMappings>
-                    
-
-                        <httpd:ServletMapping>
-
-                            <servletName>file
-                            </servletName>
-
-                            <URLPattern>/
-                            </URLPattern>
-
-                        </httpd:ServletMapping>
-
-
-                    </servletMappings>
-                    
-                    <servletHolders>
-                        
-                        <httpd:ServletHolder>
-                            
-                            <servletName>file
-                            </servletName>
-                            
-                            <servletClass>spiralcraft.pioneer.httpd.FileServlet
-                            </servletClass>
-                            
-                        </httpd:ServletHolder>
-                        
-                    </servletHolders>
-                    
-                </httpd:SimpleHttpServiceContext>
-            
-                
-            </serviceContext>
-            
-      </httpd:HttpService>
       
-    </services>
-
-</service:Daemon>
+      <serviceContext.documentRoot>webroot
+      </serviceContext.documentRoot>
+      
+    </here:HttpService>
+  </services>
+</here:HttpDaemon>
+    

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="WINDOWS-1252"?>
+<service:Daemon 
+  xmlns:service="class:/spiralcraft/service" 
+  >
+
+  <services>
+
+  </services>
+</service:Daemon>

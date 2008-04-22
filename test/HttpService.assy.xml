@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="WINDOWS-1252"?>
+<httpd:HttpService 
+  xmlns:httpd="class:/spiralcraft/pioneer/httpd" 
+  xmlns:net="class:/spiralcraft/pioneer/net"
+  xmlns:here="./"
+  >
+ 
+  <listeners>
+
+  </listeners>
+      
+  <serviceContext>
+    <httpd:SimpleHttpServiceContext>
+                  
+      <documentRoot>webroot
+      </documentRoot>
+
+      <maxSessionInactiveInterval>7200
+      </maxSessionInactiveInterval>
+                    
+      <servletMappings>
+
+        <httpd:ServletMapping>
+        
+          <servletName>file
+          </servletName>
+        
+          <URLPattern>/
+          </URLPattern>
+        
+        </httpd:ServletMapping>
+
+      </servletMappings>
+                    
+      <servletHolders>
+                        
+        <httpd:ServletHolder>
+                            
+          <servletName>file
+          </servletName>
+                            
+          <servletClass>spiralcraft.pioneer.httpd.FileServlet
+          </servletClass>
+                            
+        </httpd:ServletHolder>
+                        
+      </servletHolders>
+                   
+    </httpd:SimpleHttpServiceContext>
+  </serviceContext>
+</httpd:HttpService>
+    

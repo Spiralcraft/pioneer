@@ -1,5 +1,5 @@
 <exec:ApplicationEnvironment.assy
-  xmlns:exec="java:/spiralcraft/exec"
+  xmlns:exec="class:/spiralcraft/exec"
   >
   <mainClass>spiralcraft.exec.Executor</mainClass>
   <modules>
