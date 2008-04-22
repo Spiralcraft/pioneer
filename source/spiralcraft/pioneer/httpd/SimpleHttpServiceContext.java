@@ -951,7 +951,7 @@ public class SimpleHttpServiceContext
     { _log.log(Log.MESSAGE,"Serving path '"+_docRoot.getPath()+"' for alias '"+_alias+"'");
     }
     if (_servletAliasMap!=null 
-        && _log.isDebugEnabled("com.spiralcraft.httpd.service")
+        && _log.isDebugEnabled(HttpServer.DEBUG_SERVICE)
         )
     { _log.log(Log.DEBUG,"Servlet alias map: "+_servletAliasMap.toString());
     }
@@ -1040,7 +1040,7 @@ public class SimpleHttpServiceContext
         }
       }
     }
-    if (_log.isDebugEnabled("com.spiralcraft.httpd.service"))
+    if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
     { _log.log(Log.DEBUG,"Checking servlet map for '"+servletAlias+"'");
     }
     String servletName=getServletNameForAlias(servletAlias);
@@ -1052,7 +1052,7 @@ public class SimpleHttpServiceContext
     
     if (servletName!=null)
     {
-      if (_log.isDebugEnabled("com.spiralcraft.httpd.service"))
+      if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
       { _log.log(Log.DEBUG,"Mapped to servlet named '"+servletName+"'");
       }
       filterChain=getFilterChain(servletName);
@@ -1061,7 +1061,7 @@ public class SimpleHttpServiceContext
       }
       request.setServletPath(servletPath);
       
-      if (_log.isDebugEnabled("com.spiralcraft.httpd.service"))
+      if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
       { 
         _log.log(Log.DEBUG,"servletPath="+request.getServletPath()
                   +" pathInfo="+request.getPathInfo()
@@ -1113,7 +1113,7 @@ public class SimpleHttpServiceContext
     
     realPath=getRealPath(request.getRequestURI());
 
-    if (_log.isDebugEnabled("com.spiralcraft.httpd.service"))
+    if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
     { _log.log(Log.DEBUG,"Locating interpreter for real path "+realPath);
     }
     
@@ -1137,7 +1137,7 @@ public class SimpleHttpServiceContext
         { throw new ServletException("Servlet '"+servletName+"' not found.");
         }
 
-        if (_log.isDebugEnabled("com.spiralcraft.httpd.service"))
+        if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
         { _log.log(Log.DEBUG,"Using servlet '"+servletName+"' for servletPath "
                     +request.getServletPath()+", file "+getRealPath(request.getServletPath())
                     );
@@ -1160,7 +1160,7 @@ public class SimpleHttpServiceContext
     
     String realPath=getRealPath(uri);
 
-    if (_log.isDebugEnabled("com.spiralcraft.httpd.service"))
+    if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
     { _log.log(Log.DEBUG,"Checking completion '"+realPath+"' for uri "
                 +uri
                 );
@@ -1318,7 +1318,7 @@ public class SimpleHttpServiceContext
       { 
         servletName=(String) _handlerMap.get(type);
         if (servletName!=null
-            && _log.isDebugEnabled("com.spiralcraft.httpd.service")
+            && _log.isDebugEnabled(HttpServer.DEBUG_SERVICE)
             )
         { 
           _log.log
@@ -1339,7 +1339,7 @@ public class SimpleHttpServiceContext
     if (servletName==null)
     { 
       if (_defaultServletName!=null
-          && _log.isDebugEnabled("com.spiralcraft.httpd.service")
+          && _log.isDebugEnabled(HttpServer.DEBUG_SERVICE)
           )
       { 
         _log.log

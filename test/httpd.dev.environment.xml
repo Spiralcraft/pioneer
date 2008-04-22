@@ -1,0 +1,8 @@
+<exec:ApplicationEnvironment.assy
+  xmlns:exec="class:/spiralcraft/exec/"
+  reference="Environments.assy.xml"
+  >
+  <commandLine>HttpDaemon.dev.assy -
+  </commandLine> 
+ 
+</exec:ApplicationEnvironment.assy>

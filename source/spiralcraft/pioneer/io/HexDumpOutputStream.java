@@ -22,7 +22,7 @@ public class HexDumpOutputStream
     HexDumpOutputStream out
       =new HexDumpOutputStream
         (new PrintWriter(new OutputStreamWriter(System.out),true));
-    StreamUtil.copyRaw(in,out,-1,8192);
+    StreamUtil.copyRaw(in,out,8192,-1);
     out.flush();
     out.close();
     in.close();

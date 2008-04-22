@@ -180,7 +180,7 @@ public class HttpServerRequest
       { throw new IOException("Invalid request: "+_requestLine);
       }
 
-      if (_log.isDebugEnabled("com.spiralcraft.httpd.protocol"))
+      if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
       { 
         _log.log(Log.DEBUG,">>> "+_method+" "+_requestURL
             +" "+_protocol); 
@@ -589,7 +589,7 @@ public class HttpServerRequest
  		int colonPos=header.indexOf(":");
  		var.name=header.substring(0,colonPos);
  		var.value=header.substring(colonPos+1).trim();
-    if (_log.isDebugEnabled("com.spiralcraft.httpd.protocol"))
+    if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
     { _log.log(Log.DEBUG,">>> "+var.name+": "+var.value); 
     }
  		_headers.add(var);
@@ -608,12 +608,12 @@ public class HttpServerRequest
         final Variable var=(Variable) it.next();
         try
         { 
-          if (_log.isDebugEnabled("com.spiralcraft.httpd.protocol"))
+          if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
           { _log.log(Log.DEBUG,"Reading cookie: ["+var.value+"]");
           }
           for (Cookie cookie : new CookieParser(var.value).parse())
           { 
-            if (_log.isDebugEnabled("com.spiralcraft.httpd.protocol"))
+            if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
             { _log.log(Log.DEBUG,"Got cookie: ["+cookie.getName()+","+cookie.getValue()+"]");
             }
             _cookieList.add(cookie);

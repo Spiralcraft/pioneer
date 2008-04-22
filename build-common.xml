@@ -1,7 +1,7 @@
 <project name="build-common">
 	<!--
 	  Master Template
-	  Last updated 2007-11-01 16:19
+	  Last updated 2008-03-28 16:19
   -->
 
   <property file="build.number"/>
@@ -49,6 +49,9 @@
       <include name="spiralcraft/**/*.class"/>
       <include name="spiralcraft/**/*.xml"/>
       <include name="spiralcraft/**/*.tgl"/>
+      <include name="spiralcraft/**/*.webui"/>
+      <include name="spiralcraft/**/*.ghtml"/>
+      <include name="spiralcraft/**/*.properties"/>
     </jar>
   </target>
 

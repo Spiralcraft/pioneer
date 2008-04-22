@@ -27,7 +27,7 @@ public abstract class AbstractLog
 
   public abstract void logEvent(Event evt);
 
-  private Map _debugProfile=new HashMap();
+  private Map<String,String> _debugProfile=new HashMap();
 
   public final Map getDebugProfile()
   { return _debugProfile;

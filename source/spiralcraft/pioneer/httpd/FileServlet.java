@@ -101,7 +101,7 @@ public class FileServlet
   public void service(HttpServletRequest request,HttpServletResponse response)
     throws IOException,ServletException
   {
-    if (_log.isDebugEnabled("com.spiralcraft.httpd.service"))
+    if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
     { _log.log(Log.DEBUG,"Servicing request for "+request.getRequestURI());
     }
     
@@ -125,7 +125,7 @@ public class FileServlet
     }
 
     File file=new File(path);
-    if (_log.isDebugEnabled("com.spiralcraft.httpd.service"))
+    if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
     { _log.log(Log.DEBUG,"File Servlet serving "+path);
     }
     
@@ -241,7 +241,7 @@ public class FileServlet
       Resource resource=Resolver.getInstance().resolve(new File(path).toURI());
       OutputStream out=resource.getOutputStream();
       InputStream in=request.getInputStream();
-      StreamUtil.copyRaw(in,out,contentLength,16384);
+      StreamUtil.copyRaw(in,out,16384,contentLength);
       out.flush();
       out.close();
       response.setStatus(201);
@@ -317,7 +317,6 @@ public class FileServlet
       setHeaders(request,response,resource);
       
       response.getOutputStream().flush();
-      
     }
     catch (FileNotFoundException x)
     {
@@ -433,8 +432,8 @@ public class FileServlet
       StreamUtil.copyRaw
         (resourceInputStream
         ,response.getOutputStream()
-        ,rangeHeader!=null?rangeHeader.getMaxBytes():-1
         ,_bufferSize
+        ,rangeHeader!=null?rangeHeader.getMaxBytes():-1
         );
       
       response.getOutputStream().flush();

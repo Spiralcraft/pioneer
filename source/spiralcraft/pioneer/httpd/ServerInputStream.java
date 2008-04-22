@@ -63,7 +63,7 @@ public final class ServerInputStream
    */
   public void discard(int bytes)
     throws IOException
-  { StreamUtil.copyRaw(_in,new NullOutputStream(),bytes,16384);
+  { StreamUtil.copyRaw(_in,new NullOutputStream(),16384,bytes);
   }
 
 	public final int read()

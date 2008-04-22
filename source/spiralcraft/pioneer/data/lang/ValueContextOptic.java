@@ -42,6 +42,9 @@ public class ValueContextOptic
   { this.valueContext=context;
   }
   
+  public void setDebug(boolean debug)
+  {
+  }
   
   public Object get()
   { return this.valueContext.getValue();

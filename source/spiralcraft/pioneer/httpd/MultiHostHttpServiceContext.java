@@ -58,7 +58,7 @@ public class MultiHostHttpServiceContext
       HttpServiceContext subContext=(HttpServiceContext) _hostMap.get(new CaseInsensitiveString(host));
       if (subContext!=null)
       { 
-        if (_log.isDebugEnabled("com.spiralcraft.httpd.service"))
+        if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
         { _log.log(Log.DEBUG,"Delegating to subcontext for "+host);
         }
         subContext.service(request,response);

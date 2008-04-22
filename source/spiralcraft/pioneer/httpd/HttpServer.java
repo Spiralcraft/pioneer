@@ -24,6 +24,7 @@ import spiralcraft.pioneer.util.ThrowableUtil;
 
 
 import java.net.Socket;
+import java.util.HashMap;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -67,13 +68,54 @@ public class HttpServer
   private Register _uncaughtIoExceptionsRegister;
   private Register _uncaughtRuntimeExceptionsRegister;
   private Register _uncaughtServletExceptionsRegister;
-  private int _connectionCount=0;
-
-
+  private int _connectionCount=0;  
+ 
+  private HashMap<String,String> debugMap
+    =new HashMap<String,String>();
+  
   public void setServerInfo(String serverInfo)
   { _serverInfo=serverInfo;
   }
   
+  public void setDebugProtocol(boolean val)
+  { 
+    if (val)
+    { 
+      _log.setLevel(Log.DEBUG);
+      _log.setDebugProfile(debugMap);
+      debugMap.put(DEBUG_PROTOCOL,"true");
+    }
+    else
+    { debugMap.remove(DEBUG_PROTOCOL);
+    }
+  }
+  
+  public void setDebugService(boolean val)
+  { 
+    if (val)
+    { 
+      _log.setLevel(Log.DEBUG);
+      _log.setDebugProfile(debugMap);
+      debugMap.put(DEBUG_SERVICE,"true");
+    }
+    else
+    { debugMap.remove(DEBUG_SERVICE);
+    }
+  }
+
+  public void setDebugIO(boolean val)
+  { 
+    if (val)
+    { 
+      _log.setLevel(Log.DEBUG);
+      _log.setDebugProfile(debugMap);
+      debugMap.put(DEBUG_IO,"true");
+    }
+    else
+    { debugMap.remove(DEBUG_IO);
+    }
+  }
+
   public void wroteBytes(int count)
   { 
     if (_meter!=null)
