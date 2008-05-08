@@ -39,11 +39,12 @@ import java.util.Enumeration;
 import java.util.Set;
 import java.util.Vector;
 import java.util.Hashtable;
-import java.util.Properties;
 
-
+import spiralcraft.util.IteratorEnumeration;
+import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
 
+import spiralcraft.builder.LifecycleException;
 import spiralcraft.pioneer.io.Governer;
 import spiralcraft.pioneer.io.SimpleGoverner;
 import spiralcraft.pioneer.io.Filename;
@@ -97,7 +98,7 @@ public class SimpleHttpServiceContext
   private HashMap<String,String> _handlerMap=null;
   private HashMap<String,String> _servletAliasMap=null;
   private String _serverInfo="Spiralcraft Web Server v"+version;
-  private URL _baseUrl;
+//  private URL _baseUrl;
   private Hashtable<String,Object> _attributes;
   private String _defaultUriCompletion;
 	private int _requestsHandled = 0;
@@ -114,7 +115,9 @@ public class SimpleHttpServiceContext
     _authenticatedMethods.put("PUT","PUT");
   }
   private boolean _authenticateAllMethods=false;
-  private Properties _initParameters=new Properties();
+  private HashMap<String,String> _initParameters
+    =new HashMap<String,String>();
+  
   private int _maxSessionInactiveInterval=600;
 
   private Meter _meter;
@@ -123,6 +126,8 @@ public class SimpleHttpServiceContext
   private IpFilter _deniedIpFilter;
   
   private Controller controller=new Controller();
+  
+  private WARClassLoader contextClassLoader;
 
   public void setAllowedIpFilter(IpFilter val)
   { _allowedIpFilter=val;
@@ -210,45 +215,70 @@ public class SimpleHttpServiceContext
       
       if (preFilter(request,response))
       {
-        FilterChain filterChain=getFilterChainForRequest(request);
+        
+        // Push the ClassLoader for this context
+        ClassLoader lastLoader=null;
+        if (contextClassLoader!=null)
+        { 
+          lastLoader=Thread.currentThread().getContextClassLoader();
+          Thread.currentThread().setContextClassLoader(contextClassLoader);
+        }
+        
+        // Ensure we always pop the ClassLoader if set
         try
         {
-          if (filterChain!=null)
-          { 
-            // This is the main act
-            controller.doFilter((ServletRequest) request,(ServletResponse) response,filterChain);
-          }
-          else
+          
+          FilterChain filterChain=getFilterChainForRequest(request);
+          try
           {
-            _log.log
-              (Log.ERROR
-              ,"No servlet configured to handle request for http://"
-                +request.getHeader("Host")
-                +request.getRequestURI()
-              ); 
-            response.sendError(404);
+            if (filterChain!=null)
+            { 
+              // This is the main act
+              controller.doFilter
+                ((ServletRequest) request
+                ,(ServletResponse) response
+                ,filterChain
+                );
+            }
+            else
+            {
+              _log.log
+                (Log.ERROR
+                ,"No servlet configured to handle request for http://"
+                  +request.getHeader("Host")
+                  +request.getRequestURI()
+                ); 
+              response.sendError(404);
+            }
+          }
+          catch (ServletException x)
+          {
+            _log.log(Log.ERROR
+                    ,"ServletException handling "
+                      +"http://"+request.getHeader("Host")+request.getRequestURI()
+                      +": "+x.toString()
+                    );
+          }
+          catch (IOException x)
+          { throw x;
+          }
+          catch (Exception x)
+          {
+            _log.log(Log.ERROR
+                    ,"Uncaught Exception handling "
+                      +"http://"+request.getHeader("Host")+request.getRequestURI()
+                      +": "+ThrowableUtil.getStackTrace(x)
+                    );
+            response.sendError(500);
           }
         }
-        catch (ServletException x)
+        finally
         {
-          _log.log(Log.ERROR
-                  ,"ServletException handling "
-                    +"http://"+request.getHeader("Host")+request.getRequestURI()
-                    +": "+x.toString()
-                  );
+          if (lastLoader!=null)
+          { Thread.currentThread().setContextClassLoader(lastLoader);
+          }
         }
-        catch (IOException x)
-        { throw x;
-        }
-        catch (Exception x)
-        {
-          _log.log(Log.ERROR
-                  ,"Uncaught Exception handling "
-                   +"http://"+request.getHeader("Host")+request.getRequestURI()
-                   +": "+ThrowableUtil.getStackTrace(x)
-                  );
-          response.sendError(500);
-        }
+        
       }
     }
     catch (ServletException x)
@@ -262,6 +292,7 @@ public class SimpleHttpServiceContext
     }
     finally
     {
+      
       if (_accessLog!=null && (request instanceof HttpServerRequest))
       { _accessLog.log((HttpServerRequest) request,(HttpServerResponse) response);
       }	
@@ -334,7 +365,8 @@ public class SimpleHttpServiceContext
   /**
    * Return a list of attribute names
    */
-  public Enumeration getAttributeNames()
+  @SuppressWarnings("unchecked") // Servlet API not generic
+  public Enumeration<String> getAttributeNames()
   { 
     if (_attributes!=null)
     { return _attributes.keys();
@@ -420,15 +452,15 @@ public class SimpleHttpServiceContext
   /**
    * Return the init parameter names
    */
-  public Enumeration getInitParameterNames()
-  { return _initParameters.keys();
+  public Enumeration<String> getInitParameterNames()
+  { return new IteratorEnumeration<String>(_initParameters.keySet().iterator());
   }
 
   /**
    * Return an init parameter
    */
   public String getInitParameter(String name)
-  { return _initParameters.getProperty(name);
+  { return _initParameters.get(name);
   }
 
   /**
@@ -481,45 +513,25 @@ public class SimpleHttpServiceContext
     }
     return null;
   }
-  
-  /**
-   * Return an instance of the servlet with the specified name
-   */
-  public Servlet getServletInstance(String name)
-    throws ServletException
-  { 
-    Servlet servlet=null;
-    if (_servletMap!=null)
-    { 
-      ServletHolder holder=_servletMap.get(name);
-      if (holder!=null)
-      { servlet=holder.getServlet();
-      }
-    }
-    if (servlet==null && _parentContext!=null)
-    { servlet=_parentContext.getServletInstance(name);
-    }
-    return servlet;
-  }
 
   /**
    * Deprecated
    *@deprecated
    */  
-  public Enumeration getServlets()
+  public Enumeration<Servlet> getServlets()
   { 
     new Exception("Deprecated method invoked").printStackTrace();
-    return new Vector().elements();
+    return new Vector<Servlet>().elements();
   }
 
   /**
    * Deprecated
    *@deprecated
    */
-  public Enumeration getServletNames()
+  public Enumeration<String> getServletNames()
   { 
     new Exception("Deprecated method invoked").printStackTrace();
-    return new Vector().elements();
+    return new Vector<String>().elements();
   }
 
   /**
@@ -889,14 +901,15 @@ public class SimpleHttpServiceContext
       }
     }
 
-    try
-    { _baseUrl=new URL("http",_hostName,_port,"/");
-    }
-    catch (MalformedURLException x)
-    { 
-      _log.log(Log.ERROR,x.toString());
-      throw new RuntimeException(x.toString());
-    }
+//    try
+//    { _baseUrl=new URL("http",_hostName,_port,"/");
+//    }
+//   catch (MalformedURLException x)
+//    { 
+//      _log.log(Log.ERROR,x.toString());
+//     throw new RuntimeException(x.toString());
+//    }
+    
     if (_parentContext==null)
     {
       if (_sessionManager==null)
@@ -956,6 +969,7 @@ public class SimpleHttpServiceContext
     { _log.log(Log.DEBUG,"Servlet alias map: "+_servletAliasMap.toString());
     }
 
+    loadWAR();
     startServlets();
     startFilters();
 
@@ -967,6 +981,20 @@ public class SimpleHttpServiceContext
     if (_sessionManager!=null && (_sessionManager instanceof SimpleHttpSessionManager))
     { ((SimpleHttpSessionManager) _sessionManager).stop();
     }
+    
+    if (contextClassLoader!=null)
+    { 
+      try
+      { contextClassLoader.stop();
+      }
+      catch (LifecycleException x)
+      { 
+        _log.log(Log.WARNING,"Error stoppic WAR ClassLoader: "+x.toString());
+        x.printStackTrace();
+      }
+      contextClassLoader=null;
+    }
+    
   }
 
   /**
@@ -1221,7 +1249,7 @@ public class SimpleHttpServiceContext
       try
       {
         if (!_authenticator.isAuthenticated(request) 
-            && !_authenticator.authenticate(request,response,new HashMap())
+            && !_authenticator.authenticate(request,response,new HashMap<String,String>())
             )
         { return false;
         }
@@ -1382,7 +1410,7 @@ public class SimpleHttpServiceContext
       { return null;
       }
 
-      public Enumeration getInitParameterNames()
+      public Enumeration<String> getInitParameterNames()
       { return null;
       }
 
@@ -1401,7 +1429,27 @@ public class SimpleHttpServiceContext
     }
   }
   
-  public Set getResourcePaths(String arg0)
+  private void loadWAR()
+  {
+    try
+    {
+      Resource docRoot=Resolver.getInstance().resolve(_docRoot.toURI());
+      Resource warRoot=docRoot.asContainer().getChild("WEB-INF");
+      if (warRoot.exists())
+      { 
+        contextClassLoader=new WARClassLoader(warRoot);
+        contextClassLoader.start();
+      }
+    }
+    catch (IOException x)
+    { _log.log(Log.ERROR,"Error loading WAR ClassLoader: "+x.toString());
+    }
+    catch (LifecycleException x)
+    { _log.log(Log.ERROR,"Error loading WAR ClassLoader: "+x.toString());
+    }
+  }
+  
+  public Set<String> getResourcePaths(String arg0)
   {
     // TODO Auto-generated method stub
     _log.log(Log.ERROR,"getResourcePaths() not implemented");

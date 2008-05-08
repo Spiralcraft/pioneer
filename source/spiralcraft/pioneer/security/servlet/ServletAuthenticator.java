@@ -32,7 +32,7 @@ public interface ServletAuthenticator
   public boolean authenticate
     (HttpServletRequest request
     ,HttpServletResponse response
-    ,HashMap formData
+    ,HashMap<String,String> formData
     )
     throws SecurityException,IOException;
 
@@ -57,5 +57,5 @@ public interface ServletAuthenticator
    * Indicate whether login data appears in the dictionary of
    *   form data.
    */
-  public boolean attemptedLogin(HashMap formData);
+  public boolean attemptedLogin(HashMap<String,String> formData);
 }

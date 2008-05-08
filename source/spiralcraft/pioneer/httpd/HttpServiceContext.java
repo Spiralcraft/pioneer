@@ -18,7 +18,6 @@
  */
 package spiralcraft.pioneer.httpd;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.FilterChain;
@@ -78,13 +77,6 @@ public interface HttpServiceContext
    *   internally by contexts with parents.
    */
   FilterChain getFilterChain(String name)
-    throws ServletException;
-
-  /**
-   * Get the servlet with the specified name. Used
-   *   internally by contexts with parents.
-   */
-  Servlet getServletInstance(String name)
     throws ServletException;
 
   /**
