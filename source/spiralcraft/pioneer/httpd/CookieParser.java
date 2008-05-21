@@ -78,9 +78,11 @@ public class CookieParser
     while (pos<header.length())
     { 
       readPair();
-      if (cookie!=null)
-      { result.add(cookie);
-      }
+    }
+    if (cookie!=null)
+    { 
+      // Deal with last one
+      result.add(cookie);
     }
     
     
@@ -95,11 +97,13 @@ public class CookieParser
     if (attr==null)
     { throw new ParseException("Cookie: No attribute found",pos);
     }
+    attr=attr.trim();
     
     String valspec=readUntil(';');
     if (valspec==null)
     { throw new ParseException("Cookie: No value found",pos);
     }
+    valspec=valspec.trim();
 
     if (attr.equalsIgnoreCase("$path"))
     { 
