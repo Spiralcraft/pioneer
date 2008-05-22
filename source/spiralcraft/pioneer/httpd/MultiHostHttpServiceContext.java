@@ -21,6 +21,7 @@ package spiralcraft.pioneer.httpd;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import java.io.IOException;
 
@@ -39,6 +40,9 @@ public class MultiHostHttpServiceContext
   private HashMap<CaseInsensitiveString,HttpServiceContext> _hostMap
     =new HashMap<CaseInsensitiveString,HttpServiceContext>();
   
+  private LinkedList<HttpServiceContext> _hostList
+    =new LinkedList<HttpServiceContext>();
+  
   private HashMap _suppliedHostMap;
   private HttpServiceContext _defaultServiceContext;
 
@@ -55,7 +59,8 @@ public class MultiHostHttpServiceContext
       if (portPos>=0)
       { host=host.substring(0,portPos);
       }
-      HttpServiceContext subContext=(HttpServiceContext) _hostMap.get(new CaseInsensitiveString(host));
+      HttpServiceContext subContext
+        =(HttpServiceContext) _hostMap.get(new CaseInsensitiveString(host));
       if (subContext!=null)
       { 
         if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
@@ -84,6 +89,22 @@ public class MultiHostHttpServiceContext
     }
   }
 
+  public void startService()
+  { 
+    super.startService();
+    for (HttpServiceContext context : _hostList)
+    { context.startService();
+    }
+  }
+  
+  public void stopService()
+  { 
+    for (HttpServiceContext context : _hostList)
+    { context.stopService();
+    }
+    super.stopService();
+  }
+
   public void init()
   {
     if (_suppliedHostMap!=null)
@@ -101,6 +122,7 @@ public class MultiHostHttpServiceContext
         HttpServiceContext context=(HttpServiceContext) _suppliedHostMap.get(key);
         context.setParentContext(this);
         _hostMap.put(new CaseInsensitiveString(key),context);
+        _hostList.add(context);
       }
     }
     super.init();
@@ -122,6 +144,7 @@ public class MultiHostHttpServiceContext
       for (String hostName : mapping.getHostNames())
       { _hostMap.put(new CaseInsensitiveString(hostName),mapping.getContext());
       }
+      _hostList.add(mapping.getContext());
     }
     
   }

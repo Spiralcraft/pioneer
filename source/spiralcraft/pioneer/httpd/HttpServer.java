@@ -69,6 +69,8 @@ public class HttpServer
   private Register _uncaughtRuntimeExceptionsRegister;
   private Register _uncaughtServletExceptionsRegister;
   private int _connectionCount=0;  
+  private boolean started;
+  private boolean stopping;
  
   private HashMap<String,String> debugMap
     =new HashMap<String,String>();
@@ -154,32 +156,53 @@ public class HttpServer
   { return _serviceContext;
   }
   
-  public void startService()
+  public synchronized void startService()
   {
-    if (_serviceContext==null)
-    { 
-      SimpleHttpServiceContext serviceContext=new SimpleHttpServiceContext();
-      if (_meter!=null)
-      { serviceContext.installMeter(_meter.createChildMeter("defaultContext"));
+    stopping=false;
+    try
+    {
+      if (_serviceContext==null)
+      { 
+        SimpleHttpServiceContext serviceContext=new SimpleHttpServiceContext();
+        if (_meter!=null)
+        { serviceContext.installMeter(_meter.createChildMeter("defaultContext"));
+        }
+        serviceContext.init();
+        _serviceContext=serviceContext;
       }
-      serviceContext.init();
-      _serviceContext=serviceContext;
+    
+      if (_serverInfo==null)
+      {
+        if (version!=null)
+        { _serverInfo="Spiralcraft Web Server v"+version;
+        }
+        else
+        { _serverInfo="Spiralcraft Web Server";
+        }
+      }
+      started=true;
+    }
+    finally
+    { notifyAll();
     }
     
-    if (_serverInfo==null)
-    {
-      if (version!=null)
-      { _serverInfo="Spiralcraft Web Server v"+version;
-      }
-      else
-      { _serverInfo="Spiralcraft Web Server";
-      }
-    }
   }
 
-  public void stopService()
-  {
+  public synchronized void stopService()
+  { 
+    stopping=true;
+    started=false;
+    try
+    {
+      if (_serviceContext==null)
+      { _serviceContext.stopService();
+      }
+    }
+    finally
+    { notifyAll();
+    }
   }
+  
 
   public ConnectionHandler createConnectionHandler()
   { return new HttpConnectionHandler();
@@ -201,8 +224,52 @@ public class HttpServer
       _response.setHttpServer(HttpServer.this);
     }
 
+    private boolean ensureRunning()
+    {
+      if (stopping)
+      { return false;
+      }
+      
+      if (!started)
+      {
+        // Make sure we're started before allowing connections
+        synchronized (this)
+        {
+          if (stopping)
+          { return false;
+          }
+          
+          if (!started)
+          { 
+            try
+            { wait();
+            }
+            catch (InterruptedException x)
+            { return false;
+            }
+            
+            if (!started)
+            { return false;
+            }
+          }
+            
+        }
+      }
+      return true;
+    }
+    
     public void handleConnection(Socket socket)
     {
+      if (!ensureRunning())
+      { 
+        try
+        { socket.close();
+        }
+        catch (IOException x)
+        { }
+        return;
+      }
+      
       if (_meter!=null)
       {
         _connectionCount++;
