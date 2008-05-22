@@ -221,7 +221,12 @@ public class SimpleHttpServiceContext
         if (contextClassLoader!=null)
         { 
           lastLoader=Thread.currentThread().getContextClassLoader();
-          Thread.currentThread().setContextClassLoader(contextClassLoader);
+          if (lastLoader!=contextClassLoader)
+          { Thread.currentThread().setContextClassLoader(contextClassLoader);
+          }
+          else
+          { lastLoader=null;
+          }
         }
         
         // Ensure we always pop the ClassLoader if set
@@ -970,8 +975,32 @@ public class SimpleHttpServiceContext
     }
 
     loadWAR();
-    startServlets();
-    startFilters();
+    
+    // Push the ClassLoader for this context
+    ClassLoader lastLoader=null;
+    if (contextClassLoader!=null)
+    { 
+      lastLoader=Thread.currentThread().getContextClassLoader();
+      if (lastLoader!=contextClassLoader)
+      { Thread.currentThread().setContextClassLoader(contextClassLoader);
+      }
+      else
+      { lastLoader=null;
+      }
+    }
+        
+    // Ensure we always pop the ClassLoader if set
+    try
+    {    
+      startServlets();
+      startFilters();
+    }
+    finally
+    {
+      if (lastLoader!=null)
+      { Thread.currentThread().setContextClassLoader(lastLoader);
+      }
+    }
 
 		_startTime = Clock.instance().approxTimeMillis();
   }
@@ -989,7 +1018,7 @@ public class SimpleHttpServiceContext
       }
       catch (LifecycleException x)
       { 
-        _log.log(Log.WARNING,"Error stoppic WAR ClassLoader: "+x.toString());
+        _log.log(Log.WARNING,"Error stopping WAR ClassLoader: "+x.toString());
         x.printStackTrace();
       }
       contextClassLoader=null;
