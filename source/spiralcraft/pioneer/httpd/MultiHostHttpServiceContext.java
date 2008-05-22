@@ -20,7 +20,6 @@
 package spiralcraft.pioneer.httpd;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import java.io.IOException;
@@ -43,7 +42,6 @@ public class MultiHostHttpServiceContext
   private LinkedList<HttpServiceContext> _hostList
     =new LinkedList<HttpServiceContext>();
   
-  private HashMap _suppliedHostMap;
   private HttpServiceContext _defaultServiceContext;
 
   
@@ -103,38 +101,6 @@ public class MultiHostHttpServiceContext
     { context.stopService();
     }
     super.stopService();
-  }
-
-  public void init()
-  {
-    if (_suppliedHostMap!=null)
-    {
-      _hostMap=new HashMap();
-    
-      if (_log.isLevel(Log.DEBUG))
-      { _log.log(_log.DEBUG,"HostMap="+_suppliedHostMap.keySet());
-      }
-
-      Iterator it=_suppliedHostMap.keySet().iterator();
-      while (it.hasNext())
-      {
-        String key=(String) it.next();
-        HttpServiceContext context=(HttpServiceContext) _suppliedHostMap.get(key);
-        context.setParentContext(this);
-        _hostMap.put(new CaseInsensitiveString(key),context);
-        _hostList.add(context);
-      }
-    }
-    super.init();
-  }
-
-  /**
-   * Deprecated 
-   * @deprecated
-   * @param hostMap
-   */
-  public void setHostMap(HashMap hostMap)
-  { _suppliedHostMap=hostMap;
   }
 
   public void setHostMappings(HostMapping[] hostMappings)
