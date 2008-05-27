@@ -568,7 +568,11 @@ public class SimpleHttpServiceContext
    */
   public URL getResource(String name)
     throws MalformedURLException
-  { return _docRoot.toURI().resolve(name.substring(1)).toURL();
+  { 
+    if (!name.startsWith("/"))
+    { throw new MalformedURLException(name+" does not start with '/'");
+    }
+    return _docRoot.toURI().resolve(name.substring(1)).toURL();
   }
 
   /**
@@ -585,7 +589,8 @@ public class SimpleHttpServiceContext
       }
     }
     catch (Exception x)
-    { }
+    { throw new IllegalArgumentException(x);
+    }
     return null;
   }
 
