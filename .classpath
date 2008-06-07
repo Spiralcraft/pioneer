@@ -5,6 +5,6 @@
 	<classpathentry kind="lib" path="lib/java-servlet-2.3.jar"/>
 	<classpathentry kind="lib" path="lib/spiralcraft-core.jar" sourcepath="/spiralcraft-modules-core/source"/>
 	<classpathentry kind="lib" path="lib/spiralcraft-servlet.jar" sourcepath="/spiralcraft-modules-servlet/source"/>
-	<classpathentry kind="lib" path="lib/spiralcraft-pioneer-legacy.jar"/>
-	<classpathentry kind="output" path="source"/>
+	<classpathentry kind="lib" path="lib/spiralcraft-main.jar"/>
+	<classpathentry kind="output" path="out"/>
 </classpath>

@@ -250,6 +250,7 @@ public class HttpServerResponse
     }    
   }
 
+  @SuppressWarnings("deprecation")
   public void setStatus(int code,String message)
   {
     _status=code;

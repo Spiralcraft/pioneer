@@ -16,6 +16,7 @@ package spiralcraft.pioneer.httpd;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
+
 import javax.servlet.http.HttpSessionContext;
 
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import spiralcraft.pioneer.telemetry.Register;
 import spiralcraft.pioneer.telemetry.Meterable;
 
 
+@SuppressWarnings("deprecation")
 public class SimpleHttpSessionManager
   implements HttpSessionManager
             ,HttpSessionContext

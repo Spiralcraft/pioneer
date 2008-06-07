@@ -17,7 +17,10 @@
  */
 package spiralcraft.pioneer.httpd;
 
+import spiralcraft.builder.Lifecycle;
+
 public interface AccessLog
+  extends Lifecycle
 {
   public void log
     (HttpServerRequest request

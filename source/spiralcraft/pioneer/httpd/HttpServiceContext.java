@@ -50,6 +50,13 @@ public interface HttpServiceContext
   public HttpSessionManager getSessionManager();
 
   /**
+   * Return the AccessLog associated with
+   *   this Service Context, which will be inherited from a parent context if
+   *   none is supplied via the setAccessLog() method.
+   */
+  public AccessLog getAccessLog();
+  
+  /**
    * The hostname of the server
    */
   public String getName();

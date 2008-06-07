@@ -67,26 +67,16 @@ public class MultiAliasHttpServiceContext
       HttpServiceContext subContext=(HttpServiceContext) _aliasMap.get(alias);
       if (subContext!=null)
       {
-        try
-        {
-          if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-          { _log.log(Log.DEBUG,"Delegating to subcontext for alias "+alias);
-          }
-          if (getAlias()!=null)
-          { request.setAlias(getAlias()+"/"+alias);
-          }
-          else
-          { request.setAlias(alias);
-          }
-          subContext.service(request,response);
+        if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
+        { _log.log(Log.DEBUG,"Delegating to subcontext for alias "+alias);
         }
-        finally
-        {
-          if (_accessLog!=null && (request instanceof HttpServerRequest))
-          { _accessLog.log
-              ((HttpServerRequest) request,(HttpServerResponse) response);
-          }
+        if (getAlias()!=null)
+        { request.setAlias(getAlias()+"/"+alias);
         }
+        else
+        { request.setAlias(alias);
+        }
+        subContext.service(request,response);
       }
       else
       { 

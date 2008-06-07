@@ -111,6 +111,7 @@ public class MultiHostHttpServiceContext
       { _hostMap.put(new CaseInsensitiveString(hostName),mapping.getContext());
       }
       _hostList.add(mapping.getContext());
+      mapping.getContext().setParentContext(this);
     }
     
   }

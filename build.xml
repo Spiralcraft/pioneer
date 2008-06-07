@@ -4,12 +4,17 @@
   <property name="module" value="pioneer"/>
   <property name="version" value="1.0.0"/>
 
-  <property name="classpath" 
-    value="lib/spiralcraft-core.jar;lib/spiralcraft-net.jar;lib/java-servlet-2.3.jar"
-  />	    
+  <path id="classpath">
+    <pathelement location="lib/spiralcraft-core.jar"/>
+    <pathelement location="lib/spiralcraft-net.jar"/>
+    <pathelement location="lib/spiralcraft-servlet.jar"/>
+    <pathelement location="lib/java-servlet-2.3.jar"/>
+  </path>
 
+  <property name="classpath" refid="classpath"/>
+  
   <property name="manifest.class.path" 
-    value="spiralcraft-core.jar spiralcraft-net.jar java-servlet-2.3.jar"
+    value="spiralcraft-core.jar spiralcraft-net.jar spiralcraft-servlet.jar java-servlet-2.3.jar"
   />        
 
   <import file="build-common.xml"/>

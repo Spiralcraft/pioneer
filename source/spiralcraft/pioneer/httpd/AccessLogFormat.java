@@ -23,10 +23,6 @@
  */
 package spiralcraft.pioneer.httpd;
 
-import java.util.Map;
-
-import java.text.ParseException;
-
 public interface AccessLogFormat
 {
   public static final String TIME="time";
@@ -53,16 +49,6 @@ public interface AccessLogFormat
    */
   public String format(HttpServerRequest request,HttpServerResponse response);
 
-  /**
-   * Read the header, if this format writes a header.
-   */
-  public void readHeader(String header);
   
-  /**
-   * Read a line written by this format
-   */
-  public Map readData(String data)
-    throws ParseException;
-
 }
 

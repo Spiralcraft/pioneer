@@ -45,6 +45,7 @@ import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
 
 import spiralcraft.builder.LifecycleException;
+import spiralcraft.log.ClassLogger;
 import spiralcraft.pioneer.io.Governer;
 import spiralcraft.pioneer.io.SimpleGoverner;
 import spiralcraft.pioneer.io.Filename;
@@ -63,6 +64,7 @@ import spiralcraft.pioneer.log.LogManager;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Level;
 
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -82,7 +84,10 @@ public class SimpleHttpServiceContext
   implements HttpServiceContext
             ,Meterable
 {
+  private static final ClassLogger log
+    =ClassLogger.getInstance(SimpleHttpServiceContext.class);
   private static final String version="1.0pre1";
+  
   //private static final String DEBUG_GROUP
   //  =SimpleHttpServiceContext.class.getName();
 
@@ -128,6 +133,10 @@ public class SimpleHttpServiceContext
   private Controller controller=new Controller();
   
   private WARClassLoader contextClassLoader;
+
+  private AccessLog localAccessLog;
+  protected AccessLog _accessLog=null;
+
 
   public void setAllowedIpFilter(IpFilter val)
   { _allowedIpFilter=val;
@@ -297,7 +306,6 @@ public class SimpleHttpServiceContext
     }
     finally
     {
-      
       if (_accessLog!=null && (request instanceof HttpServerRequest))
       { _accessLog.log((HttpServerRequest) request,(HttpServerResponse) response);
       }	
@@ -848,9 +856,14 @@ public class SimpleHttpServiceContext
   }
 
   public void setAccessLog(AccessLog log)
-  { _accessLog=log;
+  { 
+    localAccessLog=log;
+    _accessLog=log;
   }
 
+  public AccessLog getAccessLog()
+  { return _accessLog;
+  }
 
 	public int getNumRequestsHandled()
 	{ return _requestsHandled;
@@ -1007,11 +1020,35 @@ public class SimpleHttpServiceContext
       }
     }
 
+    if (localAccessLog!=null)
+    { 
+      try
+      { localAccessLog.start();
+      }
+      catch (LifecycleException x)
+      { throw new RuntimeException("Error starting access log",x);
+      }
+    }
+    if (_accessLog==null && _parentContext!=null)
+    { _accessLog=_parentContext.getAccessLog();
+    }
+      
 		_startTime = Clock.instance().approxTimeMillis();
   }
 
   protected void stop()
   { 
+    if (localAccessLog!=null)
+    { 
+      try
+      { localAccessLog.stop();
+      }
+      catch (LifecycleException x)
+      { log.log(Level.SEVERE,"Error starting access log",x);
+      }
+
+    }
+    
     if (_sessionManager!=null && (_sessionManager instanceof SimpleHttpSessionManager))
     { ((SimpleHttpSessionManager) _sessionManager).stop();
     }
@@ -1309,7 +1346,6 @@ public class SimpleHttpServiceContext
   //
   //////////////////////////////////////////////////////////////////
 
-  protected AccessLog _accessLog=null;
 
   /**
    * Return the file 'type' that can be mapped to

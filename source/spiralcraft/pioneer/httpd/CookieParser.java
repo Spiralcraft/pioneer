@@ -41,9 +41,9 @@ public class CookieParser
   private Cookie cookie;
   private int pos;
   private final String header;
-  private String path;
-  private String domain;
-  private String version;
+//  private String path;
+//  private String domain;
+  private Integer version;
   
   public CookieParser(String header)
   { this.header=header;
@@ -72,7 +72,7 @@ public class CookieParser
       if (!"$version".equalsIgnoreCase(versionAttr))
       { throw new ParseException("Cookie: Expected '$version', found '"+versionAttr+"'",pos);
       }
-      version=readUntil(';');
+      version=Integer.parseInt(readUntil(';').trim());
     }
         
     while (pos<header.length())
@@ -128,6 +128,9 @@ public class CookieParser
       { result.add(cookie);
       }
       cookie=new Cookie(attr,valspec);
+      if (version!=null)
+      { cookie.setVersion(version);
+      }
     }
 
   }
