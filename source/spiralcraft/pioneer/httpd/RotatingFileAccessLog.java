@@ -58,6 +58,7 @@ public class RotatingFileAccessLog
   private boolean _initialized=false;
   private long _maxLengthKB=16384;
   private File _directory=new File(System.getProperty("user.dir"));
+  private File targetFile;
   private Calendar calendar=Calendar.getInstance();
   private int day=calendar.get(Calendar.DAY_OF_YEAR);
   
@@ -114,12 +115,13 @@ public class RotatingFileAccessLog
         if (_file!=null)
         { _file.close();
         }
+        _file=null;
         return;
       }
       
       if (_file==null)
       { 
-        File targetFile=
+        targetFile=
           new File
             (_directory
             ,_filePrefix
@@ -167,8 +169,10 @@ public class RotatingFileAccessLog
       {
         _file.getFD().sync();
         _file.close();
+        String lastModified=
+          _fileDateFormat.format(new Date(targetFile.lastModified()));
         new File(_directory,_filePrefix+".log")
-          .renameTo(new File(_directory,_filePrefix+_fileDateFormat.format(new Date())+".log"));
+          .renameTo(new File(_directory,_filePrefix+lastModified+".log"));
         _file=null;
       }
       

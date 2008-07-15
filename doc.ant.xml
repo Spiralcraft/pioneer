@@ -1,0 +1,6 @@
+<project name="spiralcraft-pioneer-doc" default="doc" basedir=".">
+
+  <import file="build.xml"/>
+	
+</project>
+

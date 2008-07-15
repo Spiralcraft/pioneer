@@ -1504,11 +1504,21 @@ public class SimpleHttpServiceContext
     try
     {
       Resource docRoot=Resolver.getInstance().resolve(_docRoot.toURI());
-      Resource warRoot=docRoot.asContainer().getChild("WEB-INF");
-      if (warRoot.exists())
+      if (docRoot.asContainer()!=null)
+      {
+        Resource warRoot=docRoot.asContainer().getChild("WEB-INF");
+        if (warRoot.exists())
+        { 
+          contextClassLoader=new WARClassLoader(warRoot);
+          contextClassLoader.start();
+        }
+      }
+      else
       { 
-        contextClassLoader=new WARClassLoader(warRoot);
-        contextClassLoader.start();
+        _log.log
+          (Log.ERROR,"Document root "+_docRoot+" is not a valid directory"
+              +", not loading WAR ClassLoader"
+           );
       }
     }
     catch (IOException x)
