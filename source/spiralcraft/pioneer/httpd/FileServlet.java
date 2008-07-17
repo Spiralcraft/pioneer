@@ -271,10 +271,13 @@ public class FileServlet
     if (size>0 && size<Integer.MAX_VALUE)
     { response.setContentLength((int) size);
     }
-    response.setDateHeader(HttpServerResponse.HDR_LAST_MODIFIED,resource.getLastModified());
+    response.setDateHeader
+      (HttpServerResponse.HDR_LAST_MODIFIED
+      ,floorToSecond(resource.getLastModified())
+      );
     response.setDateHeader
       (HttpServerResponse.HDR_EXPIRES
-      ,resource.getLastModified()
+      ,floorToSecond(resource.getLastModified())
       );
     response.setHeader(HttpServerResponse.HDR_CACHE_CONTROL,"max-age=0");
     
@@ -293,7 +296,7 @@ public class FileServlet
     try
     {
       Resource resource=Resolver.getInstance().resolve(new File(path).toURI());
-      long lastModified=resource.getLastModified();
+      long lastModified=floorToSecond(resource.getLastModified());      
       try
       { 
         long ifModifiedSince=request.getDateHeader(HttpServerResponse.HDR_IF_MODIFIED_SINCE);
@@ -303,6 +306,9 @@ public class FileServlet
           response.setStatus(304);
           response.getOutputStream().flush();
           return;
+        }
+        else if (ifModifiedSince>0 && _log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
+        { _log.log(Log.DEBUG,"If-Modified-Since: "+ifModifiedSince+", lastModified="+lastModified);
         }
       }
       catch (IllegalArgumentException x)
@@ -342,6 +348,10 @@ public class FileServlet
     }
   }
   
+  private long floorToSecond(long timeInMs)
+  { return (long) Math.floor((double) timeInMs/(double) 1000)*1000;
+  }
+  
   /**
    * Send the specified file to the client
    */
@@ -358,7 +368,7 @@ public class FileServlet
     try
     {
       Resource resource=Resolver.getInstance().resolve(new File(path).toURI());
-      long lastModified=resource.getLastModified();
+      long lastModified=floorToSecond(resource.getLastModified());
       try
       { 
         long ifModifiedSince=request.getDateHeader(HttpServerResponse.HDR_IF_MODIFIED_SINCE);
@@ -368,6 +378,11 @@ public class FileServlet
           response.setStatus(304);
           response.getOutputStream().flush();
           return;
+        }
+        else if (ifModifiedSince>0 && _log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
+        {
+          _log.log(Log.DEBUG,"If-Modified-Since: "
+                    +ifModifiedSince+", lastModified="+lastModified);
         }
       }
       catch (IllegalArgumentException x)

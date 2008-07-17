@@ -24,6 +24,7 @@ import spiralcraft.pioneer.util.ThrowableUtil;
 
 
 import java.net.Socket;
+import java.net.URI;
 import java.util.HashMap;
 
 import java.io.IOException;
@@ -37,6 +38,8 @@ import javax.servlet.ServletException;
 import spiralcraft.pioneer.telemetry.Meter;
 import spiralcraft.pioneer.telemetry.Register;
 import spiralcraft.pioneer.telemetry.Meterable;
+import spiralcraft.vfs.Resolver;
+import spiralcraft.vfs.Resource;
 
 public class HttpServer
   implements
@@ -68,9 +71,10 @@ public class HttpServer
   private Register _uncaughtIoExceptionsRegister;
   private Register _uncaughtRuntimeExceptionsRegister;
   private Register _uncaughtServletExceptionsRegister;
-  private int _connectionCount=0;  
+  private volatile int _connectionCount=0;  
   private boolean started;
   private boolean stopping;
+  private Resource traceResource;
  
   private HashMap<String,String> debugMap
     =new HashMap<String,String>();
@@ -118,6 +122,20 @@ public class HttpServer
     }
   }
 
+  public void setTraceDir(URI uri)
+    throws IOException
+  { 
+    Resource resource=Resolver.getInstance().resolve(uri);
+    if (!resource.exists())
+    { throw new IllegalArgumentException("Trace dir "+uri+" does not exist");
+    }
+    if (resource.asContainer()==null)
+    { throw new IllegalArgumentException("Trace dir "+uri+" is not a directory");
+    }
+    traceResource=resource;
+    
+  }
+  
   public void wroteBytes(int count)
   { 
     if (_meter!=null)
@@ -269,10 +287,11 @@ public class HttpServer
         { }
         return;
       }
+
+      int connectionNum=_connectionCount++;
       
       if (_meter!=null)
       {
-        _connectionCount++;
         _connectionsRegister.incrementValue();
         _activeConnectionsRegister.incrementValue();
       }
@@ -283,11 +302,23 @@ public class HttpServer
       {
 
         if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
-        { _log.log(Log.DEBUG,"Got HTTP connection from "+socket.getInetAddress().getHostAddress());
+        { 
+          _log.log(Log.DEBUG,"Got HTTP connection from "
+            +socket.getInetAddress().getHostAddress());
         }
 
         if (_log.isDebugEnabled(HttpServer.DEBUG_IO))
-        { traceStream=new FileOutputStream("http"+_connectionCount+".txt");
+        { 
+          String traceFile="http"+connectionNum+".txt";
+          if (traceResource!=null)
+          { 
+            traceStream
+              =traceResource.asContainer().getChild(traceFile)
+                .getOutputStream();
+          }
+          else
+          { traceStream=new FileOutputStream(traceFile);
+          }
         }
         _request.setTraceStream(traceStream);
         _response.setTraceStream(traceStream);
