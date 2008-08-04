@@ -72,7 +72,7 @@ public class SimpleGoverner
         if (sleepTime>0 && sleepTime<=_frameSizeMs)
         {
           try
-          { Thread.currentThread().sleep(sleepTime);
+          { Thread.sleep(sleepTime);
           }
           catch (InterruptedException x)
           { throw new InterruptedIOException();

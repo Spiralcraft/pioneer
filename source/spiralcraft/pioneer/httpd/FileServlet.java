@@ -25,7 +25,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import java.io.File;
-import java.io.ByteArrayInputStream;
 import java.io.FilenameFilter;
 
 import java.util.Enumeration;
@@ -33,7 +32,6 @@ import java.util.Date;
 
 import java.io.OutputStream;
 import java.io.InputStream;
-import java.net.URI;
 
 
 public class FileServlet
@@ -58,6 +56,7 @@ public class FileServlet
   {
   }
 
+  @Override
   public void init(ServletConfig servletConfig)
     throws ServletException
   { 
@@ -71,7 +70,7 @@ public class FileServlet
 
     ArrayList<String> defaultFiles=new ArrayList<String>();
     _servletConfig=servletConfig;
-    Enumeration e=_servletConfig.getInitParameterNames();
+    Enumeration<?> e=_servletConfig.getInitParameterNames();
     while (e.hasMoreElements())
     {
       String key=(String) e.nextElement();
@@ -98,6 +97,7 @@ public class FileServlet
       
   }
 
+  @Override
   public void service(HttpServletRequest request,HttpServletResponse response)
     throws IOException,ServletException
   {

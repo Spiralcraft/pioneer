@@ -45,6 +45,7 @@ public class MultiHostHttpServiceContext
   private HttpServiceContext _defaultServiceContext;
 
   
+  @Override
   public void service(AbstractHttpServletRequest request,HttpServletResponse response)
     throws IOException
           ,ServletException
@@ -58,7 +59,7 @@ public class MultiHostHttpServiceContext
       { host=host.substring(0,portPos);
       }
       HttpServiceContext subContext
-        =(HttpServiceContext) _hostMap.get(new CaseInsensitiveString(host));
+        =_hostMap.get(new CaseInsensitiveString(host));
       if (subContext!=null)
       { 
         if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
@@ -87,6 +88,7 @@ public class MultiHostHttpServiceContext
     }
   }
 
+  @Override
   public void startService()
   { 
     super.startService();
@@ -95,6 +97,7 @@ public class MultiHostHttpServiceContext
     }
   }
   
+  @Override
   public void stopService()
   { 
     for (HttpServiceContext context : _hostList)

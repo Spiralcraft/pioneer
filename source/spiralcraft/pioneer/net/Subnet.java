@@ -12,7 +12,6 @@ public class Subnet
   public Subnet(String address)
   {
     int slashPos=address.indexOf('/');
-    byte[] bytes;
 
     if (slashPos>-1)
     { 

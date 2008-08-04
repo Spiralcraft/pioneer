@@ -19,8 +19,6 @@ import javax.servlet.http.Cookie;
 
 import javax.servlet.ServletOutputStream;
 
-import spiralcraft.pioneer.log.Log;
-
 import java.util.Locale;
 
 import java.io.PrintWriter;
@@ -66,10 +64,14 @@ public class DispatchServerResponse
   { return containingResponse.containsHeader(name);
   }
 
+  @SuppressWarnings("deprecation") // Implementing Servlet API
+  @Deprecated
   public String encodeRedirectUrl(String url)
   { return containingResponse.encodeRedirectUrl(url);
   }
   
+  @SuppressWarnings("deprecation")
+  @Deprecated
   public String encodeUrl(String url)
   { return containingResponse.encodeUrl(url);
   }
@@ -109,6 +111,8 @@ public class DispatchServerResponse
   { 
   }
 
+  @SuppressWarnings("deprecation")
+  @Deprecated
   public void setStatus(int code,String message)
   {
   }

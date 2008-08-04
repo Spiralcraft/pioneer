@@ -38,6 +38,7 @@ public class HexDumpOutputStream
     _writer=new PrintWriter(new OutputStreamWriter(out));
   }
 
+  @Override
   public synchronized void write(int value)
   {
     short byteValue=new Integer(value).shortValue();
@@ -65,6 +66,7 @@ public class HexDumpOutputStream
     }
   }
 
+  @Override
   public synchronized void flush()
   { 
     for (int i=_col;i<16;i++)

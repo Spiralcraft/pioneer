@@ -66,10 +66,10 @@ public interface Log
    *   a non null value (as yet undefined) to indicate whether
    *   the group is turned on.
    */
-  public void setDebugProfile(Map map);
+  public void setDebugProfile(Map<String,String> map);
 
   /**
    * Return the debug profile map
    */
-  public Map getDebugProfile();
+  public Map<String,String> getDebugProfile();
 }

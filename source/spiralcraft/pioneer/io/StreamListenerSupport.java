@@ -7,7 +7,8 @@ public class StreamListenerSupport
   implements StreamListener
 {
 
-  private ArrayList _listeners=new ArrayList();
+  private ArrayList<StreamListener> _listeners
+    =new ArrayList<StreamListener>();
 
   public void add(StreamListener listener)
   { 
@@ -22,9 +23,9 @@ public class StreamListenerSupport
 
   public void streamClosed(StreamEvent e)
   { 
-    Iterator it=_listeners.iterator();
+    Iterator<StreamListener> it=_listeners.iterator();
     while (it.hasNext())
-    { ((StreamListener) it.next()).streamClosed(e);
+    { it.next().streamClosed(e);
     }
   }
 }

@@ -20,7 +20,6 @@ import javax.servlet.ServletContext;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import spiralcraft.util.IteratorEnumeration;
 
 /**
  * Simple implementation of the ServletConfig interface
@@ -39,7 +38,7 @@ public class SimpleServletConfig
   { 
     _servletName=name;
     _context=config.getServletContext();
-    Enumeration e=config.getInitParameterNames();
+    Enumeration<?> e=config.getInitParameterNames();
     while (e.hasMoreElements())
     {
       String key=(String) e.nextElement();
@@ -66,7 +65,7 @@ public class SimpleServletConfig
   { return _params.getProperty(name);
   }
 
-  public Enumeration getInitParameterNames()
+  public Enumeration<?> getInitParameterNames()
   { return _params.keys();
   }
 

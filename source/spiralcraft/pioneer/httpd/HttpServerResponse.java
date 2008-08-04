@@ -172,7 +172,7 @@ public class HttpServerResponse
   public void addCookie(Cookie cookie)
   {
     if (_cookies==null)
-    { _cookies=new ArrayList();
+    { _cookies=new ArrayList<Cookie>();
     }
     _cookies.add(cookie);
   }
@@ -181,10 +181,14 @@ public class HttpServerResponse
   { return _headerMap.get(name)!=null;
   }
 
+  @SuppressWarnings("deprecation")
+  @Deprecated
   public String encodeRedirectUrl(String url)
   { return url;
   }
   
+  @SuppressWarnings("deprecation")
+  @Deprecated
   public String encodeUrl(String url)
   { return url;
   }
@@ -213,7 +217,7 @@ public class HttpServerResponse
   public void sendError(int code) 
     throws IOException
   {
-	  String msg = (String) _statusMap.get(new Integer(code));
+	  String msg =  _statusMap.get(new Integer(code));
 	  if (msg==null)
     { sendError(code,"Unknown Error");
     }
@@ -241,7 +245,7 @@ public class HttpServerResponse
 
   public void setStatus(int code)
   { 
-	  String msg = (String) _statusMap.get(new Integer(code));
+	  String msg = _statusMap.get(new Integer(code));
 	  if (msg==null)
     { setStatus(code,"Unknown status");
     }
@@ -251,6 +255,7 @@ public class HttpServerResponse
   }
 
   @SuppressWarnings("deprecation")
+  @Deprecated
   public void setStatus(int code,String message)
   {
     _status=code;
@@ -332,6 +337,7 @@ public class HttpServerResponse
   { return _keepaliveSeconds;
   }
 
+  @SuppressWarnings("unchecked")
   public void sendHeaders()
     throws IOException
   { 
@@ -634,7 +640,8 @@ public class HttpServerResponse
   private final ClockFormat _formatTimeWatcher
     =new ClockFormat(_headerDateFormat,1000);
 
-  private final static HashMap _statusMap = new HashMap();
+  private final static HashMap<Integer,String> _statusMap 
+    = new HashMap<Integer,String>();
   static
   {
     try
@@ -651,7 +658,7 @@ public class HttpServerResponse
             )
         {
           _statusMap.put
-            (fields[i].get(null)
+            ((Integer) fields[i].get(null)
             ,fields[i]
               .getName()
               .substring(3) 
@@ -685,10 +692,12 @@ public class HttpServerResponse
   //
   //////////////////////////////////////////////////////////////////
 
+  @SuppressWarnings("unused")
   private HttpServiceContext _server;
+  
   private Socket _socket;
   private HttpServerRequest _request;
-  private ArrayList _cookies;
+  private ArrayList<Cookie> _cookies;
   private String _version;
   private int _status;
   private String _reason;
@@ -701,8 +710,10 @@ public class HttpServerResponse
   private Locale _locale;
   private PrintWriter _writer;
 
-	private final MappedList _headers=new MappedList(new ArrayList());
-	private final ListMap _headerMap
+	@SuppressWarnings("unchecked")
+  private final MappedList _headers=new MappedList(new ArrayList());
+	@SuppressWarnings("unchecked")
+  private final ListMap _headerMap
 		=_headers.addMapView
 			("name"
 			,new HashMap()

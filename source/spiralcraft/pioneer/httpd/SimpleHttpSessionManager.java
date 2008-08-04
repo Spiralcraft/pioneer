@@ -70,7 +70,7 @@ public class SimpleHttpSessionManager
     Session session=null;
     synchronized (_sessionLock)
     {
-      session=(Session) _sessions.get(id);
+      session=_sessions.get(id);
       if (session==null)
       {
         if (create)
@@ -98,8 +98,8 @@ public class SimpleHttpSessionManager
   { return getSession(id,true);
   }
 
-  public Enumeration getIds()
-  { return new IteratorEnumeration(_sessions.keySet().iterator());
+  public Enumeration<?> getIds()
+  { return new IteratorEnumeration<String>(_sessions.keySet().iterator());
   }
 
 	/**
@@ -109,7 +109,7 @@ public class SimpleHttpSessionManager
   { 
     synchronized (_sessionLock)
     { 
-      Session session=(Session) _sessions.get(id);
+      Session session=_sessions.get(id);
       return session!=null && !session.isExpired();
     }
   }
@@ -191,6 +191,7 @@ public class SimpleHttpSessionManager
     { _values.remove(name);
     }
 
+    @Deprecated
     public HttpSessionContext getSessionContext()
     { return SimpleHttpSessionManager.this;
     }
@@ -199,9 +200,9 @@ public class SimpleHttpSessionManager
     {
       String[] names=new String[_values.size()];
       int i=0;
-      Iterator it=_values.keySet().iterator();
+      Iterator<String> it=_values.keySet().iterator();
       while (it.hasNext())
-      { names[i++]=(String) it.next();
+      { names[i++]=it.next();
       }
       return names;
     }
@@ -230,6 +231,7 @@ public class SimpleHttpSessionManager
       }
     }
 
+    @Override
     public void finalize()
       throws Throwable
     { 
@@ -266,8 +268,8 @@ public class SimpleHttpSessionManager
     { return _attributes.get(name);
     }
 
-    public Enumeration getAttributeNames()
-    { return new IteratorEnumeration(_attributes.keySet().iterator());
+    public Enumeration<String> getAttributeNames()
+    { return new IteratorEnumeration<String>(_attributes.keySet().iterator());
     }
 
     public void setAttribute(String name,Object value)
@@ -292,8 +294,8 @@ public class SimpleHttpSessionManager
     private long _lastAccess;
     private long _creationTime=Clock.instance().approxTimeMillis();
     private int _maxInactiveIntervalMs=_maxInactiveInterval*1000;
-    private HashMap _values=new HashMap();
-    private HashMap _attributes=new HashMap();
+    private HashMap<String,Object> _values=new HashMap<String,Object>();
+    private HashMap<String,Object> _attributes=new HashMap<String,Object>();
     
   }
 
@@ -335,24 +337,24 @@ public class SimpleHttpSessionManager
 
     private void reap()
     {
-      List expiredList=new ArrayList(50);
+      List<String> expiredList=new ArrayList<String>(50);
       synchronized (_sessionLock)
       {
-        Iterator it=_sessions.values().iterator();
+        Iterator<Session> it=_sessions.values().iterator();
         while (it.hasNext())
         {
-          Session session=(Session) it.next();
+          Session session=it.next();
           if (session.isExpired())
           { expiredList.add(session.getId());
           }
         }
       }
-      Iterator it=expiredList.iterator();
+      Iterator<String> it=expiredList.iterator();
       while (it.hasNext())
       {
         synchronized (_sessionLock)
         { 
-          Session session=(Session) _sessions.get((String) it.next());
+          Session session= _sessions.get(it.next());
           session.invalidate();
         }
       }
@@ -362,7 +364,8 @@ public class SimpleHttpSessionManager
 
   }
 
-  private HashMap _sessions=new HashMap();
+  private HashMap<String,Session> _sessions
+    =new HashMap<String,Session>();
   private Object _sessionLock=new Object();
   private ReaperThread _reaper=new ReaperThread();
   private int _reapIntervalSeconds=30;

@@ -68,7 +68,8 @@ public class ShuntSocket
 		_in.connect((PipedOutputStream) peer.getOutputStream());
 	}
 	
-	public InetAddress getInetAddress()
+	@Override
+  public InetAddress getInetAddress()
 	{
 	 	try
 	 	{	return InetAddress.getLocalHost();
@@ -78,23 +79,28 @@ public class ShuntSocket
 	 	return null;
 	}
 	
-	public InetAddress getLocalAddress()
+	@Override
+  public InetAddress getLocalAddress()
 	{ return getInetAddress();
 	}
 
-	public int getPort()
+	@Override
+  public int getPort()
 	{ return port;
 	}
 	
-	public int getLocalPort()
+	@Override
+  public int getLocalPort()
 	{ return port;
 	}
 	
-	public InputStream getInputStream()
+	@Override
+  public InputStream getInputStream()
 	{ return _in;
 	}	
 	
-	public OutputStream getOutputStream()
+	@Override
+  public OutputStream getOutputStream()
 	{ return _out;
 	}
 	
@@ -102,27 +108,33 @@ public class ShuntSocket
 	{
 	}
 	
-	public int getSoLinger()
+	@Override
+  public int getSoLinger()
 	{ return 0;
 	}
 	
-	public void setSoTimeout(int soTimeout)
+	@Override
+  public void setSoTimeout(int soTimeout)
 	{
 	}
 
-	public int getSoTimeout()
+	@Override
+  public int getSoTimeout()
 	{ return 0;
 	}
 
-	public void setTcpNoDelay(boolean tnd)
+	@Override
+  public void setTcpNoDelay(boolean tnd)
 	{
 	}
 	
-	public boolean getTcpNoDelay()
+	@Override
+  public boolean getTcpNoDelay()
 	{ return true;
 	}
 	
-	public void close()
+	@Override
+  public void close()
 		throws IOException
 	{
 		try

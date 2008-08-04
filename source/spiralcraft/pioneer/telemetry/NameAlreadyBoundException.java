@@ -17,6 +17,9 @@ package spiralcraft.pioneer.telemetry;
 public class NameAlreadyBoundException
   extends RuntimeException
 {
+
+  private static final long serialVersionUID = 1L;
+
   public NameAlreadyBoundException(String name)
   { super(name);
   }

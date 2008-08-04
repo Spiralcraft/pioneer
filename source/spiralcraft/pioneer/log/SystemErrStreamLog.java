@@ -40,6 +40,7 @@ public final class SystemErrStreamLog
   /**
    * Write a message to the Log.
    */
+  @Override
   public final void log(int level,String message)
   {
     if (level<=this.level)
@@ -50,6 +51,7 @@ public final class SystemErrStreamLog
   /**
    * Write an Event to the Log.
    */
+  @Override
   public final void logEvent(Event evt)
   {
     if (evt.getLevel()<=this.level)

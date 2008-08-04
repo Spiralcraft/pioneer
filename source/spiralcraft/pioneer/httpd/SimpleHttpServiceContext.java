@@ -158,6 +158,7 @@ public class SimpleHttpServiceContext
   {
     private static final long serialVersionUID = 1L;
 
+    @Override
     public void service(ServletRequest request,ServletResponse response)
       throws IOException,ServletException
     {
@@ -249,8 +250,8 @@ public class SimpleHttpServiceContext
             { 
               // This is the main act
               controller.doFilter
-                ((ServletRequest) request
-                ,(ServletResponse) response
+                (request
+                ,response
                 ,filterChain
                 );
             }
@@ -488,8 +489,11 @@ public class SimpleHttpServiceContext
 
   /**
    * Log an error
+   * @deprecated
    *@deprecated
    */
+  @SuppressWarnings("deprecation")
+  @Deprecated
   public void log(Exception x,String msg)
   { _log.log(Log.ERROR,ThrowableUtil.getStackTrace(x));
   }
@@ -529,8 +533,10 @@ public class SimpleHttpServiceContext
 
   /**
    * Deprecated
-   *@deprecated
+   * @deprecated
    */  
+  @SuppressWarnings("deprecation")
+  @Deprecated
   public Enumeration<Servlet> getServlets()
   { 
     new Exception("Deprecated method invoked").printStackTrace();
@@ -539,8 +545,10 @@ public class SimpleHttpServiceContext
 
   /**
    * Deprecated
-   *@deprecated
+   * @deprecated
    */
+  @SuppressWarnings("deprecation")
+  @Deprecated
   public Enumeration<String> getServletNames()
   { 
     new Exception("Deprecated method invoked").printStackTrace();
@@ -551,6 +559,8 @@ public class SimpleHttpServiceContext
    * Deprecated
    *@deprecated
    */
+  @SuppressWarnings("deprecation")
+  @Deprecated
   public Servlet getServlet(String name)
   { 
     new Exception("Deprecated method invoked").printStackTrace();
@@ -768,6 +778,7 @@ public class SimpleHttpServiceContext
    *   
    *@deprecated Use setServletHolders()
    */
+  @Deprecated
   public void setServletMap(HashMap<String,ServletHolder> servletMap)
   {
     if (_log.isLevel(Log.DEBUG))
@@ -829,6 +840,7 @@ public class SimpleHttpServiceContext
    *   'types' to servlet names.
    *@deprecated Use setServletMappings
    */
+  @Deprecated
   public void setServletAliasMap(HashMap<String,String> aliasMap)
   { 
     _servletAliasMap=aliasMap;
@@ -1378,7 +1390,7 @@ public class SimpleHttpServiceContext
     if (filetype!=null)
     { 
       if (_mimeMap!=null)
-      { mimeType= (String) _mimeMap.get(filetype);
+      { mimeType=_mimeMap.get(filetype);
       }
       
       if (mimeType==null && _parentContext!=null)
@@ -1395,7 +1407,7 @@ public class SimpleHttpServiceContext
     if (alias!=null)
     {
       if (_servletAliasMap!=null)
-      { servletName=(String) _servletAliasMap.get(alias);
+      { servletName=_servletAliasMap.get(alias);
       }
       if (servletName==null
           && _parentContext!=null
@@ -1414,7 +1426,7 @@ public class SimpleHttpServiceContext
     {
       if (_handlerMap!=null)
       { 
-        servletName=(String) _handlerMap.get(type);
+        servletName=_handlerMap.get(type);
         if (servletName!=null
             && _log.isDebugEnabled(HttpServer.DEBUG_SERVICE)
             )

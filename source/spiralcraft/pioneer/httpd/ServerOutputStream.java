@@ -24,8 +24,8 @@ import java.io.IOException;
 
 import spiralcraft.util.ByteBuffer;
 
-import spiralcraft.pioneer.log.LogManager;
-import spiralcraft.pioneer.log.Log;
+//import spiralcraft.pioneer.log.LogManager;
+//import spiralcraft.pioneer.log.Log;
 
 import spiralcraft.util.StringUtil;
 
@@ -42,7 +42,7 @@ public class ServerOutputStream
   private final ByteBuffer _chunkBuffer;
   private boolean _prepared=false;
   private HttpServerResponse _response;
-  private Log _log=LogManager.getGlobalLog();
+//  private Log _log=LogManager.getGlobalLog();
   private static final byte[] CRLF="\r\n".getBytes();
   private int _count=0;
   private boolean _buffering=true;
@@ -100,6 +100,7 @@ public class ServerOutputStream
     write(bytes,0,bytes.length);
   }
 
+  @Override
   public final void write(final int data)
     throws IOException
   { 
@@ -107,6 +108,7 @@ public class ServerOutputStream
     write(bytes,0,1);
   }
 
+  @Override
   public final void write(final byte[] data,final int start,final int len)
     throws IOException
   { 
@@ -181,6 +183,7 @@ public class ServerOutputStream
     _count+=len;
   }
 
+  @Override
   public void write(byte[] data)
     throws IOException
   { write(data,0,data.length);
@@ -200,6 +203,7 @@ public class ServerOutputStream
     }
   }
 
+  @Override
   public void flush()
     throws IOException
   {
@@ -252,6 +256,7 @@ public class ServerOutputStream
     }
   }
 
+  @Override
   public void close()
     throws IOException
   { _out.close();

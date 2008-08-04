@@ -26,7 +26,6 @@ import java.io.IOException;
 
 import javax.servlet.ServletException;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletResponse;
 
 import spiralcraft.pioneer.log.Log;
@@ -41,6 +40,7 @@ public class MultiAliasHttpServiceContext
   private static final String DEBUG_GROUP
     =MultiAliasHttpServiceContext.class.getName();
 
+  @Override
   public void service(AbstractHttpServletRequest request,HttpServletResponse response)
     throws IOException
           ,ServletException
@@ -64,7 +64,7 @@ public class MultiAliasHttpServiceContext
       if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
       { _log.log(Log.DEBUG,"Checking alias map for '"+alias+"'");
       }
-      HttpServiceContext subContext=(HttpServiceContext) _aliasMap.get(alias);
+      HttpServiceContext subContext=_aliasMap.get(alias);
       if (subContext!=null)
       {
         if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
@@ -92,6 +92,7 @@ public class MultiAliasHttpServiceContext
   }
 
 
+  @Override
   public void init()
   {
     if (_aliasMap!=null)
@@ -100,17 +101,17 @@ public class MultiAliasHttpServiceContext
     super.init();
   }
 
-  public void setAliasMap(HashMap aliasMap)
+  public void setAliasMap(HashMap<String,HttpServiceContext> aliasMap)
   { _aliasMap=aliasMap;
   }
 
   protected void resolveAliasMap()
   {
-    Iterator it=_aliasMap.keySet().iterator();
+    Iterator<String> it=_aliasMap.keySet().iterator();
     while (it.hasNext())
     {
-      String key=(String) it.next();
-      HttpServiceContext context=(HttpServiceContext) _aliasMap.get(key);
+      String key= it.next();
+      HttpServiceContext context=_aliasMap.get(key);
       context.setParentContext(this);
       if (getAlias()!=null)
       { context.setAlias(new Filename(getAlias(),key).toString());
@@ -120,11 +121,12 @@ public class MultiAliasHttpServiceContext
       }
     }
     if (_log.isLevel(Log.DEBUG))
-    { _log.log(_log.DEBUG,"aliasMap="+_aliasMap.keySet());
+    { _log.log(Log.DEBUG,"aliasMap="+_aliasMap.keySet());
     }
   }
 
-  private HashMap _aliasMap=new HashMap();
+  private HashMap<String,HttpServiceContext> _aliasMap
+    =new HashMap<String,HttpServiceContext>();
 }
 
 

@@ -126,6 +126,7 @@ public class Event
   { return _processName;
   }
 
+  @Override
   public String toString()
   {
     final StringBuffer out=new StringBuffer();

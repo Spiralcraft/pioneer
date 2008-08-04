@@ -16,7 +16,6 @@ package spiralcraft.pioneer.io;
 
 import java.io.File;
 
-import java.beans.PropertyEditor;
 import java.beans.PropertyEditorSupport;
 import java.beans.PropertyEditorManager;
 
@@ -51,20 +50,24 @@ public class Filename
     {
     }
 
+    @Override
     public void setValue(Object value)
     { 
       _value=value;
       _text=((Filename) value).getPath();
     }
     
+    @Override
     public Object getValue()
     { return _value;
     }
 
+    @Override
     public String getAsText()
     { return _text;
     }
 
+    @Override
     public void setAsText(String text)
     { 
       _text=text;
@@ -122,6 +125,7 @@ public class Filename
   /**
    * Return the path
    */
+  @Override
   public String toString()
   { return _specifiedName;
   }
@@ -258,6 +262,7 @@ public class Filename
   /**
    * Implement Object.equals()
    */
+  @Override
   public boolean equals(Object obj)
   {
     return obj==this
@@ -269,6 +274,7 @@ public class Filename
   /**
    * Implement Object.hashCode() 
    */
+  @Override
   public int hashCode()
   { return _specifiedName.hashCode();
   }
@@ -283,7 +289,7 @@ public class Filename
   public String collapseRelativeElements()
   {
     StringTokenizer tok=new StringTokenizer(_specifiedName,"/");
-    LinkedList dirList=new LinkedList();
+    LinkedList<String> dirList=new LinkedList<String>();
     while (tok.hasMoreTokens())
     {
       String dir=tok.nextToken();
@@ -311,7 +317,7 @@ public class Filename
 
     while (!dirList.isEmpty())
     { 
-      out.append((String) dirList.removeFirst());
+      out.append( dirList.removeFirst());
       if (!dirList.isEmpty())
       { out.append("/");
       }

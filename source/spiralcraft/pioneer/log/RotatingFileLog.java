@@ -38,13 +38,13 @@ public class RotatingFileLog
             ,Log
 {
 
-  private Map _debugProfile=new HashMap();
+  private Map<String,String> _debugProfile=new HashMap<String,String>();
 
-  public final void setDebugProfile(Map profile)
+  public final void setDebugProfile(Map<String,String> profile)
   { _debugProfile=profile;
   }
 
-  public final Map getDebugProfile()
+  public final Map<String,String> getDebugProfile()
   { return _debugProfile;
   }
 
@@ -66,7 +66,7 @@ public class RotatingFileLog
     {
       StringBuffer out=new StringBuffer();
       while (_queue.getLength()>0)
-      { out.append((String) _queue.next());
+      { out.append(_queue.next());
       }
       return StringUtil.asciiBytes(out.toString());
     }
@@ -123,8 +123,8 @@ public class RotatingFileLog
   }
 
   private String _filePrefix;
-  private SynchronizedQueue _queue
-    =new SynchronizedQueue();
+  private SynchronizedQueue<String> _queue
+    =new SynchronizedQueue<String>();
   private DateFormat _fileDateFormat
     =new SimpleDateFormat("-yyyy-MM-dd--HH-mm-ss-z");
   private int _level=Log.MESSAGE;

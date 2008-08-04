@@ -33,12 +33,14 @@ public class GovernedOutputStream
     _out=out;
   }
 
+  @Override
   public final void write(byte[] data)
     throws IOException
   { write(data,0,data.length);
   }
 
 
+  @Override
   public final void write(final byte[] data,final int start,final int len)
     throws IOException
   {
@@ -51,6 +53,7 @@ public class GovernedOutputStream
     }
   }
 
+  @Override
   public final void write(int data)
     throws IOException
   { 
@@ -58,11 +61,13 @@ public class GovernedOutputStream
     _out.write(data);
   }
 
+  @Override
   public final void close()
     throws IOException
   { _out.close();
   }
 
+  @Override
   public final void flush()
     throws IOException
   { _out.flush();

@@ -71,6 +71,7 @@ public abstract class AbstractHttpServletRequest
 		public String name;
 		public String value;
 
+    @Override
     public String toString()
     { return name+"="+value;
     }
@@ -157,7 +158,9 @@ public abstract class AbstractHttpServletRequest
   /**
    *@deprecated
    */
-	public String getRealPath(String alias)
+	@SuppressWarnings("deprecation")
+  @Deprecated
+  public String getRealPath(String alias)
 	{ return _server.getRealPath(alias);
 	}
   

@@ -52,10 +52,11 @@ public class QueueConnectionHandler
 
 	private ConnectionHandlerFactory _factory;
   private Pool _threadPool=new Pool();
-  private final LinkedList _queue=new LinkedList();
+  private final LinkedList<Socket> _queue
+    =new LinkedList<Socket>();
   private final Object _queueMonitor=new Object();
   private final DispatchThread _dispatchThread=new DispatchThread();
-  private int _maxQueueLength=500;
+//  private int _maxQueueLength=500;
   private Log _log=LogManager.getGlobalLog();
   private boolean _initialized=false;
   private boolean _finished=false;
@@ -189,6 +190,7 @@ public class QueueConnectionHandler
       setPriority(Thread.MAX_PRIORITY-1);
     }
 
+    @Override
     public void run()
     {
       try
@@ -202,7 +204,7 @@ public class QueueConnectionHandler
             { _queueMonitor.wait();
             }
             if (_queue.size()>0 && !_finished)
-            { sock=(Socket) _queue.removeFirst();
+            { sock=_queue.removeFirst();
             }
           }
           if (sock!=null)
@@ -233,7 +235,7 @@ public class QueueConnectionHandler
         { 
           // Ignore pending connections
           //   by closing sockets
-          Socket sock=(Socket) _queue.removeFirst();
+          Socket sock= _queue.removeFirst();
           try
           { sock.close();
           }
@@ -297,7 +299,8 @@ public class QueueConnectionHandler
       }
     }
 
-		public void run()
+		@Override
+    public void run()
 		{
       try
       {

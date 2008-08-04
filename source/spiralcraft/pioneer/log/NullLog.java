@@ -17,9 +17,11 @@ package spiralcraft.pioneer.log;
 public class NullLog
   extends AbstractLog
 {
+  @Override
   public void log(int level,String message)
   { }
 
+  @Override
   public void logEvent(Event evt)
   { }
 

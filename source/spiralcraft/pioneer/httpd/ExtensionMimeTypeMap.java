@@ -66,7 +66,7 @@ public class ExtensionMimeTypeMap
       props.load(in);
       in.close();
         
-      Enumeration enu=props.propertyNames();
+      Enumeration<?> enu=props.propertyNames();
       while (enu.hasMoreElements())
       {
         String mimeType=(String) enu.nextElement();
@@ -76,7 +76,7 @@ public class ExtensionMimeTypeMap
           StringTokenizer tok=new StringTokenizer(values,",");
           while (tok.hasMoreTokens())
           {
-            String extension=(String) tok.nextToken();
+            String extension=tok.nextToken();
             if (extension.startsWith("."))
             { _map.put(new CaseInsensitiveString(extension.substring(1)),mimeType);
             }
@@ -91,9 +91,10 @@ public class ExtensionMimeTypeMap
   }
 
   public String get(String extension)
-  { return (String) _map.get(new CaseInsensitiveString(extension));
+  { return _map.get(new CaseInsensitiveString(extension));
   }
 
-  private HashMap _map=new HashMap();
+  private HashMap<CaseInsensitiveString,String> _map
+    =new HashMap<CaseInsensitiveString,String>();
   
 }

@@ -8,7 +8,6 @@ import java.util.Stack;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Collection;
@@ -40,12 +39,12 @@ public class Pool
   private long _lastUse=0;
   private long _maintenanceInterval=500;
   private Keeper _keeper=new Keeper();
-  private Stack _available=new Stack();
-  private HashMap _out=new HashMap();
+  private Stack<Reference> _available=new Stack<Reference>();
+  private HashMap<Object,Reference> _out=new HashMap<Object,Reference>();
   private Object _monitor=new Object();
   private Log _log=LogManager.getGlobalLog();
   private boolean _started=false;
-  private Object _startLock=new Object();
+//  private Object _startLock=new Object();
   private boolean _conserve=false;
 
   private Meter _meter;
@@ -188,7 +187,7 @@ public class Pool
       _started=false;
       _keeper.stop();
       while (!_available.isEmpty())
-      { _factory.discardResource( ((Reference) _available.pop()).resource );
+      { _factory.discardResource(_available.pop().resource );
       }      
     }
   }
@@ -254,7 +253,7 @@ public class Pool
           }
         }
       }
-      Reference ref=(Reference) _available.pop();
+      Reference ref= _available.pop();
       ref.checkOutTime=Clock.instance().approxTimeMillis();
       _out.put(ref.resource,ref);
       if (_meter!=null)
@@ -277,7 +276,7 @@ public class Pool
     }
     synchronized (_monitor)
     {
-      Reference ref=(Reference) _out.remove(resource);
+      Reference ref= _out.remove(resource);
       if (ref!=null)
       {
         if (_started)
@@ -305,7 +304,7 @@ public class Pool
     _lastUse=Clock.instance().approxTimeMillis();
     synchronized (_monitor)
     { 
-      Reference ref=(Reference) _out.remove(resource);
+      _out.remove(resource);
     }
     if (_meter!=null)
     { _clientDiscardsRegister.incrementValue();
@@ -434,12 +433,12 @@ public class Pool
     Reference[] snapshot;
     synchronized (_monitor)
     { 
-      Collection collection=_out.values();
+      Collection<Reference> collection=_out.values();
       snapshot=new Reference[collection.size()];
       collection.toArray(snapshot);
     }
 
-    List discardList=null;
+    List<Object> discardList=null;
     long time=Clock.instance().approxTimeMillis();
 
     for (int i=0;i<snapshot.length;i++)
@@ -448,12 +447,12 @@ public class Pool
       {
         Reference ref=null;
         synchronized (_monitor)
-        { ref=(Reference) _out.remove(snapshot[i].resource);
+        { ref=_out.remove(snapshot[i].resource);
         }
         if (ref!=null)
         { 
           if (discardList==null)
-          { discardList=new LinkedList();
+          { discardList=new LinkedList<Object>();
           }
           discardList.add(ref.resource);
         }
@@ -462,7 +461,7 @@ public class Pool
 
     if (discardList!=null)
     {
-      Iterator it=discardList.iterator();
+      Iterator<Object> it=discardList.iterator();
       while (it.hasNext())
       { 
         if (_meter!=null)
@@ -505,7 +504,7 @@ public class Pool
     synchronized (_monitor)
     {
       if (!_available.isEmpty())
-      { resource=((Reference) _available.pop()).resource;
+      { resource=_available.pop().resource;
       }
     }
     

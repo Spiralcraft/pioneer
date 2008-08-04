@@ -15,13 +15,13 @@
 package spiralcraft.pioneer.util;
 
 import java.util.Map;
-import java.util.List;
 
 /**
  * Extends the map interface to facilitate the efficient
  *   mapping of multiple values with the same key by mapping
  *   each key to a List of values.
  */
+@SuppressWarnings("unchecked")
 public interface ListMap
   extends Map
 {

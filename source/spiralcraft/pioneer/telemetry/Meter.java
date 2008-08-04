@@ -51,7 +51,7 @@ public interface Meter
   /**
    * Create a Register to publish a single counter
    */
-  public Register createRegister(Class meteredClass,String registerName)
+  public Register createRegister(Class<?> meteredClass,String registerName)
     throws NameAlreadyBoundException;
  
   /**
@@ -63,7 +63,7 @@ public interface Meter
   /**
    * Create a named log for a specific type of event
    */
-  public Log createLog(Class meteredClass,String logName)
+  public Log createLog(Class<?> meteredClass,String logName)
     throws NameAlreadyBoundException;
 
   public Meter[] getChildren();
@@ -73,6 +73,6 @@ public interface Meter
   /**
    * Return the standard event log
    */
-  public Log getEventLog(Class meteredClass);
+  public Log getEventLog(Class<?> meteredClass);
   
 }

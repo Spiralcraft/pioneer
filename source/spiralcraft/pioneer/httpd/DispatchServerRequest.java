@@ -64,8 +64,8 @@ public class DispatchServerRequest
   { return containingRequest.isUserInRole(role);
   }
 
-
-  public Enumeration getLocales()
+  @Override
+  public Enumeration<?> getLocales()
   { return containingRequest.getLocales();
   }
 
@@ -82,7 +82,7 @@ public class DispatchServerRequest
   { return containingRequest.isSecure();
   }
 
-  public Enumeration getHeaders(String name)
+  public Enumeration<?> getHeaders(String name)
   { return containingRequest.getHeaders(name);
   }
 
@@ -99,7 +99,7 @@ public class DispatchServerRequest
 	{ return containingRequest.getHeader(name);
 	}
 	
-	public Enumeration getHeaderNames()
+	public Enumeration<?> getHeaderNames()
 	{ return containingRequest.getHeaderNames();
 	}
 	
@@ -139,7 +139,9 @@ public class DispatchServerRequest
   /** 
    *@deprecated
    */
-	public boolean isRequestedSessionIdFromUrl()
+	@Deprecated
+  @SuppressWarnings("deprecation")
+  public boolean isRequestedSessionIdFromUrl()
 	{ return containingRequest.isRequestedSessionIdFromUrl();
 	}
 
@@ -158,7 +160,8 @@ public class DispatchServerRequest
 	{ return containingRequest.getInputStream();
 	}
 	
-	public byte[] getRawRemoteAddress()
+	@Override
+  public byte[] getRawRemoteAddress()
   { return containingRequest.getRawRemoteAddress();
   }
   
@@ -202,7 +205,7 @@ public class DispatchServerRequest
     return null;
   }
 
-  public Map getParameterMap()
+  public Map<?,?> getParameterMap()
   {
     // TODO Auto-generated method stub
     _log.log(Log.ERROR,"getParameterMap() not implemented");

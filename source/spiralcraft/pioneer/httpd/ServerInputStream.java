@@ -66,7 +66,8 @@ public final class ServerInputStream
   { StreamUtil.copyRaw(_in,new NullOutputStream(),16384,bytes);
   }
 
-	public final int read()
+	@Override
+  public final int read()
 		throws IOException
 	{
     final int val=_in.read();
@@ -83,6 +84,7 @@ public final class ServerInputStream
     return val;
 	}
 
+  @Override
   public final int read(byte[] b,int start,int len)
     throws IOException
   {
@@ -96,6 +98,7 @@ public final class ServerInputStream
     return count;
   }
 
+  @Override
   public final int readLine(final byte[] bytes,final int start,final int len)
     throws IOException
   {
@@ -107,7 +110,7 @@ public final class ServerInputStream
       }
       bytes[start+i]=(byte) b;
       
-      if (b==(int) '\n')
+      if (b=='\n')
       { return i+1;
       }
     }
@@ -160,6 +163,7 @@ public final class ServerInputStream
     return ret;
   }
 
+  @Override
   public final void close()
     throws IOException
   { _in.close();

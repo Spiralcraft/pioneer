@@ -12,6 +12,22 @@
 // Unless otherwise agreed to in writing, this software is distributed on an
 // "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
 //
+package spiralcraft.pioneer.util;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.SortedMap;
+import java.util.Comparator;
+import java.lang.UnsupportedOperationException;
+
+
+
 /**
  * A data structure composed of a List and several Maps. 
  * Each Map is associated with a Translator which derives
@@ -29,28 +45,12 @@
  *   key by removing other values that share the key from the
  *   entire data structure.
  */
-package spiralcraft.pioneer.util;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.ListIterator;
-import java.util.SortedMap;
-import java.util.Comparator;
-import java.lang.UnsupportedOperationException;
-
-
-
+@SuppressWarnings("unchecked")
 public class MappedList
   implements List
 {
 
-  public class MapView implements ListMap 
+  public class MapView implements ListMap
   {
     protected Map m_map;
     protected Translator m_key;
@@ -108,6 +108,7 @@ public class MappedList
       return m_map.entrySet();
     }
 
+    @Override
     public boolean equals(Object val)
     {
       // XXX Do the comparison
@@ -142,6 +143,7 @@ public class MappedList
       }
     }
 
+    @Override
     public int hashCode()
     { return m_map.hashCode();
     }
@@ -230,7 +232,7 @@ public class MappedList
       if (list!=null)
       {
         ListIterator i=list.listIterator();
-        boolean removed=false;
+//        boolean removed=false;
         while (i.hasNext())
         { 
           
@@ -238,7 +240,7 @@ public class MappedList
           {
             i.remove();
             m_numValues--;
-            removed=true;
+//            removed=true;
             break;
           }
         }
@@ -304,6 +306,7 @@ public class MappedList
     { return ((SortedMap) m_map).lastKey();
     }
 
+    @Override
     public Collection values()
     { return new MultiMapCollection();
     }
@@ -517,7 +520,7 @@ public class MappedList
 
   private HashMap m_views=new HashMap();
   private List m_list;
-  private boolean m_unique=false;
+//  private boolean m_unique=false;
   private MapView[] _viewArray=new MapView[0];
 
   /**
@@ -764,7 +767,7 @@ public class MappedList
    *   be mapped in all maps views.
    */
   public void setUnique(boolean u)
-  { m_unique=u;
+  { //m_unique=u;
   }
 
 	public void remap(Object value)
@@ -776,6 +779,7 @@ public class MappedList
   /**
    * Obtain a string representation of all the entries in the list
    */
+  @Override
   public String toString()
   { return m_list.toString();
   }

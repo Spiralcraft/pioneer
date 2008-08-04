@@ -214,6 +214,7 @@ public class HttpServerRequest
   /**
    * Release any important references
    */
+  @Override
   public void cleanup()
   { 
     super.cleanup();
@@ -236,6 +237,7 @@ public class HttpServerRequest
 
 
 
+  @SuppressWarnings("unchecked")
   public Enumeration<String> getHeaders()
   { return new IteratorEnumeration<String>(_headerMap.keySet().iterator());
   }
@@ -247,7 +249,7 @@ public class HttpServerRequest
   public Locale getLocale()
   { 
     if (_locales.size()>0)
-    { return (Locale) _locales.get(0);
+    { return _locales.get(0);
     }
     return null;
   }
@@ -262,7 +264,8 @@ public class HttpServerRequest
 
   }
 
-  public Enumeration getHeaders(String name)
+  @SuppressWarnings("unchecked")
+  public Enumeration<?> getHeaders(String name)
   {
     List list=(List) _headerMap.get(name);
     if (list!=null)
@@ -319,7 +322,8 @@ public class HttpServerRequest
     }
 	}
 	
-	public Enumeration getHeaderNames()
+	@SuppressWarnings("unchecked")
+  public Enumeration<?> getHeaderNames()
 	{ 
     // XXX Must wrap in another iterator than unwraps the CaseInsensitiveStrings
     //       being used as keys.
@@ -403,8 +407,12 @@ public class HttpServerRequest
 
   /** 
    *@deprecated
+   * @deprecated
+   * @deprecated
    */
-	public boolean isRequestedSessionIdFromUrl()
+  @SuppressWarnings("deprecation")
+  @Deprecated
+  public boolean isRequestedSessionIdFromUrl()
 	{ return _sessionFromUrl;
 	}
 
@@ -443,7 +451,8 @@ public class HttpServerRequest
     return _remoteAddr;
 	}
 	
-	public byte[] getRawRemoteAddress()
+	@Override
+  public byte[] getRawRemoteAddress()
 	{ 
     if (_rawRemoteAddr==null)
     { _rawRemoteAddr=_socket.getInetAddress().getAddress();
@@ -595,6 +604,7 @@ public class HttpServerRequest
  		_headers.add(var);
  	}
 
+  @SuppressWarnings("unchecked") // Not using generics here
   private void parseCookies()
   {
     // Parse each cookie header, which can contain
@@ -666,7 +676,7 @@ public class HttpServerRequest
 
 
 
-  public Map getParameterMap()
+  public Map<?,?> getParameterMap()
   {
     // XXX: Since HTTPUtils is deprecated- we NEED to implement this
     // TODO Auto-generated method stub

@@ -14,8 +14,6 @@
 //
 package spiralcraft.pioneer.log;
 
-import java.io.OutputStreamWriter;
-import java.io.BufferedWriter;
 
 /**
  * Manages Logs

@@ -18,8 +18,6 @@ import java.io.Writer;
 import java.io.BufferedWriter;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import spiralcraft.vfs.Resource;
@@ -78,6 +76,7 @@ public final class StreamLog
   /**
    * Write a message to the Log.
    */
+  @Override
   public final void log(int level,String message)
   {
     if (level<=this.level)
@@ -88,6 +87,7 @@ public final class StreamLog
   /**
    * Write an Event to the Log.
    */
+  @Override
   public final void logEvent(Event evt)
   {
     if (evt.getLevel()<=this.level)

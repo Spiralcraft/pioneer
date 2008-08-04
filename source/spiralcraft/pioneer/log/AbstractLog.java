@@ -27,13 +27,13 @@ public abstract class AbstractLog
 
   public abstract void logEvent(Event evt);
 
-  private Map<String,String> _debugProfile=new HashMap();
+  private Map<String,String> _debugProfile=new HashMap<String,String>();
 
-  public final Map getDebugProfile()
+  public final Map<String,String> getDebugProfile()
   { return _debugProfile;
   }
   
-  public final void setDebugProfile(Map profile)
+  public final void setDebugProfile(Map<String,String> profile)
   { _debugProfile=profile;
   }
 
@@ -64,7 +64,7 @@ public abstract class AbstractLog
     if (!isLevel(DEBUG))
     { return false;
     }
-    String debugProfile=(String) _debugProfile.get(debugGroupName);
+    String debugProfile=_debugProfile.get(debugGroupName);
     return debugProfile!=null && debugProfile.equals("true");
   }
 

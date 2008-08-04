@@ -14,7 +14,6 @@
 //
 package spiralcraft.pioneer.net;
 
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -25,11 +24,12 @@ import java.io.IOException;
 
 public class ShuntServerSocket
 {
-	private static HashMap _listeners=new HashMap();
+	private static HashMap<Integer,ShuntServerSocket> _listeners
+	  =new HashMap<Integer,ShuntServerSocket>();
 	
 	private int _port;
 	private Object _queueMonitor=new Object();
-	private LinkedList _queue=new LinkedList();
+	private LinkedList<ShuntSocket> _queue=new LinkedList<ShuntSocket>();
 	private boolean _closed=false;
 	
 	private static void addListener(int port,ShuntServerSocket sock)
@@ -43,7 +43,7 @@ public class ShuntServerSocket
 	public static void connect(ShuntSocket client)
 		throws IOException
 	{ 
-		ShuntServerSocket sock=(ShuntServerSocket) _listeners.get(new Integer(client.getPort()));
+		ShuntServerSocket sock= _listeners.get(new Integer(client.getPort()));
 		if (sock!=null)
 		{ sock.notifyConnect(client);
 		}
@@ -69,7 +69,7 @@ public class ShuntServerSocket
 			synchronized (_queueMonitor)
 			{
 				if (_queue.size()>0)
-				{ return (ShuntSocket) _queue.removeFirst();
+				{ return _queue.removeFirst();
 				}
 				try
 				{	_queueMonitor.wait(1000);

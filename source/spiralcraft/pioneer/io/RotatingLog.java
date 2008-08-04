@@ -21,7 +21,7 @@ public class RotatingLog
   public void startService()
   { 
     Scheduler.instance().scheduleNow(this);
-    _initialized=true;
+//    _initialized=true;
   }
 
   public void stopService()
@@ -134,17 +134,17 @@ public class RotatingLog
 
   }
 
-  private void assertInit()
-  { 
-    if (!_initialized)
-    { throw new RuntimeException("RotatingLog has not been initialized");
-    }
-  }
+//  private void assertInit()
+//  { 
+//    if (!_initialized)
+//    { throw new RuntimeException("RotatingLog has not been initialized");
+//    }
+//  }
 
   private RandomAccessFile _file;
   private Log _log=LogManager.getGlobalLog();
   private long _pollIntervalMs=1000;
-  private boolean _initialized=false;
+//  private boolean _initialized=false;
   private long _maxLengthKB=10000;
   private File _directory=new File(System.getProperty("user.dir"));
   private RotatingLogSource _source;

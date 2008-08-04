@@ -214,15 +214,17 @@ public class Listener
   }
 
   /**
-   *@DEPRECATED Use Service.startService() instead
+   *@deprecated Use Service.startService() instead
    */
+  @Deprecated
   public void start()
   { startService();
   }
 
   /**
-   *@DEPRECATED Use Service.stopService() instead
+   *@deprecated Use Service.stopService() instead
    */
+  @Deprecated
   public void stop()
   { stopService();
   }

@@ -12,10 +12,7 @@
 // Unless otherwise agreed to in writing, this software is distributed on an
 // "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
 //
-/**
- * Provides a simple, flexible and efficient way to
- *   manage servlet request variables. 
- */
+
 package spiralcraft.pioneer.servlet;
 
 
@@ -28,7 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 
-import spiralcraft.text.html.URLDataEncoder;
 
 import java.util.Iterator;
 import java.util.HashMap;
@@ -36,6 +32,10 @@ import java.util.ArrayList;
 
 import java.util.Map;
 
+/**
+ * Provides a simple, flexible and efficient way to
+ *   manage servlet request variables. 
+ */
 public class VariableManager
 {
 	private HashMap<String,String[]> m_vars=null;
@@ -144,7 +144,7 @@ public class VariableManager
 	 * Return the Dictionary that the
 	 *   Variable manager interfaces to.
 	 */
-	public HashMap getMap()
+	public HashMap<String,?> getMap()
 	{ return m_vars;
 	}
 
@@ -153,7 +153,7 @@ public class VariableManager
 	 */	
 	public String[] getList(String name)
 	{
-		String[] var=(String []) m_vars.get(name);
+		String[] var= m_vars.get(name);
 		if (var==null)
 		{ var=new String[0];
 		}
@@ -165,7 +165,7 @@ public class VariableManager
 	 */	
 	public String getValue(String name)
 	{
-		String[] var=(String []) m_vars.get(name);
+		String[] var=m_vars.get(name);
 		String ret;
 		if (var==null || var.length==0)
 		{ ret=null;
@@ -237,7 +237,7 @@ public class VariableManager
     StringBuffer out=new StringBuffer();
     for (String key: m_vars.keySet())
     {
-      String[] values=(String[]) m_vars.get(key);
+      String[] values=m_vars.get(key);
       for (int i=0;i<values.length;i++)
       {
         if (out.length()>0)
@@ -251,6 +251,7 @@ public class VariableManager
     return out.toString();
   }
 
+  @Override
   public String toString()
   { 
     if (m_vars.size()==0)
@@ -272,7 +273,7 @@ public class VariableManager
       out.append("=");
       out.append("[");
       
-      String[] values=(String[]) m_vars.get(key);
+      String[] values=m_vars.get(key);
       for (int i=0;i<values.length;i++)
       {
         out.append(values[i]);
