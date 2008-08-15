@@ -171,6 +171,10 @@ public class HttpServerResponse
 
   public void addCookie(Cookie cookie)
   {
+    if (cookie==null)
+    { throw new IllegalArgumentException("Cookie cannot be null");
+    }
+    
     if (_cookies==null)
     { _cookies=new ArrayList<Cookie>();
     }

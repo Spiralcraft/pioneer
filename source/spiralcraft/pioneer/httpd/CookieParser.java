@@ -101,7 +101,7 @@ public class CookieParser
     
     String valspec=readUntil(';');
     if (valspec==null)
-    { throw new ParseException("Cookie: No value found",pos);
+    { valspec="";
     }
     valspec=valspec.trim();
 
@@ -152,6 +152,9 @@ public class CookieParser
     { 
       ret=header.substring(pos,header.length());
       pos=header.length();
+    }
+    if (ret.length()==0)
+    { return "";
     }
     if (ret.charAt(0)=='"')
     {
