@@ -365,6 +365,8 @@ public class FileServlet
     // Standard file service
     // Simply send the disk file
     
+    InputStream resourceInputStream=null;
+    
     try
     {
       Resource resource=Resolver.getInstance().resolve(new File(path).toURI());
@@ -396,7 +398,7 @@ public class FileServlet
 
       setHeaders(request,response,resource);
 
-      InputStream resourceInputStream
+      resourceInputStream
         =resource.getInputStream();
 
       /**
@@ -451,6 +453,7 @@ public class FileServlet
         ,rangeHeader!=null?rangeHeader.getMaxBytes():-1
         );
       
+      resourceInputStream.close();
       response.getOutputStream().flush();
       
     }
@@ -475,6 +478,12 @@ public class FileServlet
           );
       }
 
+    }
+    finally
+    { 
+      if (resourceInputStream!=null)
+      { resourceInputStream.close();
+      }
     }
   }
 

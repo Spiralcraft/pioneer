@@ -21,10 +21,9 @@ import spiralcraft.pioneer.log.Log;
 import spiralcraft.pioneer.log.LogManager;
 
 
-import spiralcraft.service.AmbiguousServiceException;
 import spiralcraft.service.Service;
-import spiralcraft.service.ServiceException;
-import spiralcraft.service.ServiceResolver;
+import spiralcraft.builder.LifecycleException;
+
 
 /**
  * Run the HttpServer as a Daemon
@@ -46,7 +45,8 @@ public class HttpService
   { this.listeners=listeners;
   }
   
-  public void init(ServiceResolver arg0) throws ServiceException
+  public void start()
+    throws LifecycleException
   {
     if (handlerQueue==null)
     { 
@@ -71,7 +71,7 @@ public class HttpService
    
   }
 
-  public void destroy() throws ServiceException
+  public void stop() throws LifecycleException
   {
     for (Listener listener: listeners)
     { listener.stopService();
@@ -81,19 +81,9 @@ public class HttpService
     
   }
 
-  public Object getInterface(Class<?> arg0) throws AmbiguousServiceException
-  { return null;
-  }
 
   public Object getSelector()
   { return null;
   }
-
-
-  public boolean providesInterface(Class<?> arg0) throws AmbiguousServiceException
-  { return false;
-  }
-
-
 
 }
