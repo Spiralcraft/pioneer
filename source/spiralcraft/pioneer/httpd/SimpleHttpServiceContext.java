@@ -133,11 +133,16 @@ public class SimpleHttpServiceContext
   private Controller controller=new Controller();
   
   private WARClassLoader contextClassLoader;
+  private boolean debugWAR;
 
   private AccessLog localAccessLog;
   protected AccessLog _accessLog=null;
 
 
+  public void setDebugWAR(boolean debugWAR)
+  { this.debugWAR=debugWAR;
+  }
+  
   public void setAllowedIpFilter(IpFilter val)
   { _allowedIpFilter=val;
   }
@@ -1522,6 +1527,9 @@ public class SimpleHttpServiceContext
         if (warRoot.exists())
         { 
           contextClassLoader=new WARClassLoader(warRoot);
+          if (debugWAR)
+          { contextClassLoader.setDebug(true);
+          }
           contextClassLoader.start();
         }
       }
