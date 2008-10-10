@@ -19,10 +19,12 @@ import javax.servlet.http.HttpSession;
 
 import javax.servlet.http.HttpSessionContext;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 import spiralcraft.time.Clock;
 import spiralcraft.time.Scheduler;
@@ -294,8 +296,10 @@ public class SimpleHttpSessionManager
     private long _lastAccess;
     private long _creationTime=Clock.instance().approxTimeMillis();
     private int _maxInactiveIntervalMs=_maxInactiveInterval*1000;
-    private HashMap<String,Object> _values=new HashMap<String,Object>();
-    private HashMap<String,Object> _attributes=new HashMap<String,Object>();
+    private Map<String,Object> _values
+      =Collections.synchronizedMap(new HashMap<String,Object>());
+    private Map<String,Object> _attributes
+      =Collections.synchronizedMap(new HashMap<String,Object>());
     
   }
 
