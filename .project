@@ -3,6 +3,10 @@
 	<name>spiralcraft-modules-pioneer</name>
 	<comment></comment>
 	<projects>
+		<project>spiralcraft-modules-core</project>
+		<project>spiralcraft-modules-main</project>
+		<project>spiralcraft-modules-net</project>
+		<project>spiralcraft-modules-servlet</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
