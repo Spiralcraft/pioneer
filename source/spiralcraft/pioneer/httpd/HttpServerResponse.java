@@ -755,7 +755,17 @@ public class HttpServerResponse
 
     if (getHeader(HDR_CONNECTION)==null)
     {
-      setHeader(HDR_CONNECTION,_request.getHeader(HDR_CONNECTION));
+      
+      String connection=_request.getHeader(HDR_CONNECTION);
+      if (connection!=null && connection.length()>0)
+      { setHeader(HDR_CONNECTION,connection);
+      }
+      else
+      { 
+        // Don't set empty header value
+        setHeader(HDR_CONNECTION,"close");
+      }
+      
     }
     
   }
