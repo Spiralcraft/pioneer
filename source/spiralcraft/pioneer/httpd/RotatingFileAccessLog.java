@@ -24,7 +24,7 @@ import spiralcraft.time.Clock;
 
 import java.io.RandomAccessFile;
 
-import spiralcraft.util.StringUtil;
+import spiralcraft.util.string.StringUtil;
 
 import spiralcraft.pioneer.util.ThrowableUtil;
 

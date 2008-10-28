@@ -13,7 +13,7 @@ import java.io.FileNotFoundException;
 import spiralcraft.pioneer.log.Log;
 import spiralcraft.pioneer.log.LogManager;
 
-import spiralcraft.util.StringUtil;
+import spiralcraft.util.string.StringUtil;
 import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.StreamUtil;
 import spiralcraft.vfs.Resource;

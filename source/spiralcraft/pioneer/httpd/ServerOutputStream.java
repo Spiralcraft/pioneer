@@ -27,7 +27,7 @@ import spiralcraft.util.ByteBuffer;
 //import spiralcraft.pioneer.log.LogManager;
 //import spiralcraft.pioneer.log.Log;
 
-import spiralcraft.util.StringUtil;
+import spiralcraft.util.string.StringUtil;
 
 import spiralcraft.pioneer.io.Governer;
 import spiralcraft.pioneer.io.GovernedOutputStream;

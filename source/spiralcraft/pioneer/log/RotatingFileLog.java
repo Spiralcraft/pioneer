@@ -17,7 +17,7 @@ package spiralcraft.pioneer.log;
 import spiralcraft.pioneer.io.RotatingLog;
 import spiralcraft.pioneer.io.RotatingLogSource;
 
-import spiralcraft.util.StringUtil;
+import spiralcraft.util.string.StringUtil;
 
 import spiralcraft.util.SynchronizedQueue;
 
