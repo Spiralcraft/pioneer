@@ -275,7 +275,6 @@ public class FileServlet
     )
     throws IOException
   {
-    long now=Clock.instance().approxTimeMillis();
     String contentType
       =_servletConfig.getServletContext().getMimeType
         (resource.getLocalName());
@@ -290,11 +289,20 @@ public class FileServlet
       (HttpServerResponse.HDR_LAST_MODIFIED
       ,floorToSecond(resource.getLastModified())
       );
+    setCacheHeaders(request,response);
+  }
+  
+  private void setCacheHeaders
+    (HttpServletRequest request
+    ,HttpServletResponse response
+    )
+  {
     if (defaultCacheSeconds>-1)
     {
+      long now=Clock.instance().approxTimeMillis();
       response.setDateHeader
         (HttpServerResponse.HDR_EXPIRES
-        ,floorToSecond(now)+defaultCacheSeconds
+        ,floorToSecond(now)+(defaultCacheSeconds*1000)
         );
       response.setHeader(HttpServerResponse.HDR_CACHE_CONTROL,"max-age="+defaultCacheSeconds);
     }
@@ -332,6 +340,7 @@ public class FileServlet
         if (ifModifiedSince>0 && lastModified<=ifModifiedSince)
         {
           // Send unchanged status because resource not modified.
+          setCacheHeaders(request,response);
           response.setStatus(304);
           response.getOutputStream().flush();
           return;
@@ -406,6 +415,7 @@ public class FileServlet
         if (ifModifiedSince>0 && lastModified<=ifModifiedSince)
         {
           // Send unchanged status because resource not modified.
+          setCacheHeaders(request,response);
           response.setStatus(304);
           response.getOutputStream().flush();
           return;
