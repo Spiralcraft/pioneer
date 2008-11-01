@@ -41,6 +41,9 @@
                             
           <servletClass>spiralcraft.pioneer.httpd.FileServlet
           </servletClass>
+          
+          <dataURI>FileServlet.xml
+          </dataURI>
                             
         </httpd:ServletHolder>
                         

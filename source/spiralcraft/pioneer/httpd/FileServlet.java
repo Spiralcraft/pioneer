@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import spiralcraft.pioneer.log.Log;
 import spiralcraft.pioneer.log.LogManager;
 
+import spiralcraft.time.Clock;
 import spiralcraft.util.string.StringUtil;
 import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.StreamUtil;
@@ -51,11 +52,24 @@ public class FileServlet
   private boolean _permitDirListing=true;
   private String[] _defaultFiles={"index.html","index.htm","default.htm"};
   private SimpleDateFormat _fileDateFormat=new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
+  private int defaultCacheSeconds;
+  
   
   public FileServlet()
   {
   }
 
+  /**
+   * <p>Specify how many seconds should expire before the client re-validates
+   *   the cache. Sets the Expires and Cache-Control: max-age headers. A value
+   *   of -1 turns off cache  headers.
+   * </p>
+   * @param seconds
+   */
+  public void setDefaultCacheSeconds(int seconds)
+  { this.defaultCacheSeconds=seconds;
+  }
+  
   @Override
   public void init(ServletConfig servletConfig)
     throws ServletException
@@ -261,6 +275,7 @@ public class FileServlet
     )
     throws IOException
   {
+    long now=Clock.instance().approxTimeMillis();
     String contentType
       =_servletConfig.getServletContext().getMimeType
         (resource.getLocalName());
@@ -275,12 +290,14 @@ public class FileServlet
       (HttpServerResponse.HDR_LAST_MODIFIED
       ,floorToSecond(resource.getLastModified())
       );
-    response.setDateHeader
-      (HttpServerResponse.HDR_EXPIRES
-      ,floorToSecond(resource.getLastModified())
-      );
-    response.setHeader(HttpServerResponse.HDR_CACHE_CONTROL,"max-age=0");
-    
+    if (defaultCacheSeconds>-1)
+    {
+      response.setDateHeader
+        (HttpServerResponse.HDR_EXPIRES
+        ,floorToSecond(now)+defaultCacheSeconds
+        );
+      response.setHeader(HttpServerResponse.HDR_CACHE_CONTROL,"max-age="+defaultCacheSeconds);
+    }
   }
   
   /**
@@ -296,7 +313,19 @@ public class FileServlet
     try
     {
       Resource resource=Resolver.getInstance().resolve(new File(path).toURI());
-      long lastModified=floorToSecond(resource.getLastModified());      
+      if (!resource.exists())
+      {
+        response.sendError
+          (404
+          ,"<H2>404 - Not Found</H2>The specified URL, <STRONG>"
+          +request.getRequestURI()
+          +"</STRONG> could not be found on this server."
+          );        
+        return;
+        
+      }
+      long lastModified=floorToSecond(resource.getLastModified());     
+      
       try
       { 
         long ifModifiedSince=request.getDateHeader(HttpServerResponse.HDR_IF_MODIFIED_SINCE);
@@ -396,10 +425,11 @@ public class FileServlet
           );
       }      
 
-      setHeaders(request,response,resource);
 
       resourceInputStream
         =resource.getInputStream();
+
+      setHeaders(request,response,resource);
 
       /**
        * Interpret range

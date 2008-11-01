@@ -1,0 +1,8 @@
+<httpd:FileServlet
+  xmlns:httpd="class:/spiralcraft/pioneer/httpd"
+  >
+  
+  <defaultCacheSeconds>60
+  </defaultCacheSeconds>
+  
+</httpd:FileServlet>

@@ -23,7 +23,11 @@ import javax.servlet.ServletResponse;
 
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Properties;
+
+import spiralcraft.data.persist.AbstractXmlObject;
+
 import spiralcraft.pioneer.util.ThrowableUtil;
 
 /**
@@ -39,12 +43,17 @@ public class ServletHolder
   private Properties _initParams=new Properties();
   private boolean _loadAtStartup=false;
   private String _servletName;
+  private URI dataURI;
 
   /**
    * Create a new Bean configured ServletHolder
    */
   public ServletHolder()
   {
+  }
+  
+  public void setDataURI(URI dataURI)
+  { this.dataURI=dataURI;
   }
   
   /**
@@ -120,7 +129,20 @@ public class ServletHolder
 
     try
     {
-      Servlet servlet=(Servlet) Class.forName(_servletClass).newInstance();
+      Servlet servlet;
+      
+      if (dataURI!=null)
+      { 
+        servlet=AbstractXmlObject.<Servlet>create
+          (AbstractXmlObject.typeFromClass(Class.forName(_servletClass))
+          ,dataURI
+          ,null
+          ,null
+          ).get();
+      }
+      else
+      { servlet=(Servlet) Class.forName(_servletClass).newInstance();
+      }
       servlet.init(new SimpleServletConfig(_servletName,_serviceContext,_initParams));  
       _servlet=servlet;
     }

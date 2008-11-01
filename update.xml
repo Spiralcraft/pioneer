@@ -12,6 +12,11 @@
     />
 
     <copy 
+      file="../main/lib/spiralcraft-main.jar"
+      todir="lib"
+    />
+
+    	<copy 
       file="../servlet/lib/spiralcraft-servlet.jar"
       todir="lib"
     />
