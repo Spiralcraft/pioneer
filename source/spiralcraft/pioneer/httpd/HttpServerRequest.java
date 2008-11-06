@@ -575,8 +575,16 @@ public class HttpServerRequest
       _headers.add(var);
       _requestURL=_requestURL.substring(slashPos);
     }
- 		_protocol=tk.nextToken();
-    _scheme=_protocol.substring(0,_protocol.indexOf('/')).toLowerCase();
+    if (tk.hasMoreTokens())
+    {
+      _protocol=tk.nextToken();
+      _scheme=_protocol.substring(0,_protocol.indexOf('/')).toLowerCase();
+    }
+    else
+    { 
+      _protocol="HTTP/0.9";
+      _scheme="http";
+    }
     int queryPos=_requestURL.indexOf("?");
     if (queryPos>0)
     { 
