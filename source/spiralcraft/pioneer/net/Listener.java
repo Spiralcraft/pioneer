@@ -109,6 +109,8 @@ public class Listener
   private int _minPort=0;
   private int _maxPort=65534;
   private int _boundPort=0;
+  private boolean _tcpNoDelay=true;
+  private boolean _debug;
 
   /**
    * Return the port that the socket is bound to
@@ -125,6 +127,15 @@ public class Listener
   }
 
   /**
+   * <p>Output messages to the log for many internal events.
+   * </p>
+   * @param debug
+   */
+  public void setDebug(boolean debug)
+  { _debug=debug;
+  }
+  
+  /**
    * Specify the minimum dynamic port to listen on.
    */ 
   public void setMinPort(int port)
@@ -140,6 +151,21 @@ public class Listener
 
   public void setServerSocketFactory(ServerSocketFactory factory)
   { _factory=factory;
+  }
+  
+  /**
+   * <p>If true, connections will be optimized for low latency when
+   *   transmitting small chunks of data at the expense of an increased
+   *   number of network packets. 
+   * </p>
+   * 
+   * <p>Defaults to true
+   * </p>
+   * 
+   * @param tcpNoDelay
+   */
+  public void setTcpNoDelay(boolean tcpNoDelay)
+  { _tcpNoDelay=tcpNoDelay;
   }
 
   /**
@@ -419,12 +445,12 @@ public class Listener
         {
           _totalConnections++;
 
-          if (_log.isLevel(Log.DEBUG))
+          if (_debug && _log.isLevel(Log.DEBUG))
           { _log.log(Log.MESSAGE,"Got connection from "+sock.getInetAddress().getHostAddress());
           }
           try
           {
-            sock.setTcpNoDelay(true);
+            sock.setTcpNoDelay(_tcpNoDelay);
             if (_connectionTimeout>0)
             { sock.setSoTimeout(_connectionTimeout);
             }

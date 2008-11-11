@@ -273,6 +273,10 @@ public class QueueConnectionHandler
 	class ConnectionHandlerThread
 		extends Thread
 	{
+    private final ConnectionHandler _handler;
+    private volatile Socket _socket;
+    private boolean _done=false;
+    private final Object _monitor=new Object();
 
 		public ConnectionHandlerThread(ConnectionHandler handler)
 		{ 
@@ -338,10 +342,6 @@ public class QueueConnectionHandler
       }
 		}
 
-		private final ConnectionHandler _handler;
-		private Socket _socket;
-    private boolean _done=false;
-    private final Object _monitor=new Object();
 
 	}
 
