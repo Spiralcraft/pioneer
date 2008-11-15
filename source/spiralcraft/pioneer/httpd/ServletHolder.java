@@ -29,6 +29,7 @@ import java.util.Properties;
 import spiralcraft.data.persist.AbstractXmlObject;
 
 import spiralcraft.pioneer.util.ThrowableUtil;
+import spiralcraft.vfs.Resolver;
 
 /**
  * Loads and manages a Servlet instance
@@ -133,12 +134,18 @@ public class ServletHolder
       
       if (dataURI!=null)
       { 
-        servlet=AbstractXmlObject.<Servlet>create
-          (AbstractXmlObject.typeFromClass(Class.forName(_servletClass))
-          ,dataURI
-          ,null
-          ,null
-          ).get();
+        if (Resolver.getInstance().resolve(dataURI).exists())
+        {
+          servlet=AbstractXmlObject.<Servlet>create
+            (AbstractXmlObject.typeFromClass(Class.forName(_servletClass))
+            ,dataURI
+            ,null
+            ,null
+            ).get();
+        }
+        else
+        { throw new ServletException("Servlet data resource not found "+dataURI);
+        }
       }
       else
       { servlet=(Servlet) Class.forName(_servletClass).newInstance();
