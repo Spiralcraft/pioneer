@@ -19,6 +19,12 @@
         </net:Listener>
       </listeners>
       
+      <handlerQueue.initialThreadCount>10
+      </handlerQueue.initialThreadCount>
+      
+      <handlerQueue.highWaterThreadCount>20
+      </handlerQueue.highWaterThreadCount>
+      
       <serviceContext.documentRoot>webroot
       </serviceContext.documentRoot>
       

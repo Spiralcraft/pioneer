@@ -58,6 +58,8 @@ public class Pool
   private Register _overdueDiscardsRegister;
   private Register _addsRegister;
   private Register _removesRegister;
+  
+  private boolean debug;
 
 
   public void installMeter(Meter meter)
@@ -92,6 +94,10 @@ public class Pool
     _checkedOutRegister.setValue(_out.size());      
   }
 
+  public void setDebug(boolean debug)
+  { this.debug=debug;
+  }
+  
   /**
    * Conserve resources by not discarding them when demand drops,
    *   in order to promote maximum reuse.
@@ -236,13 +242,24 @@ public class Pool
               _waitsRegister.incrementValue();
               _waitingRegister.incrementValue();
             }
-            _log.log(Log.MESSAGE,"Waiting for pool");
-            long time=System.currentTimeMillis();
+            
+            long time=0;
+            if (debug)
+            { 
+              _log.log(Log.MESSAGE,"Waiting for pool");
+              time=System.currentTimeMillis();
+            }
             _monitor.wait();
             if (_meter!=null)
             { _waitingRegister.decrementValue();
             }
-            _log.log(Log.MESSAGE,"Waited "+(System.currentTimeMillis()-time)+" for pool");
+            if (debug)
+            { 
+              _log.log
+                (Log.MESSAGE,"Waited "
+                 +(System.currentTimeMillis()-time)+" for pool"
+                );
+            }
           }
           catch (InterruptedException x)
           { 

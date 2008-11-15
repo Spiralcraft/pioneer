@@ -39,20 +39,24 @@ public class HttpService
   
   private Listener[] listeners=new Listener[0];
   
-  private QueueConnectionHandler handlerQueue;
+  private QueueConnectionHandler handlerQueue=new QueueConnectionHandler();
   
   public void setListeners(Listener[] listeners)
   { this.listeners=listeners;
+  }
+  
+  public QueueConnectionHandler getHandlerQueue()
+  { return handlerQueue;
   }
   
   public void start()
     throws LifecycleException
   {
     if (handlerQueue==null)
-    { 
-      handlerQueue=new QueueConnectionHandler();
-      handlerQueue.setConnectionHandlerFactory(this);
+    { handlerQueue=new QueueConnectionHandler();
     }
+    
+    handlerQueue.setConnectionHandlerFactory(this);
     
     for (Listener listener: listeners)
     { listener.setConnectionHandler(handlerQueue);

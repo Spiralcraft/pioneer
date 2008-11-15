@@ -137,6 +137,9 @@ public class QueueConnectionHandler
   { _threadPool.setMinAvailable(threads);
   }
 
+  public void setDebug(boolean debug)
+  { _threadPool.setDebug(debug);
+  }
 
 	public int getQueueSize()
 	{ return _queue.size();
