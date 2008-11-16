@@ -10,18 +10,25 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.OutputStreamWriter;
 
+import spiralcraft.exec.ExecutionContext;
 import spiralcraft.vfs.StreamUtil;
 
 public class HexDumpOutputStream
   extends OutputStream
 {
-  public static void main(String[] args)
+  public static void dumpFile(String filename)
     throws IOException
   {
-    FileInputStream in=new FileInputStream(args[0]);
+    FileInputStream in=new FileInputStream(filename);
     HexDumpOutputStream out
       =new HexDumpOutputStream
-        (new PrintWriter(new OutputStreamWriter(System.out),true));
+        (new PrintWriter
+          (new OutputStreamWriter
+            (ExecutionContext.getInstance().out()
+            )
+          ,true
+          )
+        );
     StreamUtil.copyRaw(in,out,8192,-1);
     out.flush();
     out.close();

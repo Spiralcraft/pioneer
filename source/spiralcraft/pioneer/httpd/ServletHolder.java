@@ -70,11 +70,11 @@ public class ServletHolder
   {
     if (_servlet==null)
     { 
-      if (_servletClass!=null)
+      if (_servletClass!=null || dataURI!=null)
       { load();
       }
       else
-      { throw new ServletException("No servlet class specified");
+      { throw new ServletException("No servlet class or XML object URI specified");
       }
     }
 
@@ -137,7 +137,9 @@ public class ServletHolder
         if (Resolver.getInstance().resolve(dataURI).exists())
         {
           servlet=AbstractXmlObject.<Servlet>create
-            (AbstractXmlObject.typeFromClass(Class.forName(_servletClass))
+            (_servletClass==null
+              ?null
+              :AbstractXmlObject.typeFromClass(Class.forName(_servletClass))
             ,dataURI
             ,null
             ,null
@@ -166,7 +168,15 @@ public class ServletHolder
     , ServletResponse response
     )
     throws IOException, ServletException
-  { getServlet().service(request,response);
+  { 
+    try
+    { getServlet().service(request,response);
+    }
+    catch (ServletException x)
+    { 
+      x.printStackTrace();
+      throw x;
+    }
   }
 
 }

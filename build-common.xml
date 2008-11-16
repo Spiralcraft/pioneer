@@ -78,7 +78,7 @@
       destfile="lib/spiralcraft-${module}.jar" 
       basedir="out"
       level="9"
-            >
+      >
       <Manifest>
         <attribute name="Class-Path" value="${manifest.class.path}"/>
         <attribute name="Main-Class" value="${manifest.main.class}"/>   

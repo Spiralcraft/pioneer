@@ -1,7 +1,6 @@
-<exec:ApplicationEnvironment.assy
+<exec:ApplicationEnvironment
   xmlns:exec="class:/spiralcraft/exec"
   >
-  <mainClass>spiralcraft.exec.Executor</mainClass>
   <modules>
     <String>spiralcraft-pioneer</String>
     <String>spiralcraft-core</String>
@@ -9,4 +8,4 @@
     <String>spiralcraft-textgen</String>
     <String>java-servlet-2.3</String>
   </modules> 
-</exec:ApplicationEnvironment.assy>
+</exec:ApplicationEnvironment>

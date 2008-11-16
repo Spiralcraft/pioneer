@@ -526,6 +526,7 @@ public class SimpleHttpServiceContext
     if (_servletMap!=null)
     {
       ServletHolder holder=_servletMap.get(name);
+      
       if (holder!=null)
       { return holder;
       }
