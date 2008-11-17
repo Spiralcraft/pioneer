@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.Hashtable;
@@ -43,6 +45,7 @@ import java.util.Hashtable;
 import spiralcraft.util.IteratorEnumeration;
 import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
+import spiralcraft.vfs.batch.Search;
 
 import spiralcraft.builder.LifecycleException;
 import spiralcraft.log.ClassLogger;
@@ -66,6 +69,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 
+import java.net.URI;
 import java.net.URL;
 import java.net.MalformedURLException;
 
@@ -138,6 +142,7 @@ public class SimpleHttpServiceContext
 
   private AccessLog localAccessLog;
   protected AccessLog _accessLog=null;
+  private String _servletContextName=""+hashCode();
 
 
   public void setDebugWAR(boolean debugWAR)
@@ -655,9 +660,18 @@ public class SimpleHttpServiceContext
     }
 
     if (isPathBounded(uri))
-    { return new File(_docRoot
-                    ,new Filename(uri).localize().getPath()
-                    ).getAbsolutePath();
+    { 
+      File relFile
+        =new File(_docRoot
+                  ,new Filename(uri).localize().getPath()
+                  );
+      String realPath
+        =relFile.getAbsolutePath();
+      if (relFile.isDirectory() && !realPath.endsWith("/"))
+      { realPath=realPath+"/";
+      }
+//      log.fine("Real path for "+rawUri+" is "+realPath);
+      return realPath;
     }
     else
     { return null;
@@ -1565,18 +1579,51 @@ public class SimpleHttpServiceContext
     }
   }
   
-  public Set<String> getResourcePaths(String arg0)
+  /**
+   * Returns a directory-like listing of all the paths to resources within
+   *  the web application whose longest sub-path matches the supplied path
+   *  argument. Paths indicating subdirectory paths end with a '/'. The
+   *  returned paths are all relative to the root of the web application and
+   *  have a leading '/'. 
+   */
+  public Set<String> getResourcePaths(String path)
   {
-    // TODO Auto-generated method stub
-    _log.log(Log.ERROR,"getResourcePaths() not implemented");
-    return null;
+    try
+    {
+      if (!path.startsWith("/"))
+      { return null;
+      }
+      path=path.substring(1);
+      Resource dirResource
+        =Resolver.getInstance().resolve(_docRoot.toURI().resolve(path));
+      
+      
+      LinkedHashSet<String> set=new LinkedHashSet<String>();
+      if (dirResource.exists() && dirResource.asContainer()!=null)
+      {
+        Search search=new Search();
+        URI rootURI=dirResource.getURI();
+        search.setRootURI(rootURI);
+        List<Resource> results=search.list();
+
+        for (Resource r:results)
+        { 
+          String result="/"+path+rootURI.relativize(r.getURI()).toString();
+          set.add(result);
+          
+//          log.fine(path+" : "+result);
+        }
+      }
+      return set;
+    }
+    catch (IOException x)
+    { return null;
+    }
+
   }
 
   public String getServletContextName()
-  {
-    // TODO Auto-generated method stub
-    _log.log(Log.ERROR,"getServletContextName() not implemented");
-    return null;
+  { return _servletContextName;
   }
 
 

@@ -27,6 +27,7 @@ import java.net.URI;
 import java.util.Properties;
 
 import spiralcraft.data.persist.AbstractXmlObject;
+import spiralcraft.exec.ExecutionContext;
 
 import spiralcraft.pioneer.util.ThrowableUtil;
 import spiralcraft.vfs.Resolver;
@@ -174,6 +175,7 @@ public class ServletHolder
     }
     catch (ServletException x)
     { 
+      ExecutionContext.getInstance().err().println(x.toString());
       x.printStackTrace();
       throw x;
     }

@@ -82,7 +82,9 @@ public class Filename
   public static final char separatorChar='/';
 
   public static final String separator="/";
-
+  private String _specifiedName;
+  private boolean _endSlash;
+  
   /**
    * Construct a filename from a path
    */
@@ -92,7 +94,9 @@ public class Filename
     { _specifiedName="/";
     }
     else if (name.endsWith("/"))
-    { _specifiedName=name.substring(0,name.length()-1);
+    { 
+      _specifiedName=name.substring(0,name.length()-1);
+      _endSlash=true;
     }
     else
     { _specifiedName=name;
@@ -252,10 +256,16 @@ public class Filename
     if (isAbsolute() && _specifiedName.charAt(2)==':')
     { 
       return new File
-        (_specifiedName.substring(1).replace('/',File.separatorChar));
+        (_specifiedName.substring(1).replace('/',File.separatorChar)
+        +(_endSlash?File.separatorChar:"")
+        );
     }
     else
-    { return new File(_specifiedName.replace('/',File.separatorChar));
+    { 
+      return new File
+        (_specifiedName.replace('/',File.separatorChar)
+        +(_endSlash?File.separatorChar:"")
+        );
     }
   }
 
@@ -325,7 +335,7 @@ public class Filename
     return out.toString();
   }    
 
-  private String _specifiedName;
+
 
 
 }
