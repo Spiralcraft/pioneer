@@ -132,8 +132,9 @@ public class SimpleHttpServiceContext
   
   private Controller controller=new Controller();
   
-  private WARClassLoader contextClassLoader;
+  private ClassLoader contextClassLoader;
   private boolean debugWAR;
+  private boolean useURLClassLoader;
 
   private AccessLog localAccessLog;
   protected AccessLog _accessLog=null;
@@ -151,6 +152,10 @@ public class SimpleHttpServiceContext
   { _deniedIpFilter=val;
   }
 
+  public void setUseURLClassLoader(boolean val)
+  { this.useURLClassLoader=val;
+  }
+  
   public void installMeter(Meter meter)
   {
     _meter=meter;
@@ -1071,10 +1076,10 @@ public class SimpleHttpServiceContext
     { ((SimpleHttpSessionManager) _sessionManager).stop();
     }
     
-    if (contextClassLoader!=null)
+    if (contextClassLoader!=null && !useURLClassLoader)
     { 
       try
-      { contextClassLoader.stop();
+      { ((WARClassLoader) contextClassLoader).stop();
       }
       catch (LifecycleException x)
       { 
@@ -1527,11 +1532,21 @@ public class SimpleHttpServiceContext
         Resource warRoot=docRoot.asContainer().getChild("WEB-INF");
         if (warRoot.exists())
         { 
-          contextClassLoader=new WARClassLoader(warRoot);
-          if (debugWAR)
-          { contextClassLoader.setDebug(true);
+          if (!useURLClassLoader)
+          {
+            WARClassLoader contextClassLoader=new WARClassLoader(warRoot);
+            if (debugWAR)
+            { contextClassLoader.setDebug(true);
+            }
+            contextClassLoader.start();
+            this.contextClassLoader=contextClassLoader;
           }
-          contextClassLoader.start();
+          else
+          {
+            ServletURLClassLoader contextClassLoader
+              =new ServletURLClassLoader(warRoot);
+            this.contextClassLoader=contextClassLoader;
+          }
         }
       }
       else
