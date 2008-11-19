@@ -23,6 +23,8 @@ import javax.servlet.ServletResponse;
 
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.StringReader;
 import java.net.URI;
 import java.util.Properties;
 
@@ -110,6 +112,17 @@ public class ServletHolder
   public void setInitParameters(Properties params)
   { _initParams=params;
   }
+  
+  public void setInitParametersAsText(String initParametersText)
+  { 
+    _initParams=new Properties();
+    try
+    { _initParams.load(new StringReader(initParametersText));
+    }
+    catch (IOException x)
+    { throw new IllegalArgumentException(x);
+    }
+  }
 
   public void setLoadAtStartup(boolean val)
   { _loadAtStartup=val;
@@ -175,8 +188,11 @@ public class ServletHolder
     }
     catch (ServletException x)
     { 
-      ExecutionContext.getInstance().err().println(x.toString());
-      x.printStackTrace();
+      PrintStream err=ExecutionContext.getInstance().err();
+      x.printStackTrace(err);
+      if (x.getRootCause()!=null)
+      { x.getRootCause().printStackTrace(err);
+      }
       throw x;
     }
   }
