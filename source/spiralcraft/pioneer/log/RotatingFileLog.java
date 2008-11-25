@@ -127,7 +127,7 @@ public class RotatingFileLog
     =new SynchronizedQueue<String>();
   private DateFormat _fileDateFormat
     =new SimpleDateFormat("-yyyy-MM-dd--HH-mm-ss-z");
-  private int _level=Log.MESSAGE;
+  private int _level=Log.INFO;
   private EventFormatter _formatter=new DefaultEventFormatter();
 
   private void writeEvent(Event event)

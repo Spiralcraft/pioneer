@@ -17,14 +17,16 @@ package spiralcraft.pioneer.log;
 import java.util.Map;
 
 /**
- * A place for a component to record events.
+ * A place for a component to record events of a programmatic nature.
  */
 public interface Log
 {
+  public static final int ALL=Integer.MAX_VALUE;
+  public static final int TRACE=5;
   public static final int DEBUG=4;
-  public static final int MESSAGE=3;
+  public static final int INFO=3;
   public static final int WARNING=2;
-  public static final int ERROR=1;
+  public static final int SEVERE=1;
   public static final int OFF=0;
 
   /**

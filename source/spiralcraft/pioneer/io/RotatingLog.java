@@ -120,7 +120,7 @@ public class RotatingLog
     catch (Exception x)
     { 
       // Back off for a minute
-      _log.log(Log.ERROR
+      _log.log(Log.SEVERE
               ,"Error writing rotating log '"
               +new File(_directory,_source.getActiveFilename())
               +"'\r\n"+ThrowableUtil.getStackTrace(x)

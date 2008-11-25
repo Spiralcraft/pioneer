@@ -366,7 +366,7 @@ public class HttpServer
                 { _uncaughtServletExceptionsRegister.incrementValue();
                 }
                 _response.sendError(500,"Internal Server Error");
-                _log.log(Log.ERROR,"Servlet Exception: "+x.getMessage());
+                _log.log(Log.SEVERE,"Servlet Exception: "+x.getMessage());
               }
               catch (RuntimeException x)
               {
@@ -374,7 +374,7 @@ public class HttpServer
                 { _uncaughtRuntimeExceptionsRegister.incrementValue();
                 }
                 _response.sendError(500,"Internal Server Error");
-                _log.log(Log.ERROR,"Runtime Exception: "+ThrowableUtil.getStackTrace(x));
+                _log.log(Log.SEVERE,"Runtime Exception: "+ThrowableUtil.getStackTrace(x));
               }
               _request.finish();
               _response.finish();
@@ -415,8 +415,8 @@ public class HttpServer
           }
           catch (IOException x2)
           { }
-          if (_log.isLevel(Log.MESSAGE))
-          { _log.log(Log.MESSAGE,"IOException handling connection from "+addr+": "+x.toString());
+          if (_log.isLevel(Log.INFO))
+          { _log.log(Log.INFO,"IOException handling connection from "+addr+": "+x.toString());
           }
         }
       }

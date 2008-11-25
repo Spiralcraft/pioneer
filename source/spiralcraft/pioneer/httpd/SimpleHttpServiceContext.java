@@ -273,7 +273,7 @@ public class SimpleHttpServiceContext
             else
             {
               _log.log
-                (Log.ERROR
+                (Log.SEVERE
                 ,"No servlet configured to handle request for http://"
                   +request.getHeader("Host")
                   +request.getRequestURI()
@@ -283,7 +283,7 @@ public class SimpleHttpServiceContext
           }
           catch (ServletException x)
           {
-            _log.log(Log.ERROR
+            _log.log(Log.SEVERE
                     ,"ServletException handling "
                       +"http://"+request.getHeader("Host")+request.getRequestURI()
                       +": "+x.toString()
@@ -294,7 +294,7 @@ public class SimpleHttpServiceContext
           }
           catch (Exception x)
           {
-            _log.log(Log.ERROR
+            _log.log(Log.SEVERE
                     ,"Uncaught Exception handling "
                       +"http://"+request.getHeader("Host")+request.getRequestURI()
                       +": "+ThrowableUtil.getStackTrace(x)
@@ -313,7 +313,7 @@ public class SimpleHttpServiceContext
     }
     catch (ServletException x)
     {
-      _log.log(Log.ERROR
+      _log.log(Log.SEVERE
               ,"ServletException preprocessing request "
                 +"http://"+request.getHeader("Host")+request.getRequestURI()
                 +": "+x.toString()+"\r\n"+ThrowableUtil.getStackTrace(x)
@@ -497,8 +497,8 @@ public class SimpleHttpServiceContext
    */
   public void log(String msg)
   { 
-    if (_log.isLevel(Log.MESSAGE))
-    { _log.log(Log.MESSAGE,msg);
+    if (_log.isLevel(Log.INFO))
+    { _log.log(Log.INFO,msg);
     }
   }
 
@@ -510,14 +510,14 @@ public class SimpleHttpServiceContext
   @SuppressWarnings("deprecation")
   @Deprecated
   public void log(Exception x,String msg)
-  { _log.log(Log.ERROR,ThrowableUtil.getStackTrace(x));
+  { _log.log(Log.SEVERE,ThrowableUtil.getStackTrace(x));
   }
 
   /**
    * Log an error
    */
   public void log(String msg,Throwable x)
-  { _log.log(Log.ERROR,ThrowableUtil.getStackTrace(x));
+  { _log.log(Log.SEVERE,ThrowableUtil.getStackTrace(x));
   }
 
   /**
@@ -691,7 +691,7 @@ public class SimpleHttpServiceContext
     }
     else
     {
-      _log.log(Log.ERROR,"No SessionManager available for root context");
+      _log.log(Log.SEVERE,"No SessionManager available for root context");
       return null;
     }
   }
@@ -1010,7 +1010,7 @@ public class SimpleHttpServiceContext
       if (_parentContext==null)
       { 
         _log.log
-          (Log.MESSAGE
+          (Log.INFO
           ,getClass().getName()
             +" serving "+_docRoot.getPath()+" is attributes root"
           );
@@ -1018,10 +1018,10 @@ public class SimpleHttpServiceContext
       }
     }
     if (_alias==null)
-    { _log.log(Log.MESSAGE,"Serving path '"+_docRoot.getPath()+"' for alias '/'");
+    { _log.log(Log.INFO,"Serving path '"+_docRoot.getPath()+"' for alias '/'");
     }
     else
-    { _log.log(Log.MESSAGE,"Serving path '"+_docRoot.getPath()+"' for alias '"+_alias+"'");
+    { _log.log(Log.INFO,"Serving path '"+_docRoot.getPath()+"' for alias '"+_alias+"'");
     }
     if (_servletAliasMap!=null 
         && _log.isDebugEnabled(HttpServer.DEBUG_SERVICE)
@@ -1364,7 +1364,7 @@ public class SimpleHttpServiceContext
       }
       catch (SecurityException x)
       { 
-        _log.log(Log.ERROR
+        _log.log(Log.SEVERE
                 ,"SecurityException processing request "
                   +"http://"+request.getHeader("Host")+request.getRequestURI()
                   +": "+x.toString()
@@ -1566,16 +1566,16 @@ public class SimpleHttpServiceContext
       else
       { 
         _log.log
-          (Log.ERROR,"Document root "+_docRoot+" is not a valid directory"
+          (Log.SEVERE,"Document root "+_docRoot+" is not a valid directory"
               +", not loading WAR ClassLoader"
            );
       }
     }
     catch (IOException x)
-    { _log.log(Log.ERROR,"Error loading WAR ClassLoader: "+x.toString());
+    { _log.log(Log.SEVERE,"Error loading WAR ClassLoader: "+x.toString());
     }
     catch (LifecycleException x)
-    { _log.log(Log.ERROR,"Error loading WAR ClassLoader: "+x.toString());
+    { _log.log(Log.SEVERE,"Error loading WAR ClassLoader: "+x.toString());
     }
   }
   

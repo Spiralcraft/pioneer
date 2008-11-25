@@ -327,7 +327,7 @@ public abstract class AbstractHttpServletRequest
         }
         catch (IOException x)
         { 
-          _log.log(Log.MESSAGE,"IOException reading post: "+x.toString());
+          _log.log(Log.INFO,"IOException reading post: "+x.toString());
           _post=NULL_FORM;
         }
       }

@@ -184,7 +184,7 @@ public class RotatingFileAccessLog
     catch (Exception x)
     { 
       // Back off for a minute
-      _log.log(Log.ERROR,"Error writing access log \r\n"+ThrowableUtil.getStackTrace(x));
+      _log.log(Log.SEVERE,"Error writing access log \r\n"+ThrowableUtil.getStackTrace(x));
       Scheduler.instance().scheduleIn
         (this
         ,60000

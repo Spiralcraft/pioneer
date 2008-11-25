@@ -352,10 +352,10 @@ public class Listener
               }
               break;
             }
-            if (_log.isLevel(Log.MESSAGE))
+            if (_log.isLevel(Log.INFO))
             {
               _log.log
-              (Log.MESSAGE
+              (Log.INFO
               ,"Listening on "
                 +_serverSocket.getInetAddress().getHostAddress()
                 +":"+_serverSocket.getLocalPort()
@@ -366,7 +366,7 @@ public class Listener
         catch (IOException x)
         { 
           _bindException=x;
-          _log.log(Log.MESSAGE,"Binding socket to "+_addr.getHostAddress()+":"+_boundPort+" "+x.toString());
+          _log.log(Log.INFO,"Binding socket to "+_addr.getHostAddress()+":"+_boundPort+" "+x.toString());
         }
       }
       else
@@ -398,10 +398,10 @@ public class Listener
               }
               break;
             }
-            if (_log.isLevel(Log.MESSAGE))
+            if (_log.isLevel(Log.INFO))
             {
               _log.log
-              (Log.MESSAGE
+              (Log.INFO
               ,"Listening on "
                 +_serverSocket.getInetAddress().getHostAddress()
                 +":"+_serverSocket.getLocalPort()
@@ -413,7 +413,7 @@ public class Listener
         catch (IOException x)
         { 
           _bindException=x;
-          _log.log(Log.ERROR,"Binding socket to port "+_boundPort+" "+x.toString());
+          _log.log(Log.SEVERE,"Binding socket to port "+_boundPort+" "+x.toString());
         }
       }
   
@@ -426,7 +426,7 @@ public class Listener
       { _serverSocket.setSoTimeout(_timeoutMs);
       }
       catch (SocketException x)
-      { _log.log(Log.ERROR,"Setting SoTimout for "+_serverSocket+" "+x.toString());
+      { _log.log(Log.SEVERE,"Setting SoTimout for "+_serverSocket+" "+x.toString());
       }
     }
 
@@ -446,7 +446,7 @@ public class Listener
           _totalConnections++;
 
           if (_debug && _log.isLevel(Log.DEBUG))
-          { _log.log(Log.MESSAGE,"Got connection from "+sock.getInetAddress().getHostAddress());
+          { _log.log(Log.INFO,"Got connection from "+sock.getInetAddress().getHostAddress());
           }
           try
           {
@@ -458,7 +458,7 @@ public class Listener
           }
           catch (Throwable e)
           {
-            _log.log(Log.ERROR
+            _log.log(Log.SEVERE
                     ,"Uncaught exception accepting incoming connection on "
                       +getSocketDescription()
                       +": "
@@ -469,13 +469,13 @@ public class Listener
         else
         {
           if (_log.isLevel(Log.DEBUG))
-          { _log.log(Log.MESSAGE,"accept() returned null");
+          { _log.log(Log.INFO,"accept() returned null");
           }
         }
       }
       catch (IOException e)
       {
-      	_log.log(Log.ERROR
+      	_log.log(Log.SEVERE
       						,"IOException accepting incoming connection on "
       								+getSocketDescription()
       								+": "

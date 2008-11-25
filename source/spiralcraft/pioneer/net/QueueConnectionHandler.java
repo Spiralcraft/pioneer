@@ -100,7 +100,7 @@ public class QueueConnectionHandler
 
   public void stop()
   {
-    _log.log(Log.MESSAGE,"QueueConnectionHandler stopping");
+    _log.log(Log.INFO,"QueueConnectionHandler stopping");
     synchronized (_queueMonitor)
     {
       _finished=true;
@@ -330,7 +330,7 @@ public class QueueConnectionHandler
               catch (Throwable x)
               { 
                 _socket=null;
-                _log.log(Log.ERROR
+                _log.log(Log.SEVERE
                         ,"Uncaught exception- ConnectionHandler assumed unsalvagable\r\n"
                         +ThrowableUtil.getStackTrace(x)
                         );

@@ -688,7 +688,7 @@ public class HttpServerRequest
   {
     // XXX: Since HTTPUtils is deprecated- we NEED to implement this
     // TODO Auto-generated method stub
-    _log.log(Log.ERROR,"getParameterMap() not implemented");
+    _log.log(Log.SEVERE,"getParameterMap() not implemented");
     return null;
   }
 
@@ -697,7 +697,7 @@ public class HttpServerRequest
   public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
   {
     // TODO Auto-generated method stub
-    _log.log(Log.ERROR,"setCharacterEncoding() not implemented");
+    _log.log(Log.SEVERE,"setCharacterEncoding() not implemented");
   }
  	
   

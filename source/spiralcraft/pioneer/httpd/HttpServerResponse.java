@@ -611,7 +611,7 @@ public class HttpServerResponse
       }
       catch (IOException x)
       {
-        _log.log(Log.MESSAGE
+        _log.log(Log.INFO
                 ,"Exception Finishing response for keepalive connection from "
                 +_socket.getInetAddress().getHostAddress()
                 +": "+x.toString()

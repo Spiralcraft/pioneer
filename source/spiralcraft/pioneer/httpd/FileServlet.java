@@ -262,7 +262,7 @@ public class FileServlet
     }
     catch (IOException x)
     { 
-      _log.log(Log.ERROR,"Error writing "+request.getRequestURI()+":"+x.toString());
+      _log.log(Log.SEVERE,"Error writing "+request.getRequestURI()+":"+x.toString());
       x.printStackTrace();
       response.sendError(500,"Error transferring file");
     }

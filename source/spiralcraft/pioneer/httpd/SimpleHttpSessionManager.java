@@ -149,10 +149,10 @@ public class SimpleHttpSessionManager
       }
 
       _id=RandomSessionId.nextId();
-      if (_log.isLevel(Log.MESSAGE))
+      if (_log.isLevel(Log.INFO))
       { 
         _log.log
-          (Log.MESSAGE
+          (Log.INFO
           ,"HttpSession #"+_id+" started- ttl="+_maxInactiveIntervalMs/1000
           );
       }
@@ -224,10 +224,10 @@ public class SimpleHttpSessionManager
       _values.clear();
       _attributes.clear();
 
-      if (_log.isLevel(Log.MESSAGE))
+      if (_log.isLevel(Log.INFO))
       {
         _log.log
-          (Log.MESSAGE
+          (Log.INFO
           ,"HttpSession #"+_id+" expired"
           );
       }
@@ -286,7 +286,7 @@ public class SimpleHttpSessionManager
     {
 
       // TODO Auto-generated method stub
-      _log.log(Log.ERROR, "SimpleHttpSession.getServletContext() not implemented");
+      _log.log(Log.SEVERE, "SimpleHttpSession.getServletContext() not implemented");
       return null;
     }
 
