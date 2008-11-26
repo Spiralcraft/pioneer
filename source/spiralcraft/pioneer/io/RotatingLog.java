@@ -10,13 +10,24 @@ import spiralcraft.time.Scheduler;
 
 import spiralcraft.pioneer.util.ThrowableUtil;
 
-import spiralcraft.pioneer.log.LogManager;
-import spiralcraft.pioneer.log.Log;
+import spiralcraft.log.ClassLog;
+import spiralcraft.log.Level;
 
 
 public class RotatingLog
   implements Runnable
 {
+
+  private static final ClassLog log=ClassLog.getInstance(RotatingLog.class);
+
+  private RandomAccessFile _file;
+  private long _pollIntervalMs=1000;
+//  private boolean _initialized=false;
+  private long _maxLengthKB=10000;
+  private File _directory=new File(System.getProperty("user.dir"));
+  private RotatingLogSource _source;
+  private boolean _stopped=false;
+  private boolean _suspended=false;
 
   public void startService()
   { 
@@ -120,7 +131,7 @@ public class RotatingLog
     catch (Exception x)
     { 
       // Back off for a minute
-      _log.log(Log.SEVERE
+      log.log(Level.SEVERE
               ,"Error writing rotating log '"
               +new File(_directory,_source.getActiveFilename())
               +"'\r\n"+ThrowableUtil.getStackTrace(x)
@@ -141,15 +152,6 @@ public class RotatingLog
 //    }
 //  }
 
-  private RandomAccessFile _file;
-  private Log _log=LogManager.getGlobalLog();
-  private long _pollIntervalMs=1000;
-//  private boolean _initialized=false;
-  private long _maxLengthKB=10000;
-  private File _directory=new File(System.getProperty("user.dir"));
-  private RotatingLogSource _source;
-  private boolean _stopped=false;
-  private boolean _suspended=false;
 
 }  
   

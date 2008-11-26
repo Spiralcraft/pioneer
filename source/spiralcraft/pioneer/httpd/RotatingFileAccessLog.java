@@ -16,8 +16,8 @@ package spiralcraft.pioneer.httpd;
 
 import spiralcraft.util.ByteBuffer;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.Level;
+import spiralcraft.log.ClassLog;
 
 import spiralcraft.time.Scheduler;
 import spiralcraft.time.Clock;
@@ -26,7 +26,6 @@ import java.io.RandomAccessFile;
 
 import spiralcraft.util.string.StringUtil;
 
-import spiralcraft.pioneer.util.ThrowableUtil;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -44,6 +43,8 @@ public class RotatingFileAccessLog
 {
   
   private static final byte[] CRLF="\r\n".getBytes();
+  private static final ClassLog _log
+    =ClassLog.getInstance(RotatingFileAccessLog.class);
 
   private String _filePrefix="access";
   private DateFormat _fileDateFormat=new SimpleDateFormat("-yyyy-MM-dd--HH-mm-ss");
@@ -53,7 +54,6 @@ public class RotatingFileAccessLog
   private ByteBuffer[] _buffers={new ByteBuffer(),new ByteBuffer()};
   private Object _mutex=new Object();
   private int _currentBuffer=0;
-  private Log _log=LogManager.getGlobalLog();
   private long _flushIntervalMs=1000;
   private boolean _initialized=false;
   private long _maxLengthKB=16384;
@@ -184,7 +184,7 @@ public class RotatingFileAccessLog
     catch (Exception x)
     { 
       // Back off for a minute
-      _log.log(Log.SEVERE,"Error writing access log \r\n"+ThrowableUtil.getStackTrace(x));
+      _log.log(Level.SEVERE,"Error writing access log \r\n",x);
       Scheduler.instance().scheduleIn
         (this
         ,60000

@@ -18,7 +18,7 @@
  */
 package spiralcraft.pioneer.telemetry;
 
-import spiralcraft.pioneer.log.Log;
+import spiralcraft.log.Log;
 
 public interface Meter
 {

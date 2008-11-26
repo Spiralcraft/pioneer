@@ -24,8 +24,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.Level;
+import spiralcraft.log.ClassLog;
 import spiralcraft.time.Clock;
 
 import spiralcraft.pioneer.util.ThrowableUtil;
@@ -71,8 +71,6 @@ public class Listener
         { factory=(ServerSocketFactory) Class.forName(args[++i]).newInstance();
         }
       }
-   
-      LogManager.getGlobalLog().setLevel(Log.DEBUG);
 
       Listener sd=new Listener();
       sd.setPort(port);
@@ -89,6 +87,8 @@ public class Listener
     }
   }
 
+  private static final ClassLog log=ClassLog.getInstance(Listener.class);
+
   private boolean _finished=false;
   private int _listenBacklog=50;
   private int _timeoutMs=0;
@@ -99,7 +99,6 @@ public class Listener
   private ServerSocket _serverSocket;
   private ShuntServerSocket _shuntServerSocket;
   private ConnectionHandler _handler=null;
-  private Log _log=LogManager.getGlobalLog();
   private boolean _shunt=false;
 	private Thread _runner;
 	private int _totalConnections = 0;
@@ -352,10 +351,10 @@ public class Listener
               }
               break;
             }
-            if (_log.isLevel(Log.INFO))
+            if (log.canLog(Level.INFO))
             {
-              _log.log
-              (Log.INFO
+              log.log
+              (Level.INFO
               ,"Listening on "
                 +_serverSocket.getInetAddress().getHostAddress()
                 +":"+_serverSocket.getLocalPort()
@@ -366,7 +365,7 @@ public class Listener
         catch (IOException x)
         { 
           _bindException=x;
-          _log.log(Log.INFO,"Binding socket to "+_addr.getHostAddress()+":"+_boundPort+" "+x.toString());
+          log.log(Level.INFO,"Binding socket to "+_addr.getHostAddress()+":"+_boundPort+" "+x.toString());
         }
       }
       else
@@ -398,10 +397,10 @@ public class Listener
               }
               break;
             }
-            if (_log.isLevel(Log.INFO))
+            if (log.canLog(Level.INFO))
             {
-              _log.log
-              (Log.INFO
+              log.log
+              (Level.INFO
               ,"Listening on "
                 +_serverSocket.getInetAddress().getHostAddress()
                 +":"+_serverSocket.getLocalPort()
@@ -413,7 +412,7 @@ public class Listener
         catch (IOException x)
         { 
           _bindException=x;
-          _log.log(Log.SEVERE,"Binding socket to port "+_boundPort+" "+x.toString());
+          log.log(Level.SEVERE,"Binding socket to port "+_boundPort+" "+x.toString());
         }
       }
   
@@ -426,7 +425,7 @@ public class Listener
       { _serverSocket.setSoTimeout(_timeoutMs);
       }
       catch (SocketException x)
-      { _log.log(Log.SEVERE,"Setting SoTimout for "+_serverSocket+" "+x.toString());
+      { log.log(Level.SEVERE,"Setting SoTimout for "+_serverSocket+" "+x.toString());
       }
     }
 
@@ -445,8 +444,8 @@ public class Listener
         {
           _totalConnections++;
 
-          if (_debug && _log.isLevel(Log.DEBUG))
-          { _log.log(Log.INFO,"Got connection from "+sock.getInetAddress().getHostAddress());
+          if (_debug && log.canLog(Level.DEBUG))
+          { log.log(Level.INFO,"Got connection from "+sock.getInetAddress().getHostAddress());
           }
           try
           {
@@ -458,7 +457,7 @@ public class Listener
           }
           catch (Throwable e)
           {
-            _log.log(Log.SEVERE
+            log.log(Level.SEVERE
                     ,"Uncaught exception accepting incoming connection on "
                       +getSocketDescription()
                       +": "
@@ -468,14 +467,14 @@ public class Listener
         }
         else
         {
-          if (_log.isLevel(Log.DEBUG))
-          { _log.log(Log.INFO,"accept() returned null");
+          if (log.canLog(Level.DEBUG))
+          { log.log(Level.INFO,"accept() returned null");
           }
         }
       }
       catch (IOException e)
       {
-      	_log.log(Log.SEVERE
+      	log.log(Level.SEVERE
       						,"IOException accepting incoming connection on "
       								+getSocketDescription()
       								+": "

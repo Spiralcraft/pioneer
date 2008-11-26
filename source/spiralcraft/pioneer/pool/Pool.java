@@ -17,8 +17,8 @@ import spiralcraft.pioneer.util.ThrowableUtil;
 import spiralcraft.time.Clock;
 import spiralcraft.time.Scheduler;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.Level;
+import spiralcraft.log.ClassLog;
 
 import spiralcraft.pioneer.telemetry.Meterable;
 import spiralcraft.pioneer.telemetry.Meter;
@@ -29,6 +29,7 @@ import spiralcraft.pioneer.telemetry.FrameEvent;
 public class Pool
   implements Meterable,FrameListener
 {
+  private static final ClassLog _log=ClassLog.getInstance(Pool.class);
 
   private int _overdueSeconds=600;
   private ResourceFactory _factory;
@@ -42,7 +43,6 @@ public class Pool
   private Stack<Reference> _available=new Stack<Reference>();
   private HashMap<Object,Reference> _out=new HashMap<Object,Reference>();
   private Object _monitor=new Object();
-  private Log _log=LogManager.getGlobalLog();
   private boolean _started=false;
 //  private Object _startLock=new Object();
   private boolean _conserve=false;
@@ -217,15 +217,15 @@ public class Pool
     {
       if (!_started)
       { 
-        _log.log(Log.INFO,"Waiting for pool to start");
+        _log.log(Level.INFO,"Waiting for pool to start");
         try
         { 
           _monitor.wait();
-          _log.log(Log.INFO,"Notified that pool started");
+          _log.log(Level.INFO,"Notified that pool started");
         }
         catch (InterruptedException x)
         {  
-          _log.log(Log.WARNING,"Checkout on startup interrupted");
+          _log.log(Level.WARNING,"Checkout on startup interrupted");
           return null;
         }
       }
@@ -246,7 +246,7 @@ public class Pool
             long time=0;
             if (debug)
             { 
-              _log.log(Log.INFO,"Waiting for pool");
+              _log.log(Level.INFO,"Waiting for pool");
               time=System.currentTimeMillis();
             }
             _monitor.wait();
@@ -256,7 +256,7 @@ public class Pool
             if (debug)
             { 
               _log.log
-                (Log.INFO,"Waited "
+                (Level.INFO,"Waited "
                  +(System.currentTimeMillis()-time)+" for pool"
                 );
             }
@@ -305,7 +305,7 @@ public class Pool
         _monitor.notify();
       }
       else
-      { _log.log(Log.WARNING,"Unbalanced checkin: "+resource.toString()); 
+      { _log.log(Level.WARNING,"Unbalanced checkin: "+resource.toString()); 
       }
     }
 
@@ -380,7 +380,7 @@ public class Pool
         grow();
       }
       catch (Exception x)
-      { _log.log(Log.SEVERE,"Exception while keeping pool. "+x.toString());
+      { _log.log(Level.SEVERE,"Exception while keeping pool. "+x.toString());
       }
       
       synchronized (_keeperMonitor)
@@ -498,7 +498,7 @@ public class Pool
     { ref.resource=_factory.createResource();
     }
     catch (Exception x)
-    { _log.log(Log.SEVERE,"Exception creating pooled resource. "+ThrowableUtil.getStackTrace(x));
+    { _log.log(Level.SEVERE,"Exception creating pooled resource. "+ThrowableUtil.getStackTrace(x));
     }
 
     if (ref.resource!=null)
@@ -531,7 +531,11 @@ public class Pool
       { _factory.discardResource(resource);
       }
       catch (Exception x)
-      { _log.log(Log.SEVERE,"Exception discarding pooled resource. "+ThrowableUtil.getStackTrace(x));
+      { 
+        _log.log
+          (Level.SEVERE,"Exception discarding pooled resource. "
+          +ThrowableUtil.getStackTrace(x)
+          );
       }
       if (_meter!=null)
       { _removesRegister.incrementValue();

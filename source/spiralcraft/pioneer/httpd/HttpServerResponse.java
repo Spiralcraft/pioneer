@@ -50,17 +50,16 @@ import java.util.Locale;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.Level;
+import spiralcraft.log.ClassLog;
 
 import spiralcraft.pioneer.io.Governer;
 
 public class HttpServerResponse
   implements HttpServletResponse
 {
-  private final static String DEBUG_PROTOCOL
-    ="spiralcraft.pioneer.httpd.protocol";
   
+  private static final ClassLog _log=ClassLog.getInstance(HttpServerResponse.class);
   
   
   public final static String HDR_AUTHORIZATION = "Authorization"; 
@@ -108,6 +107,42 @@ public class HttpServerResponse
 
   public final static byte[] END_CHUNK="0\r\n\r\n".getBytes();
 
+  
+  @SuppressWarnings("unused")
+  private HttpServiceContext _server;
+  private HttpServer _httpServer;
+  private Socket _socket;
+  private HttpServerRequest _request;
+  private ArrayList<Cookie> _cookies;
+  private String _version;
+  private int _status;
+  private String _reason;
+  private boolean _sentHeaders=false;
+  private ServerOutputStream _outputStream;
+  private boolean _shouldClose=true;
+  private boolean _chunkStream=false;
+  private int _keepaliveSeconds=30;
+  private Locale _locale;
+  private PrintWriter _writer;
+  private boolean debugProtocol;
+
+  @SuppressWarnings("unchecked")
+  private final MappedList _headers=new MappedList(new ArrayList());
+  @SuppressWarnings("unchecked")
+  private final ListMap _headerMap
+    =_headers.addMapView
+      ("name"
+      ,new HashMap()
+      ,new Translator()
+        {
+          public Object translate(Object value)
+          { return ((Variable) value).name;
+          }
+        }
+      );
+  { _headerMap.setUnique(true);
+  }
+  
   public HttpServerResponse(HttpServerRequest request,int bufferCapacity)
   {
     _request=request;
@@ -115,7 +150,9 @@ public class HttpServerResponse
   }
 
   public void setHttpServer(HttpServer server)
-  { _outputStream.setHttpServer(server);
+  { 
+    _httpServer=server;
+    _outputStream.setHttpServer(server);
   }
 
   public void setTraceStream(OutputStream traceStream)
@@ -145,6 +182,7 @@ public class HttpServerResponse
     _server=null;
     _outputStream.start(_socket.getOutputStream());
     reset();
+    debugProtocol=_httpServer.getDebugProtocol();
   }
 
 
@@ -441,8 +479,8 @@ public class HttpServerResponse
       // Sanity check
 	    _outputStream.setChunking(false);
  	    _sentHeaders=true;
-      if (_log.isDebugEnabled(DEBUG_PROTOCOL))
-      { _log.log(Log.DEBUG,"<<< "+_version+" "+_status+" "+_reason);
+      if (debugProtocol)
+      { _log.log(Level.DEBUG,"<<< "+_version+" "+_status+" "+_reason);
       }
 
 	    _outputStream.write(_version);
@@ -456,8 +494,8 @@ public class HttpServerResponse
       while (it.hasNext())
       {
         Variable var=(Variable) it.next();
-        if (_log.isDebugEnabled(DEBUG_PROTOCOL))
-        { _log.log(Log.DEBUG,"<<< "+var.name+": "+var.value);
+        if (debugProtocol)
+        { _log.log(Level.DEBUG,"<<< "+var.name+": "+var.value);
         }
         _outputStream.write(var.name);
         _outputStream.write(COLON);
@@ -473,8 +511,8 @@ public class HttpServerResponse
 
           
           Cookie cookie=(Cookie) it.next();
-          if (_log.isDebugEnabled(DEBUG_PROTOCOL))
-          { _log.log(Log.DEBUG,"<<< Set-Cookie: "+cookie.getName()+"="+cookie.getValue());
+          if (debugProtocol)
+          { _log.log(Level.DEBUG,"<<< Set-Cookie: "+cookie.getName()+"="+cookie.getValue());
           }
           _outputStream.write(HDR_SET_COOKIE);
           _outputStream.write(COLON);
@@ -572,7 +610,7 @@ public class HttpServerResponse
     }
     catch (IOException x)
     { 
-      _log.log(Log.DEBUG
+      _log.log(Level.DEBUG
               ,"Finishing response- flushing stream "+x.toString()
               );
     }
@@ -580,9 +618,9 @@ public class HttpServerResponse
 
     if (_shouldClose)
     {
-      if (_log.isDebugEnabled(DEBUG_PROTOCOL))
+      if (debugProtocol)
       {
-        _log.log(Log.DEBUG
+        _log.log(Level.DEBUG
                 ,"Closing connection from "
                 +_socket.getInetAddress().getHostAddress()
                 );
@@ -596,9 +634,9 @@ public class HttpServerResponse
     }
     else if (_chunkStream)
     { 
-      if (_log.isDebugEnabled(DEBUG_PROTOCOL))
+      if (debugProtocol)
       {
-        _log.log(Log.DEBUG
+        _log.log(Level.DEBUG
                 ,"Finishing response for keepalive connection from "
                 +_socket.getInetAddress().getHostAddress()
                 );
@@ -611,7 +649,7 @@ public class HttpServerResponse
       }
       catch (IOException x)
       {
-        _log.log(Log.INFO
+        _log.log(Level.INFO
                 ,"Exception Finishing response for keepalive connection from "
                 +_socket.getInetAddress().getHostAddress()
                 +": "+x.toString()
@@ -672,7 +710,8 @@ public class HttpServerResponse
       }              
     }
     catch (Exception x)
-    { LogManager.getGlobalLog().log(Log.WARNING,"Exception creating error map "+x.toString());
+    { 
+      _log.log(Level.WARNING,"Exception creating error map",x);
     }
   }
 
@@ -690,46 +729,8 @@ public class HttpServerResponse
    
   }
 
-  //////////////////////////////////////////////////////////////////
-  //
-  // Private Instance Members
-  //
-  //////////////////////////////////////////////////////////////////
 
-  @SuppressWarnings("unused")
-  private HttpServiceContext _server;
-  
-  private Socket _socket;
-  private HttpServerRequest _request;
-  private ArrayList<Cookie> _cookies;
-  private String _version;
-  private int _status;
-  private String _reason;
-  private boolean _sentHeaders=false;
-  private ServerOutputStream _outputStream;
-  private boolean _shouldClose=true;
-  private boolean _chunkStream=false;
-  private Log _log=LogManager.getGlobalLog();
-  private int _keepaliveSeconds=30;
-  private Locale _locale;
-  private PrintWriter _writer;
 
-	@SuppressWarnings("unchecked")
-  private final MappedList _headers=new MappedList(new ArrayList());
-	@SuppressWarnings("unchecked")
-  private final ListMap _headerMap
-		=_headers.addMapView
-			("name"
-			,new HashMap()
-			,new Translator()
-				{
-					public Object translate(Object value)
-					{ return ((Variable) value).name;
-					}
-				}
-			);
-  { _headerMap.setUnique(true);
-  }
 
   private final void defaultHeaders()
   {

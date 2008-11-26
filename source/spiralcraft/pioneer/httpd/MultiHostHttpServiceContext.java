@@ -28,7 +28,7 @@ import javax.servlet.ServletException;
 
 import javax.servlet.http.HttpServletResponse;
 
-import spiralcraft.pioneer.log.Log;
+import spiralcraft.log.Level;
 
 import spiralcraft.text.CaseInsensitiveString;
 
@@ -62,8 +62,8 @@ public class MultiHostHttpServiceContext
         =_hostMap.get(new CaseInsensitiveString(host));
       if (subContext!=null)
       { 
-        if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-        { _log.log(Log.DEBUG,"Delegating to subcontext for "+host);
+        if (debug)
+        { log.log(Level.DEBUG,"Delegating to subcontext for "+host);
         }
         subContext.service(request,response);
       }

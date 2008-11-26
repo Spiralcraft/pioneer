@@ -24,8 +24,8 @@ import java.io.IOException;
 
 import spiralcraft.util.ByteBuffer;
 
-//import spiralcraft.pioneer.log.LogManager;
-//import spiralcraft.pioneer.log.Log;
+//import spiralcraft.log.ClassLog;
+//import spiralcraft.log.Level;
 
 import spiralcraft.util.string.StringUtil;
 
@@ -42,7 +42,7 @@ public class ServerOutputStream
   private final ByteBuffer _chunkBuffer;
   private boolean _prepared=false;
   private HttpServerResponse _response;
-//  private Log _log=LogManager.getGlobalLog();
+//  private ClassLog _log=ClassLog.getInstance(x.class);
   private static final byte[] CRLF="\r\n".getBytes();
   private int _count=0;
   private boolean _buffering=true;

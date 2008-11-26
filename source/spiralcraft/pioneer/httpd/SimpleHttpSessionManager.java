@@ -29,8 +29,8 @@ import java.util.Map;
 import spiralcraft.time.Clock;
 import spiralcraft.time.Scheduler;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.Level;
+import spiralcraft.log.ClassLog;
 
 import spiralcraft.util.IteratorEnumeration;
 
@@ -48,12 +48,15 @@ public class SimpleHttpSessionManager
             ,Meterable
 {
 
+  private static final ClassLog log
+    =ClassLog.getInstance(SimpleHttpSessionManager.class);
+  
   private int _maxInactiveInterval=600;
-  private Log _log=LogManager.getGlobalLog();
   private Meter _meter;
   private Register _activeSessionsRegister;
   private Register _deadSessionsRegister;
   private Register _newSessionsRegister;
+  private boolean _logSessionEvents=true;
 	
   public void installMeter(Meter meter)
   {
@@ -61,7 +64,7 @@ public class SimpleHttpSessionManager
     _activeSessionsRegister=_meter.createRegister(HttpServer.class,"activeSessions");
     _newSessionsRegister=_meter.createRegister(HttpServer.class,"newSessions");
     _deadSessionsRegister=_meter.createRegister(HttpServer.class,"deadSessions");
-    _log=_meter.getEventLog(HttpServer.class);
+    // _log=_meter.getEventLog(HttpServer.class);
   }
 
 	/**
@@ -149,10 +152,10 @@ public class SimpleHttpSessionManager
       }
 
       _id=RandomSessionId.nextId();
-      if (_log.isLevel(Log.INFO))
+      if (_logSessionEvents && log.canLog(Level.INFO))
       { 
-        _log.log
-          (Log.INFO
+        log.log
+          (Level.INFO
           ,"HttpSession #"+_id+" started- ttl="+_maxInactiveIntervalMs/1000
           );
       }
@@ -224,10 +227,10 @@ public class SimpleHttpSessionManager
       _values.clear();
       _attributes.clear();
 
-      if (_log.isLevel(Log.INFO))
+      if (log.canLog(Level.INFO))
       {
-        _log.log
-          (Log.INFO
+        log.log
+          (Level.INFO
           ,"HttpSession #"+_id+" expired"
           );
       }
@@ -286,7 +289,7 @@ public class SimpleHttpSessionManager
     {
 
       // TODO Auto-generated method stub
-      _log.log(Log.SEVERE, "SimpleHttpSession.getServletContext() not implemented");
+      log.log(Level.SEVERE, "SimpleHttpSession.getServletContext() not implemented");
       return null;
     }
 

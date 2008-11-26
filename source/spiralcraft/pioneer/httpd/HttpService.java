@@ -17,8 +17,6 @@ package spiralcraft.pioneer.httpd;
 
 import spiralcraft.pioneer.net.QueueConnectionHandler;
 import spiralcraft.pioneer.net.Listener;
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
 
 
 import spiralcraft.service.Service;
@@ -33,9 +31,6 @@ public class HttpService
   extends HttpServer
   implements Service
 {
-  static
-  { LogManager.getGlobalLog().setLevel(Log.DEBUG);
-  }
   
   private Listener[] listeners=new Listener[0];
   

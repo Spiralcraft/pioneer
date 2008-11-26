@@ -48,7 +48,10 @@ import spiralcraft.vfs.Resource;
 import spiralcraft.vfs.batch.Search;
 
 import spiralcraft.builder.LifecycleException;
-import spiralcraft.log.ClassLogger;
+
+import spiralcraft.log.ClassLog;
+import spiralcraft.log.Level;
+
 import spiralcraft.pioneer.io.Governer;
 import spiralcraft.pioneer.io.SimpleGoverner;
 import spiralcraft.pioneer.io.Filename;
@@ -62,12 +65,9 @@ import spiralcraft.pioneer.util.ThrowableUtil;
 import spiralcraft.pioneer.security.servlet.ServletAuthenticator;
 import spiralcraft.pioneer.security.SecurityException;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.logging.Level;
 
 import java.net.URI;
 import java.net.URL;
@@ -88,8 +88,8 @@ public class SimpleHttpServiceContext
   implements HttpServiceContext
             ,Meterable
 {
-  private static final ClassLogger log
-    =ClassLogger.getInstance(SimpleHttpServiceContext.class);
+  protected static final ClassLog log
+    =ClassLog.getInstance(SimpleHttpServiceContext.class);
   private static final String version="1.0pre1";
   
   //private static final String DEBUG_GROUP
@@ -143,6 +143,7 @@ public class SimpleHttpServiceContext
   private AccessLog localAccessLog;
   protected AccessLog _accessLog=null;
   private String _servletContextName=""+hashCode();
+  protected boolean debug;
 
 
   public void setDebugWAR(boolean debugWAR)
@@ -272,8 +273,8 @@ public class SimpleHttpServiceContext
             }
             else
             {
-              _log.log
-                (Log.SEVERE
+              log.log
+                (Level.SEVERE
                 ,"No servlet configured to handle request for http://"
                   +request.getHeader("Host")
                   +request.getRequestURI()
@@ -283,7 +284,7 @@ public class SimpleHttpServiceContext
           }
           catch (ServletException x)
           {
-            _log.log(Log.SEVERE
+            log.log(Level.SEVERE
                     ,"ServletException handling "
                       +"http://"+request.getHeader("Host")+request.getRequestURI()
                       +": "+x.toString()
@@ -294,7 +295,7 @@ public class SimpleHttpServiceContext
           }
           catch (Exception x)
           {
-            _log.log(Log.SEVERE
+            log.log(Level.SEVERE
                     ,"Uncaught Exception handling "
                       +"http://"+request.getHeader("Host")+request.getRequestURI()
                       +": "+ThrowableUtil.getStackTrace(x)
@@ -313,7 +314,7 @@ public class SimpleHttpServiceContext
     }
     catch (ServletException x)
     {
-      _log.log(Log.SEVERE
+      log.log(Level.SEVERE
               ,"ServletException preprocessing request "
                 +"http://"+request.getHeader("Host")+request.getRequestURI()
                 +": "+x.toString()+"\r\n"+ThrowableUtil.getStackTrace(x)
@@ -497,8 +498,8 @@ public class SimpleHttpServiceContext
    */
   public void log(String msg)
   { 
-    if (_log.isLevel(Log.INFO))
-    { _log.log(Log.INFO,msg);
+    if (log.canLog(Level.INFO))
+    { log.log(Level.INFO,msg);
     }
   }
 
@@ -510,14 +511,14 @@ public class SimpleHttpServiceContext
   @SuppressWarnings("deprecation")
   @Deprecated
   public void log(Exception x,String msg)
-  { _log.log(Log.SEVERE,ThrowableUtil.getStackTrace(x));
+  { log.log(Level.SEVERE,msg,x);
   }
 
   /**
    * Log an error
    */
   public void log(String msg,Throwable x)
-  { _log.log(Log.SEVERE,ThrowableUtil.getStackTrace(x));
+  { log.log(Level.SEVERE,msg,x);
   }
 
   /**
@@ -637,7 +638,7 @@ public class SimpleHttpServiceContext
     String uri=URLEncoder.decode(rawUri);
     if (uri==null)
     { 
-      _log.log(Log.WARNING,"Undecodable URI "+rawUri);
+      log.log(Level.WARNING,"Undecodable URI "+rawUri);
       return null;
     }
     if (uri.length()>0 && uri.charAt(0)=='/')
@@ -647,7 +648,7 @@ public class SimpleHttpServiceContext
     {
       if (!uri.startsWith(_alias))
       {
-        _log.log(Log.DEBUG,uri+" does not start with "+_alias);
+        log.log(Level.DEBUG,uri+" does not start with "+_alias);
         return null;
       }
       else
@@ -691,7 +692,7 @@ public class SimpleHttpServiceContext
     }
     else
     {
-      _log.log(Log.SEVERE,"No SessionManager available for root context");
+      log.log(Level.SEVERE,"No SessionManager available for root context");
       return null;
     }
   }
@@ -806,8 +807,8 @@ public class SimpleHttpServiceContext
   @Deprecated
   public void setServletMap(HashMap<String,ServletHolder> servletMap)
   {
-    if (_log.isLevel(Log.DEBUG))
-    { _log.log(Log.DEBUG,servletMap.toString());
+    if (log.canLog(Level.DEBUG))
+    { log.log(Level.DEBUG,servletMap.toString());
     }
 
     _servletMap=servletMap;
@@ -877,8 +878,8 @@ public class SimpleHttpServiceContext
    */
   public void setTypeHandlerMap(HashMap<String,String> handlerMap)
   {
-    if (_log.isLevel(Log.DEBUG))
-    { _log.log(Log.DEBUG,handlerMap.toString());
+    if (log.canLog(Level.DEBUG))
+    { log.log(Level.DEBUG,handlerMap.toString());
     }
 
     _handlerMap=handlerMap;
@@ -937,9 +938,6 @@ public class SimpleHttpServiceContext
   //
   //////////////////////////////////////////////////////////////////
 
-  protected Log _log=LogManager.getGlobalLog();
-
-
   /**
    * Prepare for request handling
    */
@@ -966,7 +964,7 @@ public class SimpleHttpServiceContext
 //    }
 //   catch (MalformedURLException x)
 //    { 
-//      _log.log(Log.ERROR,x.toString());
+//      log.log(Level.ERROR,x.toString());
 //     throw new RuntimeException(x.toString());
 //    }
     
@@ -988,7 +986,7 @@ public class SimpleHttpServiceContext
         { _mimeMap=new ExtensionMimeTypeMap("ExtensionMimeTypeMap.properties");
         }
         catch (IOException x)
-        { _log.log(Log.WARNING,"Error loading default mime type map: "+x.toString());
+        { log.log(Level.WARNING,"Error loading default mime type map: "+x.toString());
         }
         try
         {
@@ -1001,7 +999,7 @@ public class SimpleHttpServiceContext
           }
         }
         catch (IOException x)
-        { _log.log(Log.WARNING,"Error loading configured mime type map: "+x.toString());
+        { log.log(Level.WARNING,"Error loading configured mime type map: "+x.toString());
         }
       }
     }
@@ -1009,8 +1007,8 @@ public class SimpleHttpServiceContext
     { 
       if (_parentContext==null)
       { 
-        _log.log
-          (Log.INFO
+        log.log
+          (Level.INFO
           ,getClass().getName()
             +" serving "+_docRoot.getPath()+" is attributes root"
           );
@@ -1018,15 +1016,15 @@ public class SimpleHttpServiceContext
       }
     }
     if (_alias==null)
-    { _log.log(Log.INFO,"Serving path '"+_docRoot.getPath()+"' for alias '/'");
+    { log.log(Level.INFO,"Serving path '"+_docRoot.getPath()+"' for alias '/'");
     }
     else
-    { _log.log(Log.INFO,"Serving path '"+_docRoot.getPath()+"' for alias '"+_alias+"'");
+    { log.log(Level.INFO,"Serving path '"+_docRoot.getPath()+"' for alias '"+_alias+"'");
     }
     if (_servletAliasMap!=null 
-        && _log.isDebugEnabled(HttpServer.DEBUG_SERVICE)
+        && debug
         )
-    { _log.log(Log.DEBUG,"Servlet alias map: "+_servletAliasMap.toString());
+    { log.log(Level.DEBUG,"Servlet alias map: "+_servletAliasMap.toString());
     }
 
     loadWAR();
@@ -1097,7 +1095,7 @@ public class SimpleHttpServiceContext
       }
       catch (LifecycleException x)
       { 
-        _log.log(Log.WARNING,"Error stopping WAR ClassLoader: "+x.toString());
+        log.log(Level.WARNING,"Error stopping WAR ClassLoader: "+x.toString());
         x.printStackTrace();
       }
       contextClassLoader=null;
@@ -1176,8 +1174,8 @@ public class SimpleHttpServiceContext
         }
       }
     }
-    if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-    { _log.log(Log.DEBUG,"Checking servlet map for '"+servletAlias+"'");
+    if (debug)
+    { log.log(Level.DEBUG,"Checking servlet map for '"+servletAlias+"'");
     }
     String servletName=getServletNameForAlias(servletAlias);
     if (servletName==null)
@@ -1188,8 +1186,8 @@ public class SimpleHttpServiceContext
     
     if (servletName!=null)
     {
-      if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-      { _log.log(Log.DEBUG,"Mapped to servlet named '"+servletName+"'");
+      if (debug)
+      { log.log(Level.DEBUG,"Mapped to servlet named '"+servletName+"'");
       }
       filterChain=getFilterChain(servletName);
       if (filterChain==null)
@@ -1197,9 +1195,9 @@ public class SimpleHttpServiceContext
       }
       request.setServletPath(servletPath);
       
-      if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
+      if (debug)
       { 
-        _log.log(Log.DEBUG,"servletPath="+request.getServletPath()
+        log.log(Level.DEBUG,"servletPath="+request.getServletPath()
                   +" pathInfo="+request.getPathInfo()
                   );
       }
@@ -1249,8 +1247,8 @@ public class SimpleHttpServiceContext
     
     realPath=getRealPath(request.getRequestURI());
 
-    if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-    { _log.log(Log.DEBUG,"Locating interpreter for real path "+realPath);
+    if (debug)
+    { log.log(Level.DEBUG,"Locating interpreter for real path "+realPath);
     }
     
     if (realPath!=null)
@@ -1273,8 +1271,8 @@ public class SimpleHttpServiceContext
         { throw new ServletException("Servlet '"+servletName+"' not found.");
         }
 
-        if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-        { _log.log(Log.DEBUG,"Using servlet '"+servletName+"' for servletPath "
+        if (debug)
+        { log.log(Level.DEBUG,"Using servlet '"+servletName+"' for servletPath "
                     +request.getServletPath()+", file "+getRealPath(request.getServletPath())
                     );
         }
@@ -1296,8 +1294,8 @@ public class SimpleHttpServiceContext
     
     String realPath=getRealPath(uri);
 
-    if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-    { _log.log(Log.DEBUG,"Checking completion '"+realPath+"' for uri "
+    if (debug)
+    { log.log(Level.DEBUG,"Checking completion '"+realPath+"' for uri "
                 +uri
                 );
     }
@@ -1364,7 +1362,7 @@ public class SimpleHttpServiceContext
       }
       catch (SecurityException x)
       { 
-        _log.log(Log.SEVERE
+        log.log(Level.SEVERE
                 ,"SecurityException processing request "
                   +"http://"+request.getHeader("Host")+request.getRequestURI()
                   +": "+x.toString()
@@ -1453,11 +1451,11 @@ public class SimpleHttpServiceContext
       { 
         servletName=_handlerMap.get(type);
         if (servletName!=null
-            && _log.isDebugEnabled(HttpServer.DEBUG_SERVICE)
+            && debug
             )
         { 
-          _log.log
-            (Log.DEBUG
+          log.log
+            (Level.DEBUG
             ,"Request mapped to servlet "+servletName
             );
         }
@@ -1474,11 +1472,11 @@ public class SimpleHttpServiceContext
     if (servletName==null)
     { 
       if (_defaultServletName!=null
-          && _log.isDebugEnabled(HttpServer.DEBUG_SERVICE)
+          && debug
           )
       { 
-        _log.log
-          (Log.DEBUG
+        log.log
+          (Level.DEBUG
           ,"Request mapped to default servlet "
           +_defaultServletName
           );
@@ -1565,17 +1563,17 @@ public class SimpleHttpServiceContext
       }
       else
       { 
-        _log.log
-          (Log.SEVERE,"Document root "+_docRoot+" is not a valid directory"
+        log.log
+          (Level.SEVERE,"Document root "+_docRoot+" is not a valid directory"
               +", not loading WAR ClassLoader"
            );
       }
     }
     catch (IOException x)
-    { _log.log(Log.SEVERE,"Error loading WAR ClassLoader: "+x.toString());
+    { log.log(Level.SEVERE,"Error loading WAR ClassLoader: "+x.toString());
     }
     catch (LifecycleException x)
-    { _log.log(Log.SEVERE,"Error loading WAR ClassLoader: "+x.toString());
+    { log.log(Level.SEVERE,"Error loading WAR ClassLoader: "+x.toString());
     }
   }
   

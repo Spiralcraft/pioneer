@@ -33,8 +33,8 @@ import spiralcraft.pioneer.pool.Pool;
 
 import java.util.LinkedList;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.Level;
+import spiralcraft.log.ClassLog;
 
 import spiralcraft.pioneer.util.ThrowableUtil;
 
@@ -50,6 +50,8 @@ public class QueueConnectionHandler
 	implements ConnectionHandler,Meterable,FrameListener
 {
 
+  private ClassLog _log=ClassLog.getInstance(QueueConnectionHandler.class);
+
 	private ConnectionHandlerFactory _factory;
   private Pool _threadPool=new Pool();
   private final LinkedList<Socket> _queue
@@ -57,7 +59,6 @@ public class QueueConnectionHandler
   private final Object _queueMonitor=new Object();
   private final DispatchThread _dispatchThread=new DispatchThread();
 //  private int _maxQueueLength=500;
-  private Log _log=LogManager.getGlobalLog();
   private boolean _initialized=false;
   private boolean _finished=false;
   private Meter _meter;
@@ -100,7 +101,7 @@ public class QueueConnectionHandler
 
   public void stop()
   {
-    _log.log(Log.INFO,"QueueConnectionHandler stopping");
+    _log.log(Level.INFO,"QueueConnectionHandler stopping");
     synchronized (_queueMonitor)
     {
       _finished=true;
@@ -330,7 +331,7 @@ public class QueueConnectionHandler
               catch (Throwable x)
               { 
                 _socket=null;
-                _log.log(Log.SEVERE
+                _log.log(Level.SEVERE
                         ,"Uncaught exception- ConnectionHandler assumed unsalvagable\r\n"
                         +ThrowableUtil.getStackTrace(x)
                         );

@@ -28,14 +28,14 @@ import spiralcraft.pioneer.io.StreamListenerSupport;
 import spiralcraft.pioneer.io.StreamListener;
 import spiralcraft.pioneer.io.StreamEvent;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.ClassLog;
+import spiralcraft.log.Level;
 
 public class StreamPump
   implements Runnable
 {
-  private static final String DEBUG_GROUP
-    =StreamPump.class.getName();
+  private static final ClassLog _log=ClassLog.getInstance(StreamPump.class);
+
   private static int ID=0;
 
   private int _id=ID++;
@@ -54,7 +54,7 @@ public class StreamPump
   private OutputStream _traceStream;
   private boolean _alwaysBlock;
   private boolean _draining;
-  private Log _log=LogManager.getGlobalLog();
+  private boolean debug;
 
   public StreamPump(InputStream in,OutputStream out)
   {
@@ -70,6 +70,9 @@ public class StreamPump
   { _bufsize=bufsize;
   }
   
+  public void setDebug(boolean debug)
+  { this.debug=debug;
+  }
 
   /**
    * Specify the interval at which an inactive stream will
@@ -184,20 +187,20 @@ public class StreamPump
           int read=0;
           try
           { 
-            if (_log.isDebugEnabled(DEBUG_GROUP))
-            { _log.log(Log.DEBUG,_id+":Reading "+bytesToRead);
+            if (debug)
+            { _log.log(Level.FINE,_id+":Reading "+bytesToRead);
             }
             read=_in.read(buffer,0,bytesToRead);
-            if (_log.isDebugEnabled(DEBUG_GROUP))
-            { _log.log(Log.DEBUG,_id+":Read "+read);
+            if (debug)
+            { _log.log(Level.FINE,_id+":Read "+read);
             }
           }
           catch (InterruptedIOException x)
           {
             if (!_ignoreTimeouts)
             { 
-              if (_log.isDebugEnabled(DEBUG_GROUP))
-              { _log.log(Log.DEBUG,_id+":Timed out");
+              if (debug)
+              { _log.log(Level.DEBUG,_id+":Timed out");
               }
               throw x;
             }

@@ -10,8 +10,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.Level;
+import spiralcraft.log.ClassLog;
+
 
 import spiralcraft.time.Clock;
 import spiralcraft.util.string.StringUtil;
@@ -46,13 +47,14 @@ public class FileServlet
 //  { _fileCache.setMaxSize(1024*1024); 
 //  }
   
-  private Log _log=LogManager.getGlobalLog();
+  private ClassLog _log=ClassLog.getInstance(FileServlet.class);
   private int _bufferSize=8192;
   private ServletConfig _servletConfig;
   private boolean _permitDirListing=true;
   private String[] _defaultFiles={"index.html","index.htm","default.htm"};
   private SimpleDateFormat _fileDateFormat=new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
   private int defaultCacheSeconds;
+  private boolean debug;
   
   
   public FileServlet()
@@ -74,7 +76,7 @@ public class FileServlet
   public void init(ServletConfig servletConfig)
     throws ServletException
   { 
-    _log.log(Log.DEBUG
+    _log.log(Level.DEBUG
             ,"FileServlet.init() "
             );
     
@@ -89,9 +91,9 @@ public class FileServlet
     {
       String key=(String) e.nextElement();
 
-      if (_log.isLevel(Log.DEBUG))
+      if (_log.canLog(Level.DEBUG))
       { 
-        _log.log(Log.DEBUG
+        _log.log(Level.DEBUG
                 ,key+"="+_servletConfig.getInitParameter(key)
                 );
       }
@@ -115,8 +117,8 @@ public class FileServlet
   public void service(HttpServletRequest request,HttpServletResponse response)
     throws IOException,ServletException
   {
-    if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-    { _log.log(Log.DEBUG,"Servicing request for "+request.getRequestURI());
+    if (debug)
+    { _log.log(Level.DEBUG,"Servicing request for "+request.getRequestURI());
     }
     
     String path
@@ -139,8 +141,8 @@ public class FileServlet
     }
 
     File file=new File(path);
-    if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-    { _log.log(Log.DEBUG,"File Servlet serving "+path);
+    if (debug)
+    { _log.log(Level.DEBUG,"File Servlet serving "+path);
     }
     
     if (request.getRequestURI().endsWith("/"))
@@ -262,7 +264,7 @@ public class FileServlet
     }
     catch (IOException x)
     { 
-      _log.log(Log.SEVERE,"Error writing "+request.getRequestURI()+":"+x.toString());
+      _log.log(Level.SEVERE,"Error writing "+request.getRequestURI()+":"+x.toString());
       x.printStackTrace();
       response.sendError(500,"Error transferring file");
     }
@@ -345,14 +347,14 @@ public class FileServlet
           response.getOutputStream().flush();
           return;
         }
-        else if (ifModifiedSince>0 && _log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
-        { _log.log(Log.DEBUG,"If-Modified-Since: "+ifModifiedSince+", lastModified="+lastModified);
+        else if (ifModifiedSince>0 && debug)
+        { _log.log(Level.DEBUG,"If-Modified-Since: "+ifModifiedSince+", lastModified="+lastModified);
         }
       }
       catch (IllegalArgumentException x)
       {
         _log.log
-          (Log.WARNING
+          (Level.WARNING
           ,"Unrecognized date format in header- If-Modified-Since: "
           +request.getHeader(HttpServerResponse.HDR_IF_MODIFIED_SINCE)
           );
@@ -378,7 +380,7 @@ public class FileServlet
           )
       {
         _log.log
-          (Log.WARNING
+          (Level.WARNING
           ,"IOException retrieving "+path+": "+x.toString()
           );
       }
@@ -420,16 +422,16 @@ public class FileServlet
           response.getOutputStream().flush();
           return;
         }
-        else if (ifModifiedSince>0 && _log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
+        else if (ifModifiedSince>0 && debug)
         {
-          _log.log(Log.DEBUG,"If-Modified-Since: "
+          _log.log(Level.DEBUG,"If-Modified-Since: "
                     +ifModifiedSince+", lastModified="+lastModified);
         }
       }
       catch (IllegalArgumentException x)
       {
         _log.log
-          (Log.WARNING
+          (Level.WARNING
           ,"Unrecognized date format in header- If-Modified-Since: "
           +request.getHeader(HttpServerResponse.HDR_IF_MODIFIED_SINCE)
           );
@@ -513,7 +515,7 @@ public class FileServlet
           )
       {
         _log.log
-          (Log.WARNING
+          (Level.WARNING
           ,"IOException retrieving "+path+": "+x.toString()
           );
       }
@@ -535,8 +537,8 @@ public class FileServlet
     )
     throws IOException
   {
-    if (_log.isLevel(Log.DEBUG))
-    { _log.log(Log.DEBUG,"Listing "+dir.getPath());
+    if (_log.canLog(Level.DEBUG))
+    { _log.log(Level.DEBUG,"Listing "+dir.getPath());
     }
 
     String host=request.getHeader("Host");

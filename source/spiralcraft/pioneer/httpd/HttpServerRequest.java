@@ -23,7 +23,7 @@ import spiralcraft.pioneer.util.MappedList;
 import spiralcraft.pioneer.util.ListMap;
 import spiralcraft.pioneer.util.Translator;
 
-import spiralcraft.pioneer.log.Log;
+import spiralcraft.log.Level;
 
 import spiralcraft.time.Clock;
 
@@ -98,7 +98,6 @@ public class HttpServerRequest
 
 
   private Principal _userPrincipal;
-
 	
 	private MappedList _headers=new MappedList(new LinkedList<Variable>());
 	private ListMap _headerMap
@@ -116,6 +115,8 @@ public class HttpServerRequest
   private HttpServer _httpServer;
   private boolean _started;
   private boolean _headersRead;
+  
+  private boolean debugProtocol;
 
 	public HttpServerRequest()
   {
@@ -135,6 +136,7 @@ public class HttpServerRequest
     throws IOException
 	{
     super.start();
+    debugProtocol=_httpServer.getDebugProtocol();
     _started=false;
     _socket=sock;
 		_inputStream.start(sock.getInputStream());
@@ -180,9 +182,9 @@ public class HttpServerRequest
       { throw new IOException("Invalid request: "+_requestLine);
       }
 
-      if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
+      if (debugProtocol)
       { 
-        _log.log(Log.DEBUG,">>> "+_method+" "+_requestURL
+        _log.log(Level.DEBUG,">>> "+_method+" "+_requestURL
             +" "+_protocol); 
       }
     }
@@ -207,7 +209,7 @@ public class HttpServerRequest
       }
     }
     catch (IOException x)
-    { _log.log(Log.DEBUG,">>> IOException draining input stream "+x);
+    { _log.log(Level.DEBUG,">>> IOException draining input stream "+x);
     }
   }
 
@@ -606,8 +608,8 @@ public class HttpServerRequest
  		int colonPos=header.indexOf(":");
  		var.name=header.substring(0,colonPos);
  		var.value=header.substring(colonPos+1).trim();
-    if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
-    { _log.log(Log.DEBUG,">>> "+var.name+": "+var.value); 
+    if (debugProtocol)
+    { _log.log(Level.DEBUG,">>> "+var.name+": "+var.value); 
     }
  		_headers.add(var);
  	}
@@ -626,13 +628,13 @@ public class HttpServerRequest
         final Variable var=(Variable) it.next();
         try
         { 
-          if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
-          { _log.log(Log.DEBUG,"Reading cookie: ["+var.value+"]");
+          if (debugProtocol)
+          { _log.log(Level.DEBUG,"Reading cookie: ["+var.value+"]");
           }
           for (Cookie cookie : new CookieParser(var.value).parse())
           { 
-            if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
-            { _log.log(Log.DEBUG,"Got cookie: ["+cookie.getName()+","+cookie.getValue()+"]");
+            if (debugProtocol)
+            { _log.log(Level.DEBUG,"Got cookie: ["+cookie.getName()+","+cookie.getValue()+"]");
             }
             _cookieList.add(cookie);
             if (cookie.getName().equalsIgnoreCase("spiralSessionId"))
@@ -643,7 +645,7 @@ public class HttpServerRequest
           }
         }
         catch (ParseException x)
-        { _log.log(Log.WARNING,"Parsing cookie: "+x.toString());
+        { _log.log(Level.WARNING,"Parsing cookie: "+x.toString());
         }
         // parseCookie(var);
       }
@@ -688,7 +690,7 @@ public class HttpServerRequest
   {
     // XXX: Since HTTPUtils is deprecated- we NEED to implement this
     // TODO Auto-generated method stub
-    _log.log(Log.SEVERE,"getParameterMap() not implemented");
+    _log.log(Level.SEVERE,"getParameterMap() not implemented");
     return null;
   }
 
@@ -697,7 +699,7 @@ public class HttpServerRequest
   public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
   {
     // TODO Auto-generated method stub
-    _log.log(Log.SEVERE,"setCharacterEncoding() not implemented");
+    _log.log(Level.SEVERE,"setCharacterEncoding() not implemented");
   }
  	
   

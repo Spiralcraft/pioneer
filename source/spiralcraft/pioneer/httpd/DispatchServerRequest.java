@@ -16,7 +16,7 @@ package spiralcraft.pioneer.httpd;
 
 
 
-import spiralcraft.pioneer.log.Log;
+import spiralcraft.log.Level;
 
 
 import javax.servlet.http.HttpServletRequest;
@@ -200,7 +200,7 @@ public class DispatchServerRequest
 
   public StringBuffer getRequestURL()
   {
-    _log.log(Log.SEVERE,"getRequestURL() not implemented");
+    _log.log(Level.SEVERE,"getRequestURL() not implemented");
     // TODO Auto-generated method stub
     return null;
   }
@@ -208,14 +208,14 @@ public class DispatchServerRequest
   public Map<?,?> getParameterMap()
   {
     // TODO Auto-generated method stub
-    _log.log(Log.SEVERE,"getParameterMap() not implemented");
+    _log.log(Level.SEVERE,"getParameterMap() not implemented");
     return null;
   }
 
   public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
   {
     // TODO Auto-generated method stub
-    _log.log(Log.SEVERE,"setCharacterEncoding() not implemented");
+    _log.log(Level.SEVERE,"setCharacterEncoding() not implemented");
     
   }
   

@@ -21,7 +21,9 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.OutputStreamWriter;
 
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.ClassLog;
+import spiralcraft.log.Level;
+
 import spiralcraft.pioneer.io.StreamPump;
 import spiralcraft.pioneer.io.HexDumpOutputStream;
 
@@ -44,6 +46,7 @@ public class DebugConnectionHandler
       streamPump.setBufferSize(1024);
       streamPump.setCheckAvailable(true);
       streamPump.setAlwaysBlock(true);
+      streamPump.setDebug(true);
       streamPump.run();
       out.flush();
       
@@ -51,7 +54,9 @@ public class DebugConnectionHandler
       sockOut.flush();
     }
     catch (IOException x)
-    { LogManager.getGlobalLog().log(1,x.toString());
+    { 
+      ClassLog.getInstance
+        (DebugConnectionHandler.class).log(Level.INFO,x.toString());
     }
 
   }

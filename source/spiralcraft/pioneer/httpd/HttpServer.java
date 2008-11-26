@@ -17,15 +17,14 @@ package spiralcraft.pioneer.httpd;
 import spiralcraft.pioneer.net.ConnectionHandlerFactory;
 import spiralcraft.pioneer.net.ConnectionHandler;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.Level;
+import spiralcraft.log.ClassLog;
 
 import spiralcraft.pioneer.util.ThrowableUtil;
 
 
 import java.net.Socket;
 import java.net.URI;
-import java.util.HashMap;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -57,7 +56,7 @@ public class HttpServer
 
   private static final String version="1.0pre1";
 
-  private Log _log=LogManager.getGlobalLog();
+  private ClassLog _log=ClassLog.getInstance(HttpServer.class);
   private HttpServiceContext _serviceContext;
   private int _socketTimeout=30000;
   private String _serverInfo;
@@ -75,51 +74,32 @@ public class HttpServer
   private boolean started;
   private boolean stopping;
   private Resource traceResource;
+  private boolean debugProtocol;
+  private boolean debugService;
+  private boolean debugIO;
  
-  private HashMap<String,String> debugMap
-    =new HashMap<String,String>();
-  
   public void setServerInfo(String serverInfo)
   { _serverInfo=serverInfo;
   }
   
   public void setDebugProtocol(boolean val)
-  { 
-    if (val)
-    { 
-      _log.setLevel(Log.DEBUG);
-      _log.setDebugProfile(debugMap);
-      debugMap.put(DEBUG_PROTOCOL,"true");
-    }
-    else
-    { debugMap.remove(DEBUG_PROTOCOL);
-    }
+  { debugProtocol=val;
   }
   
+  public boolean getDebugProtocol()
+  { return debugProtocol;
+  }
+
   public void setDebugService(boolean val)
-  { 
-    if (val)
-    { 
-      _log.setLevel(Log.DEBUG);
-      _log.setDebugProfile(debugMap);
-      debugMap.put(DEBUG_SERVICE,"true");
-    }
-    else
-    { debugMap.remove(DEBUG_SERVICE);
-    }
+  { debugService=val;
+  }
+  
+  public boolean getDebugService()
+  { return debugService;
   }
 
   public void setDebugIO(boolean val)
-  { 
-    if (val)
-    { 
-      _log.setLevel(Log.DEBUG);
-      _log.setDebugProfile(debugMap);
-      debugMap.put(DEBUG_IO,"true");
-    }
-    else
-    { debugMap.remove(DEBUG_IO);
-    }
+  { debugIO=val;
   }
 
   public void setTraceDir(URI uri)
@@ -301,13 +281,13 @@ public class HttpServer
       try
       {
 
-        if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
+        if (debugProtocol)
         { 
-          _log.log(Log.DEBUG,"Got HTTP connection from "
+          _log.log(Level.DEBUG,"Got HTTP connection from "
             +socket.getInetAddress().getHostAddress());
         }
 
-        if (_log.isDebugEnabled(HttpServer.DEBUG_IO))
+        if (debugIO)
         { 
           String traceFile="http"+connectionNum+".txt";
           if (traceResource!=null)
@@ -335,9 +315,9 @@ public class HttpServer
             }
             catch (InterruptedIOException x)
             { 
-              if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
+              if (debugProtocol)
               { 
-                _log.log(Log.DEBUG
+                _log.log(Level.DEBUG
                         ,"HTTP connection timed out from "
                         +socket.getInetAddress().getHostAddress()
                         );
@@ -366,7 +346,7 @@ public class HttpServer
                 { _uncaughtServletExceptionsRegister.incrementValue();
                 }
                 _response.sendError(500,"Internal Server Error");
-                _log.log(Log.SEVERE,"Servlet Exception: "+x.getMessage());
+                _log.log(Level.SEVERE,"Servlet Exception: "+x.getMessage());
               }
               catch (RuntimeException x)
               {
@@ -374,7 +354,7 @@ public class HttpServer
                 { _uncaughtRuntimeExceptionsRegister.incrementValue();
                 }
                 _response.sendError(500,"Internal Server Error");
-                _log.log(Log.SEVERE,"Runtime Exception: "+ThrowableUtil.getStackTrace(x));
+                _log.log(Level.SEVERE,"Runtime Exception: "+ThrowableUtil.getStackTrace(x));
               }
               _request.finish();
               _response.finish();
@@ -391,8 +371,8 @@ public class HttpServer
             if (_meter!=null && _request.wasStarted())
             { _activeRequestsRegister.decrementValue();
             }
-            if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
-            { _log.log(Log.DEBUG,"Finished HTTP request from "+socket.getInetAddress().getHostAddress());
+            if (debugProtocol)
+            { _log.log(Level.DEBUG,"Finished HTTP request from "+socket.getInetAddress().getHostAddress());
             }
 
           }
@@ -415,8 +395,8 @@ public class HttpServer
           }
           catch (IOException x2)
           { }
-          if (_log.isLevel(Log.INFO))
-          { _log.log(Log.INFO,"IOException handling connection from "+addr+": "+x.toString());
+          if (_log.canLog(Level.INFO))
+          { _log.log(Level.INFO,"IOException handling connection from "+addr+": "+x.toString());
           }
         }
       }
@@ -436,8 +416,8 @@ public class HttpServer
         catch (Exception x)
         { }
 
-        if (_log.isDebugEnabled(HttpServer.DEBUG_PROTOCOL))
-        { _log.log(Log.DEBUG,"Finished HTTP connection from "+socket.getInetAddress().getHostAddress());
+        if (debugProtocol)
+        { _log.log(Level.DEBUG,"Finished HTTP connection from "+socket.getInetAddress().getHostAddress());
         }
 
       }

@@ -16,8 +16,8 @@ package spiralcraft.pioneer.io;
 
 import spiralcraft.time.Clock;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.Level;
+import spiralcraft.log.ClassLog;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -38,6 +38,8 @@ public class SimpleGoverner
   implements Governer
 {
   
+  private static final ClassLog log=ClassLog.getInstance(SimpleGoverner.class);
+
   private long _frameStartTime;
   private long _frameBytesSoFar;
 
@@ -46,7 +48,6 @@ public class SimpleGoverner
   private long _bytesPerFrame;
 
   private long _totalBytes;
-  private Log _log=LogManager.getGlobalLog();
   
   public void setRateBitsPerSecond(long bitsPerSecond)
   { 
@@ -79,7 +80,10 @@ public class SimpleGoverner
           }
         }
         else if (sleepTime>_frameSizeMs)
-        { _log.log(Log.WARNING,"Governer attempted to sleep for "+sleepTime+" > "+_frameSizeMs);
+        { 
+          log.log(Level.WARNING
+                  ,"Governer attempted to sleep for "+sleepTime+" > "
+                  +_frameSizeMs);
         }
         
         // New frame after we block

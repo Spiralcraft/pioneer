@@ -31,8 +31,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import javax.servlet.RequestDispatcher;
 
-import spiralcraft.pioneer.log.Log;
-import spiralcraft.pioneer.log.LogManager;
+import spiralcraft.log.Level;
+import spiralcraft.log.ClassLog;
 
 import spiralcraft.time.Clock;
 
@@ -90,7 +90,8 @@ public abstract class AbstractHttpServletRequest
     =new HashMap<String,Object>();
   protected long _startTime;	
 
-  protected Log _log=LogManager.getGlobalLog();
+  protected ClassLog _log
+    =ClassLog.getInstance(AbstractHttpServletRequest.class);
 
   /**
    * Initialize before use
@@ -321,13 +322,13 @@ public abstract class AbstractHttpServletRequest
                 (getContentLength()
                 ,getInputStream()
                 );
-          if (_log.isDebugEnabled("spiralcraft.pioneer.httpd.protocol"))
-          { _log.log(Log.DEBUG,"Read post: ["+_post.toString()+"]");
+          if (_log.canLog(Level.DEBUG))
+          { _log.log(Level.DEBUG,"Read post: ["+_post.toString()+"]");
           }
         }
         catch (IOException x)
         { 
-          _log.log(Log.INFO,"IOException reading post: "+x.toString());
+          _log.log(Level.INFO,"IOException reading post: "+x.toString());
           _post=NULL_FORM;
         }
       }

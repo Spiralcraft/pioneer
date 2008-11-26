@@ -28,7 +28,7 @@ import javax.servlet.ServletException;
 
 import javax.servlet.http.HttpServletResponse;
 
-import spiralcraft.pioneer.log.Log;
+import spiralcraft.log.Level;
 
 import spiralcraft.pioneer.io.Filename;
 
@@ -36,9 +36,7 @@ import spiralcraft.pioneer.io.Filename;
 public class MultiAliasHttpServiceContext
   extends SimpleHttpServiceContext
 {
-  
-  private static final String DEBUG_GROUP
-    =MultiAliasHttpServiceContext.class.getName();
+ 
 
   @Override
   public void service(AbstractHttpServletRequest request,HttpServletResponse response)
@@ -51,8 +49,8 @@ public class MultiAliasHttpServiceContext
       String relativeURI=new Filename(request.getRequestURI())
               .subtract(new Filename("/"+getAlias()));
 
-      if (_log.isDebugEnabled(DEBUG_GROUP))
-      { _log.log(Log.DEBUG,"RelativeURI="+relativeURI);
+      if (debug)
+      { log.log(Level.DEBUG,"RelativeURI="+relativeURI);
       }
       alias=new Filename(relativeURI).getFirstName();
     }
@@ -61,14 +59,14 @@ public class MultiAliasHttpServiceContext
     }
     if (alias!=null)
     {
-      if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-      { _log.log(Log.DEBUG,"Checking alias map for '"+alias+"'");
+      if (debug)
+      { log.log(Level.DEBUG,"Checking alias map for '"+alias+"'");
       }
       HttpServiceContext subContext=_aliasMap.get(alias);
       if (subContext!=null)
       {
-        if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-        { _log.log(Log.DEBUG,"Delegating to subcontext for alias "+alias);
+        if (debug)
+        { log.log(Level.DEBUG,"Delegating to subcontext for alias "+alias);
         }
         if (getAlias()!=null)
         { request.setAlias(getAlias()+"/"+alias);
@@ -80,8 +78,8 @@ public class MultiAliasHttpServiceContext
       }
       else
       { 
-        if (_log.isDebugEnabled(HttpServer.DEBUG_SERVICE))
-        { _log.log(Log.DEBUG,"Nothing aliased to "+alias);
+        if (debug)
+        { log.log(Level.DEBUG,"Nothing aliased to "+alias);
         }
         super.service(request,response);
       }
@@ -120,8 +118,8 @@ public class MultiAliasHttpServiceContext
       { context.setAlias(key);
       }
     }
-    if (_log.isLevel(Log.DEBUG))
-    { _log.log(Log.DEBUG,"aliasMap="+_aliasMap.keySet());
+    if (log.canLog(Level.DEBUG))
+    { log.log(Level.DEBUG,"aliasMap="+_aliasMap.keySet());
     }
   }
 
