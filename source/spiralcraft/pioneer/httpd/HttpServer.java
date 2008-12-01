@@ -106,12 +106,6 @@ public class HttpServer
     throws IOException
   { 
     Resource resource=Resolver.getInstance().resolve(uri);
-    if (!resource.exists())
-    { throw new IllegalArgumentException("Trace dir "+uri+" does not exist");
-    }
-    if (resource.asContainer()==null)
-    { throw new IllegalArgumentException("Trace dir "+uri+" is not a directory");
-    }
     traceResource=resource;
     
   }
@@ -256,6 +250,40 @@ public class HttpServer
       return true;
     }
     
+    private OutputStream newTraceStream(int connectionNum)
+      throws IOException
+    {
+      OutputStream traceStream=null;
+      String traceFile="http"+connectionNum+".txt";
+      if (traceResource!=null)
+      { 
+        if (!traceResource.exists())
+        { 
+          _log.log
+            (Level.WARNING
+              ,"Trace dir "+traceResource.getURI()+" does not exist"
+            );
+        }
+        else if (traceResource.asContainer()==null)
+        { 
+          _log.log
+            (Level.WARNING
+              ,"Trace dir "+traceResource.getURI()+" is not a directory"
+            );
+        } 
+        else
+        {
+          traceStream
+            =traceResource.asContainer().getChild(traceFile)
+            .getOutputStream();
+        }
+      }
+      else
+      { traceStream=new FileOutputStream(traceFile);
+      }
+      return traceStream;
+    }
+    
     public void handleConnection(Socket socket)
     {
       if (!ensureRunning())
@@ -287,18 +315,9 @@ public class HttpServer
             +socket.getInetAddress().getHostAddress());
         }
 
+        
         if (debugIO)
-        { 
-          String traceFile="http"+connectionNum+".txt";
-          if (traceResource!=null)
-          { 
-            traceStream
-              =traceResource.asContainer().getChild(traceFile)
-                .getOutputStream();
-          }
-          else
-          { traceStream=new FileOutputStream(traceFile);
-          }
+        { traceStream=newTraceStream(connectionNum);
         }
         _request.setTraceStream(traceStream);
         _response.setTraceStream(traceStream);
