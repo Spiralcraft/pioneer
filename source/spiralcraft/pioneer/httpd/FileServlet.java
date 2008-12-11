@@ -55,6 +55,7 @@ public class FileServlet
   private SimpleDateFormat _fileDateFormat=new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
   private int defaultCacheSeconds;
   private boolean debug;
+  private String[] hiddenPaths;
   
   
   public FileServlet()
@@ -70,6 +71,14 @@ public class FileServlet
    */
   public void setDefaultCacheSeconds(int seconds)
   { this.defaultCacheSeconds=seconds;
+  }
+  
+  public void setHiddenPaths(String[] hiddenPaths)
+  { this.hiddenPaths=hiddenPaths;
+  }
+  
+  public String[] getHiddenPaths()
+  { return hiddenPaths;
   }
   
   @Override
@@ -119,6 +128,12 @@ public class FileServlet
   {
     if (debug)
     { _log.log(Level.DEBUG,"Servicing request for "+request.getRequestURI());
+    }
+    
+    if (hidden(request.getServletPath()))
+    {
+      response.sendError(404);
+      return;
     }
     
     String path
@@ -235,6 +250,12 @@ public class FileServlet
       }
     }
     return null;
+  }
+  
+  private boolean hidden(String path)
+  {
+    // XXX Check the PathPattern
+    return false;
   }
 
   private void putFile
