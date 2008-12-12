@@ -27,7 +27,7 @@
     />
     
     <copy 
-      file="../../build/resources/ant/build-common.xml"
+      file="../../build/build-common.xml"
       todir="."
     />
   </target>

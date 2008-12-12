@@ -15,6 +15,8 @@ import spiralcraft.log.ClassLog;
 
 
 import spiralcraft.time.Clock;
+import spiralcraft.util.Path;
+import spiralcraft.util.PathPattern;
 import spiralcraft.util.string.StringUtil;
 import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.StreamUtil;
@@ -55,7 +57,11 @@ public class FileServlet
   private SimpleDateFormat _fileDateFormat=new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
   private int defaultCacheSeconds;
   private boolean debug;
-  private String[] hiddenPaths;
+  private PathPattern[] hiddenPaths
+    =new PathPattern[] 
+      {new PathPattern("**/.svn/")
+      ,new PathPattern("**/CVS/")
+      };
   
   
   public FileServlet()
@@ -73,11 +79,11 @@ public class FileServlet
   { this.defaultCacheSeconds=seconds;
   }
   
-  public void setHiddenPaths(String[] hiddenPaths)
-  { this.hiddenPaths=hiddenPaths;
+  public void setHiddenPaths(PathPattern[] hiddenPaths)
+  {  this.hiddenPaths=hiddenPaths;
   }
   
-  public String[] getHiddenPaths()
+  public PathPattern[] getHiddenPaths()
   { return hiddenPaths;
   }
   
@@ -252,9 +258,18 @@ public class FileServlet
     return null;
   }
   
-  private boolean hidden(String path)
+  private boolean hidden(String pathString)
   {
-    // XXX Check the PathPattern
+    Path path=new Path(pathString,'/');
+    if (hiddenPaths!=null)
+    {
+      for (PathPattern pattern:hiddenPaths)
+      { 
+        if (pattern!=null && pattern.matches(path))
+        { return true;
+        }
+      }
+    }
     return false;
   }
 
@@ -615,26 +630,29 @@ public class FileServlet
     {
       for (int i=0;i<dirs.length;i++)
       { 
-        out.append("<TR>");
         File subdir=new File(dir,dirs[i]);
-        out.append("<TD align=\"left\"><TT>");
-        out.append(_fileDateFormat.format(new Date(subdir.lastModified())));
-        out.append("</TT></TD>");
+        if (!hidden(subdir.toURI().getPath()))
+        {
+          out.append("<TR>");
+          out.append("<TD align=\"left\"><TT>");
+          out.append(_fileDateFormat.format(new Date(subdir.lastModified())));
+          out.append("</TT></TD>");
 
-        out.append("<TD>");
-        out.append("</TD>");
+          out.append("<TD>");
+          out.append("</TD>");
 
-        out.append("<TD><TT>");
-        out.append("<A href=\"");
-        out.append("http://");
-        out.append(host);
-        out.append(uri);
-        out.append(dirs[i]);
-        out.append("/\">");
-        out.append(dirs[i]);
-        out.append("/</A>");
-        out.append("</TT></TD>");
-        out.append("</TR>\r\n");
+          out.append("<TD><TT>");
+          out.append("<A href=\"");
+          out.append("http://");
+          out.append(host);
+          out.append(uri);
+          out.append(dirs[i]);
+          out.append("/\">");
+          out.append(dirs[i]);
+          out.append("/</A>");
+          out.append("</TT></TD>");
+          out.append("</TR>\r\n");
+        }
       }
     }
 
@@ -653,27 +671,30 @@ public class FileServlet
       for (int i=0;i<files.length;i++)
       { 
         File file=new File(dir,files[i]);
-        out.append("<TR>");
+        if (!hidden(file.toURI().getPath()))
+        {
+          out.append("<TR>");
 
-        out.append("<TD  align=\"left\"><TT>");
-        out.append(_fileDateFormat.format(new Date(file.lastModified())));
-        out.append("</TT></TD>");
+          out.append("<TD  align=\"left\"><TT>");
+          out.append(_fileDateFormat.format(new Date(file.lastModified())));
+          out.append("</TT></TD>");
 
-        out.append("<TD align=\"right\"><TT>");
-        out.append(file.length());
-        out.append("</TT></TD>");
+          out.append("<TD align=\"right\"><TT>");
+          out.append(file.length());
+          out.append("</TT></TD>");
 
-        out.append("<TD><TT>");
-        out.append("<A href=\"");
-        out.append("http://");
-        out.append(host);
-        out.append(uri);
-        out.append(files[i]);
-        out.append("\">");
-        out.append(files[i]);
-        out.append("</A>");
-        out.append("</TT></TD>");
-        out.append("</TR>\r\n");
+          out.append("<TD><TT>");
+          out.append("<A href=\"");
+          out.append("http://");
+          out.append(host);
+          out.append(uri);
+          out.append(files[i]);
+          out.append("\">");
+          out.append(files[i]);
+          out.append("</A>");
+          out.append("</TT></TD>");
+          out.append("</TR>\r\n");
+        }
       }
     }
 

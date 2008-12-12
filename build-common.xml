@@ -1,8 +1,14 @@
-<project name="build-common">
+<project name="build-common"
+  xmlns:ivy="antlib:org.apache.ivy.ant"
+  >
 	<!--
 	  Master Template
-	  Last updated 2008-11-03 20:16
+	  Last updated 2008-11-19 1:01
   -->
+  <taskdef 
+    resource="org/apache/ivy/ant/antlib.xml" 
+    uri="antlib:org.apache.ivy.ant"
+  />
 
   <tstamp>
     <format property="now" pattern="yyyyMMdd-HHmmss"/>
@@ -14,11 +20,23 @@
   
   <property name="build.id" value="${user.name}@${host.name}-${now}"/>
   
+  <!-- default luntbuild name -->
+  <property
+    name="version" value="${buildVersion}"
+  />
+  
+  <property
+    name="spiralcraft-build" value="../../build/"
+  />
+  
+  
   <property 
     name="build.name" value="spiralcraft-${module}-${version}-${build.id}"
   />
   <property name="manifest.class.path" value="" />
   <property name="spiralcraft.build" value="../../build"/>
+
+
   
   <target name="build" depends="clean,compile,jar,smoke" />
   
@@ -28,7 +46,38 @@
       <fileset dir="out" includes="**/*"/>
     </delete>
   </target>
+
+  <condition property="isIvy">
+    <available file="ivy.xml"/>
+  </condition>
   
+  <condition 
+    property="ivySettings" 
+    value="ivy.lunt.settings.xml"
+    else="ivy.settings.xml"
+    >
+    <and>
+      <isset property="isIvy"/>
+      <isset property="artifactsDir"/>
+    </and>
+      
+  </condition>
+  
+  <target name="freshBuild"
+    depends="resolve,build"
+    >
+    
+  </target>
+  
+  <target name="resolve" 
+    if="isIvy"
+    >
+    
+    <ivy:configure file="${spiralcraft-build}${ivySettings}"/> 
+    
+    <ivy:retrieve pattern="${ivy.lib.dir}/[artifact].[ext]"/>
+  </target>
+      
   <target name="compile">
     <echo message= "build: ${build.name}"/>
     <javac 
@@ -61,7 +110,14 @@
     </propertyfile>
   </target>
 
-  <target name="smoke" depends="jar">
+	<condition property="isSmoke">
+    <and>
+      <available file="${spiralcraft.build}/lib/bsh.jar"/>
+      <available file="smoke.bsh"/>
+    </and>
+	</condition>
+	
+  <target name="smoke" depends="jar" if="isSmoke">
     <java
       classpath="${spiralcraft.build}/lib/bsh.jar;lib/spiralcraft-${module}.jar;${classpath}"
       classname="bsh.Interpreter" 
@@ -112,6 +168,18 @@
       </bottom>
     </javadoc>
   </target>
+	
+	<target name="ivyPublish" depends="doc,jar" if="isIvy">
+    
+    <ivy:publish pubrevision="${buildVersion}" resolver="luntlocal">
+      <artifacts pattern="lib/[module].[ext]"/>
+    </ivy:publish>
+    
+  </target>
+  
+  <target name="lunt" depends="freshBuild,jar,doc,ivyPublish">
+
+	</target>
   
 </project>
 
