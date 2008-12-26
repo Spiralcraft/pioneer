@@ -17,7 +17,7 @@
     value="spiralcraft-core.jar spiralcraft-net.jar spiralcraft-servlet.jar java-servlet-2.3.jar"
   />        
 
-  <import file="build-common.xml"/>
+  <import file="../../build/build-common.xml"/>
 	
 </project>
 

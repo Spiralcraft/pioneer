@@ -1,5 +1,5 @@
 <exec:ApplicationEnvironment
-  xmlns:exec="class:/spiralcraft/exec/"
+  xmlns:exec="class:/spiralcraft/loader/"
   >
   <commandLine>HttpDaemon.dev.assy
   </commandLine> 
