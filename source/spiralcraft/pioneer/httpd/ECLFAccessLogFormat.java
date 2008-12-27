@@ -89,7 +89,6 @@ public final class ECLFAccessLogFormat
     return out.toString();
   }
 
-  public void readHeader(String header)
-  { }
+
 
 }

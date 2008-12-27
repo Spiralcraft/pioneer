@@ -307,8 +307,7 @@ public class FileServlet
   }
 
   private void setHeaders
-    (HttpServletRequest request
-    ,HttpServletResponse response
+    (HttpServletResponse response
     ,Resource resource
     )
     throws IOException
@@ -327,12 +326,11 @@ public class FileServlet
       (HttpServerResponse.HDR_LAST_MODIFIED
       ,floorToSecond(resource.getLastModified())
       );
-    setCacheHeaders(request,response);
+    setCacheHeaders(response);
   }
   
   private void setCacheHeaders
-    (HttpServletRequest request
-    ,HttpServletResponse response
+    (HttpServletResponse response
     )
   {
     if (defaultCacheSeconds>-1)
@@ -378,7 +376,7 @@ public class FileServlet
         if (ifModifiedSince>0 && lastModified<=ifModifiedSince)
         {
           // Send unchanged status because resource not modified.
-          setCacheHeaders(request,response);
+          setCacheHeaders(response);
           response.setStatus(304);
           response.getOutputStream().flush();
           return;
@@ -396,7 +394,7 @@ public class FileServlet
           );
       }      
 
-      setHeaders(request,response,resource);
+      setHeaders(response,resource);
       
       response.getOutputStream().flush();
     }
@@ -453,7 +451,7 @@ public class FileServlet
         if (ifModifiedSince>0 && lastModified<=ifModifiedSince)
         {
           // Send unchanged status because resource not modified.
-          setCacheHeaders(request,response);
+          setCacheHeaders(response);
           response.setStatus(304);
           response.getOutputStream().flush();
           return;
@@ -477,7 +475,7 @@ public class FileServlet
       resourceInputStream
         =resource.getInputStream();
 
-      setHeaders(request,response,resource);
+      setHeaders(response,resource);
 
       /**
        * Interpret range

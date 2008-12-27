@@ -11,6 +11,9 @@ public class IpFilter
 
   private List<Subnet> _list=new ArrayList<Subnet>();
   
+  /**
+   * @param name
+   */
   public void putContents(String name,Object value)
   { _list.add(new Subnet((String) value));
   }

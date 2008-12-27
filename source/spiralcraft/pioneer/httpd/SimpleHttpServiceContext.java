@@ -1216,7 +1216,7 @@ public class SimpleHttpServiceContext
     { 
             
       String uri=null;
-      if (uri==null && _defaultUriCompletion!=null)
+      if (_defaultUriCompletion!=null)
       { 
         uri=checkFilesystemCompletion
           (request.getServletPath(),_defaultUriCompletion);

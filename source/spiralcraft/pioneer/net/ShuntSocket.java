@@ -104,9 +104,6 @@ public class ShuntSocket
 	{ return _out;
 	}
 	
-	public void setSoLinger(int soLinger)
-	{
-	}
 	
 	@Override
   public int getSoLinger()

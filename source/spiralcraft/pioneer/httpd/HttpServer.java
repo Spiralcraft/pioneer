@@ -17,6 +17,8 @@ package spiralcraft.pioneer.httpd;
 import spiralcraft.pioneer.net.ConnectionHandlerFactory;
 import spiralcraft.pioneer.net.ConnectionHandler;
 
+import spiralcraft.builder.Lifecycle;
+import spiralcraft.builder.LifecycleException;
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
 
@@ -44,6 +46,7 @@ public class HttpServer
   implements
     ConnectionHandlerFactory
     ,Meterable
+    ,Lifecycle
 {
   public static final String DEBUG_PROTOCOL
     ="spiralcraft.pioneer.httpd.protocol";
@@ -148,7 +151,8 @@ public class HttpServer
   { return _serviceContext;
   }
   
-  public synchronized void startService()
+  public synchronized void start()
+    throws LifecycleException
   {
     stopping=false;
     try
@@ -180,7 +184,8 @@ public class HttpServer
     
   }
 
-  public synchronized void stopService()
+  public synchronized void stop()
+    throws LifecycleException
   { 
     stopping=true;
     started=false;

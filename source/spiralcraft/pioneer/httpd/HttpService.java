@@ -44,6 +44,7 @@ public class HttpService
   { return handlerQueue;
   }
   
+  @Override
   public void start()
     throws LifecycleException
   {
@@ -61,7 +62,7 @@ public class HttpService
     { getServiceContext().startService();
     }
     
-    startService();
+    super.start();
     handlerQueue.init();
     for (Listener listener: listeners)
     { listener.startService();
@@ -70,13 +71,15 @@ public class HttpService
    
   }
 
-  public void stop() throws LifecycleException
+  @Override
+  public void stop()
+    throws LifecycleException
   {
     for (Listener listener: listeners)
     { listener.stopService();
     }
     handlerQueue.stop();
-    stopService();
+    super.stop();
     
   }
 

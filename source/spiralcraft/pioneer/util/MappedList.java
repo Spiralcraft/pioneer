@@ -762,9 +762,12 @@ public class MappedList
   }
   
   /**
-   * Ensure that all maps contain only one key-value
+   * <p>Ensure that all maps contain only one key-value
    *   reference. This may cause some values not to
    *   be mapped in all maps views.
+   * </p>
+   *   
+   * @param u 
    */
   public void setUnique(boolean u)
   { //m_unique=u;
