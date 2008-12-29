@@ -47,7 +47,7 @@ import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
 import spiralcraft.vfs.batch.Search;
 
-import spiralcraft.builder.LifecycleException;
+import spiralcraft.common.LifecycleException;
 
 import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;

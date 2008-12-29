@@ -20,7 +20,7 @@ import spiralcraft.pioneer.net.Listener;
 
 
 import spiralcraft.service.Service;
-import spiralcraft.builder.LifecycleException;
+import spiralcraft.common.LifecycleException;
 
 
 /**

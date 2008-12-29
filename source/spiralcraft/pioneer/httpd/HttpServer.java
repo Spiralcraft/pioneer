@@ -17,8 +17,8 @@ package spiralcraft.pioneer.httpd;
 import spiralcraft.pioneer.net.ConnectionHandlerFactory;
 import spiralcraft.pioneer.net.ConnectionHandler;
 
-import spiralcraft.builder.Lifecycle;
-import spiralcraft.builder.LifecycleException;
+import spiralcraft.common.Lifecycle;
+import spiralcraft.common.LifecycleException;
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
 

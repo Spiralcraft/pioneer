@@ -17,7 +17,7 @@
  */
 package spiralcraft.pioneer.httpd;
 
-import spiralcraft.builder.Lifecycle;
+import spiralcraft.common.Lifecycle;
 
 public interface AccessLog
   extends Lifecycle
