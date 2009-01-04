@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2009,2009 Michael Toth
+// Copyright (c) 1998,2008 Michael Toth
 // Spiralcraft Inc., All Rights Reserved
 //
 // This package is part of the Spiralcraft project and is licensed under
@@ -14,22 +14,28 @@
 //
 package spiralcraft.pioneer.httpd;
 
-/**
- * <p>Identical to PatternMapping, intended for backwards compatibility
- * </p>
- * 
- * @author mike
- *
- */
-public class ServletMapping
-    extends PatternMapping
+
+public class InitParameter
 {
+  private String name;
+  private String value;
   
-  public void setServletName(String name)
-  { setName(name);
+  public String getName()
+  {
+    return name;
+  }
+  public void setName(String name)
+  {
+    this.name = name;
+  }
+  public String getValue()
+  {
+    return value;
+  }
+  public void setValue(String value)
+  {
+    this.value = value;
   }
   
-  public String getServletName()
-  { return getName();
-  }
+  
 }

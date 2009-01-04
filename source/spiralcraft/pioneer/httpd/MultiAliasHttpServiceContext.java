@@ -12,11 +12,7 @@
 // Unless otherwise agreed to in writing, this software is distributed on an
 // "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
 //
-/**
- * Service context that delegates the request
- *   to an appropriate subcontext based on a specific 
- *   request prefix.
- */
+
 package spiralcraft.pioneer.httpd;
 
 import java.util.HashMap;
@@ -28,11 +24,16 @@ import javax.servlet.ServletException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import spiralcraft.common.LifecycleException;
 import spiralcraft.log.Level;
 
 import spiralcraft.pioneer.io.Filename;
 
-
+/**
+ * Service context that delegates the request
+ *   to an appropriate subcontext based on a specific 
+ *   request prefix.
+ */
 public class MultiAliasHttpServiceContext
   extends SimpleHttpServiceContext
 {
@@ -91,12 +92,13 @@ public class MultiAliasHttpServiceContext
 
 
   @Override
-  public void init()
+  public void start()
+    throws LifecycleException
   {
     if (_aliasMap!=null)
     { resolveAliasMap();
     }
-    super.init();
+    super.start();
   }
 
   public void setAliasMap(HashMap<String,HttpServiceContext> aliasMap)

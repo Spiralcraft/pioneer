@@ -28,6 +28,7 @@ import javax.servlet.ServletException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import spiralcraft.common.LifecycleException;
 import spiralcraft.log.Level;
 
 import spiralcraft.text.CaseInsensitiveString;
@@ -89,21 +90,25 @@ public class MultiHostHttpServiceContext
   }
 
   @Override
-  public void startService()
+  public void start()
+    throws LifecycleException
   { 
-    super.startService();
     for (HttpServiceContext context : _hostList)
-    { context.startService();
+    { context.start();
     }
+    super.start();
+
   }
   
   @Override
-  public void stopService()
+  public void stop()
+    throws LifecycleException
   { 
+
+    super.stop();
     for (HttpServiceContext context : _hostList)
-    { context.stopService();
+    { context.stop();
     }
-    super.stopService();
   }
 
   public void setHostMappings(HostMapping[] hostMappings)

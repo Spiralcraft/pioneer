@@ -32,12 +32,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import spiralcraft.net.mime.ContentTypeHeader;
 import spiralcraft.pioneer.util.MappedList;
 import spiralcraft.pioneer.util.ListMap;
 import spiralcraft.pioneer.util.Translator;
 
 import spiralcraft.time.Clock;
 import spiralcraft.time.ClockFormat;
+import spiralcraft.util.string.StringUtil;
 
 
 import java.text.DateFormat;
@@ -109,8 +111,8 @@ public class HttpServerResponse
 
   
   @SuppressWarnings("unused")
-  private HttpServiceContext _server;
-  private HttpServer _httpServer;
+  private HttpServiceContext _context;
+  private HttpServer _server;
   private Socket _socket;
   private HttpServerRequest _request;
   private ArrayList<Cookie> _cookies;
@@ -125,6 +127,9 @@ public class HttpServerResponse
   private Locale _locale;
   private PrintWriter _writer;
   private boolean debugProtocol;
+  private boolean debugAPI;
+  private String contentType;
+  private String characterEncoding;
 
   @SuppressWarnings("unchecked")
   private final MappedList _headers=new MappedList(new ArrayList());
@@ -151,7 +156,7 @@ public class HttpServerResponse
 
   public void setHttpServer(HttpServer server)
   { 
-    _httpServer=server;
+    _server=server;
     _outputStream.setHttpServer(server);
   }
 
@@ -159,8 +164,10 @@ public class HttpServerResponse
   { _outputStream.setTraceStream(traceStream);
   }
 
-  public void reset()
+  
+  public void recycle()
   {
+
     if (_cookies!=null)
     { _cookies.clear();
     }
@@ -172,35 +179,89 @@ public class HttpServerResponse
     _chunkStream=false;
     _keepaliveSeconds=30;
     _writer=null;
-    _headers.clear();    
+    _headers.clear();
   }
 
-  public void start(Socket socket)
+  public void reset()
+  {
+    if (debugAPI)
+    { _log.fine("Resetting");
+    }
+    resetBuffer();
+    if (_cookies!=null)
+    { _cookies.clear();
+    }
+    _status=200;
+    _reason=null;
+    _sentHeaders=false;
+    _headers.clear();
+    
+  }
+  
+  /**
+   * Called by the ConnectionHandler to reset this response at the beginning
+   *   of a connection, in preparation for multiple requests
+   * 
+   * @param socket
+   * @throws IOException
+   */
+  void start(Socket socket)
     throws IOException
   {
     _socket=socket;
-    _server=null;
+    _context=null;
     _outputStream.start(_socket.getOutputStream());
-    reset();
-    debugProtocol=_httpServer.getDebugProtocol();
+    recycle();
+    debugProtocol=_server.getDebugProtocol();
+    debugAPI=_server.getDebugAPI();
   }
 
+  /**
+   * Called at the end of a connection, which may involve multiple requests
+   */
+  public void cleanup()
+  { 
+    if (_outputStream!=null)
+    { _outputStream.cleanup();
+    }
+     
+  }
 
   public int getBufferSize()
-  { return _outputStream.getBufferSize();
+  { 
+    if (debugAPI)
+    { _log.fine("Buffer size is "+_outputStream.getBufferSize());
+    }
+    return _outputStream.getBufferSize();
   }
 
   public void flushBuffer()
     throws IOException
-  { _outputStream.flush();
+  { 
+    if (debugAPI)
+    { _log.fine("Flushing buffer: "+_writer!=null?"writer+stream":"writer");
+    }
+    
+    if (_writer!=null)
+    { _writer.flush();
+    }
+    _outputStream.flush();
   }
 
   public void setBufferSize(int bufferSize)
-  { _outputStream.setBufferSize(bufferSize);
+  {
+    if (debugAPI)
+    { _log.fine("Buffer size is "+bufferSize);
+    }
+    _outputStream.setBufferSize(bufferSize);
   }
 
   public boolean isCommitted()
-  { return _sentHeaders;
+  { 
+    if (debugAPI)
+    { _log.fine(_outputStream.isCommitted()?"COMMITTED":"not committed");
+    }
+    return _outputStream.isCommitted();
   }
 
   public void setGoverner(Governer governer)
@@ -209,6 +270,10 @@ public class HttpServerResponse
 
   public void addCookie(Cookie cookie)
   {
+    if (debugAPI)
+    { _log.fine(""+cookie);
+    }
+
     if (cookie==null)
     { throw new IllegalArgumentException("Cookie cannot be null");
     }
@@ -220,32 +285,56 @@ public class HttpServerResponse
   }
 
   public boolean containsHeader(String name)
-  { return _headerMap.get(name)!=null;
+  {     
+    if (debugAPI)
+    { _log.fine(name+" "+_headerMap.get(name));
+    }
+    return _headerMap.get(name)!=null;
   }
 
   @SuppressWarnings("deprecation")
   @Deprecated
   public String encodeRedirectUrl(String url)
-  { return url;
+  { 
+    if (debugAPI)
+    { _log.fine(url);
+    }
+    return url;
   }
   
   @SuppressWarnings("deprecation")
   @Deprecated
   public String encodeUrl(String url)
-  { return url;
+  { 
+    if (debugAPI)
+    { _log.fine(url);
+    }
+    return url;
   }
 
   public String encodeRedirectURL(String url)
-  { return url;
+  { 
+    if (debugAPI)
+    { _log.fine(url);
+    }
+    return url;
   }
   
   public String encodeURL(String url)
-  { return url;
+  { 
+    if (debugAPI)
+    { _log.fine(url);
+    }
+    return url;
   }
 
   public void sendError(int code,String msg) 
   	throws IOException
   {
+    if (debugAPI)
+    { _log.fine(code+" "+msg);
+    }
+
     setContentType("text/html");
     setStatus(code);
 
@@ -259,6 +348,10 @@ public class HttpServerResponse
   public void sendError(int code) 
     throws IOException
   {
+    if (debugAPI)
+    { _log.fine(""+code);
+    }
+
 	  String msg =  _statusMap.get(new Integer(code));
 	  if (msg==null)
     { sendError(code,"Unknown Error");
@@ -271,35 +364,54 @@ public class HttpServerResponse
   public void sendRedirect(String location)
     throws IOException
   {
+    if (debugAPI)
+    { _log.fine(location);
+    }
+
     setHeader(HDR_LOCATION,location);
     setStatus(SC_MOVED_TEMPORARILY);
     sendHeaders();
+    if (_writer!=null)
+    { _writer.flush();
+    }
     _outputStream.flush();
   }
 
   public void setLocale(Locale locale)
-  { _locale=locale;
+  { 
+    if (debugAPI)
+    { _log.fine(""+locale);
+    }
+    _locale=locale;     
   }
 
   public Locale getLocale()
-  { return _locale;
+  { 
+    if (_locale==null)
+    { _locale=Locale.getDefault();
+    }
+    if (debugAPI)
+    { _log.fine(""+_locale);
+    }
+    return _locale;
   }
 
   public void setStatus(int code)
   { 
-	  String msg = _statusMap.get(new Integer(code));
-	  if (msg==null)
-    { setStatus(code,"Unknown status");
+    if (debugAPI)
+    { _log.fine(""+code);
     }
-	  else
-    { setStatus(code,msg);
-    }    
+    _status=code;
+    _reason=_statusMap.get(new Integer(code));
   }
 
   @SuppressWarnings("deprecation")
   @Deprecated
   public void setStatus(int code,String message)
   {
+    if (debugAPI)
+    { _log.fine(code+" "+message);
+    }
     _status=code;
     _reason=message;
   }
@@ -308,7 +420,11 @@ public class HttpServerResponse
    * Return the status code
    */
   public int getStatus()
-  { return _status;
+  { 
+    if (debugAPI)
+    { _log.fine(""+_status);
+    }
+    return _status;
   }
 
   public void setIntHeader(String name, int value)
@@ -332,7 +448,11 @@ public class HttpServerResponse
   }
 
   public void addHeader(String name, String value)
-  { _headers.add(new Variable(name,value));
+  { 
+    if (debugAPI)
+    { _log.fine(name+" = "+value);
+    }
+    _headers.add(new Variable(name,value));
   }
 
   public void setHeader(String name, String value)
@@ -344,19 +464,85 @@ public class HttpServerResponse
   public String getHeader(String name)
   { 
     Variable var=(Variable) _headerMap.getFirst(name);
+    if (debugAPI)
+    { _log.fine(name+" = "+(var!=null?var.value:"null"));
+    }
+    
     return var!=null?var.value:null;
   }
 
   public void setContentType(String value)
-  { setHeader(HDR_CONTENT_TYPE,value);
+  { 
+    if (debugAPI)
+    { _log.fine(value);
+    }
+    
+    
+    try
+    {
+      String contentType;
+      String characterEncoding;
+      
+      ContentTypeHeader header=new ContentTypeHeader("Content-Type",value);
+      characterEncoding=header.getParameter("charset");
+      contentType=header.getFullType();
+      this.contentType=contentType;
+      if (characterEncoding!=null)
+      { this.characterEncoding=characterEncoding;
+      }
+      
+    }
+    catch (IOException x)
+    { _log.log(Level.WARNING,"Bad content type "+value,x);
+    }
+    
+    setHeader
+      (HDR_CONTENT_TYPE
+      ,contentType
+      +(characterEncoding!=null?";charset="+characterEncoding:"")
+      );
   }
+  
+  public String getContentType()
+  { 
+    if (debugAPI)
+    { _log.fine(getHeader(HDR_CONTENT_TYPE));
+    }
+    return getHeader(HDR_CONTENT_TYPE);
+  }
+  
+  public void setCharacterEncoding(String value)
+  {
+    if (debugAPI)
+    { _log.fine(value);
+    }
+    characterEncoding=value;
+    if (contentType!=null)
+    {
+      contentType=StringUtil.discardAfter(contentType,';');
 
+      setHeader
+        (HDR_CONTENT_TYPE
+        ,contentType
+        +(characterEncoding!=null?";charset="+characterEncoding:"")
+        );
+    }
+  }
+  
   public void setContentLength(int len)
-  { setHeader(HDR_CONTENT_LENGTH,Integer.toString(len));
+  { 
+    if (debugAPI)
+    { _log.fine(""+len);
+    }
+    setHeader(HDR_CONTENT_LENGTH,Integer.toString(len));
   }
 
   public ServletOutputStream getOutputStream()
-  { return _outputStream;
+  { 
+    if (debugAPI)
+    { _log.fine(""+_outputStream);
+    }
+    return _outputStream;
   }
 
   public PrintWriter getWriter()
@@ -364,11 +550,18 @@ public class HttpServerResponse
     if (_writer==null)
     { _writer=new PrintWriter(new OutputStreamWriter(_outputStream));
     }
+    if (debugAPI)
+    { _log.fine(""+_writer);
+    }
     return _writer;
   }
 
   public String getCharacterEncoding()
-  { return getHeader(HDR_CONTENT_ENCODING);
+  { 
+    if (debugAPI)
+    { _log.fine(characterEncoding);
+    }
+    return characterEncoding;
   }
 
   public boolean shouldClose()
@@ -385,11 +578,17 @@ public class HttpServerResponse
   { 
     if (!_sentHeaders)
     {
+      if (_server.getDebugService())
+      { _log.fine("Sending headers");
+      }
+
       defaultHeaders();
+
       
       // Determine chunking and keepalive status
 	    if (PROTOCOL_HTTP_1_1.equals(_version))
 	    {
+
         String encoding=getHeader(HDR_TRANSFER_ENCODING);
         String connection=getHeader(HDR_CONNECTION);
         String length=getHeader(HDR_CONTENT_LENGTH);
@@ -487,7 +686,7 @@ public class HttpServerResponse
       _outputStream.write(SPACE);
       _outputStream.write(Integer.toString(_status));
       _outputStream.write(SPACE);
-      _outputStream.write(_reason);
+      _outputStream.write(_reason!=null?_reason:"");
       _outputStream.write(EOL);
 
       Iterator it=_headers.iterator();
@@ -594,6 +793,7 @@ public class HttpServerResponse
         _outputStream.setChunking(true);
       }
       _outputStream.resetCount();
+      
     }
 	    
   }
@@ -604,7 +804,18 @@ public class HttpServerResponse
    */
   public void finish()
   {
+    if (debugProtocol)
+    { _log.fine("Flushing  outputStream");
+    }
 
+    // 
+    // Flushing the -writer- doesn't seem to work very well, so leaving it 
+    //  out.
+    //
+    // if(writer!=null)
+    // { writer.flush();
+    // }
+    
     try
     { _outputStream.flush();
     }
@@ -663,9 +874,12 @@ public class HttpServerResponse
   }
 
   public void resetBuffer()
-  {
-    // XXX TODO Auto-generated method stub
-    
+  { 
+    if (debugAPI)
+    { _log.fine("Resetting buffer: sentHeaders="+_sentHeaders);
+    }
+    _outputStream.resetBuffer();
+    _sentHeaders=false;
   }
 
   //////////////////////////////////////////////////////////////////

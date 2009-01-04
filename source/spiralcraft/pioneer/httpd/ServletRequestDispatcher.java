@@ -26,22 +26,22 @@ import spiralcraft.log.ClassLog;
 
 import java.io.IOException;
 
-public class ServerRequestDispatcher
+public class ServletRequestDispatcher
   implements RequestDispatcher
 {
  
+ 
   private final static ClassLog log
-    =ClassLog.getInstance(ServerRequestDispatcher.class);
+    =ClassLog.getInstance(ServletRequestDispatcher.class);
   
   private final HttpServiceContext context;
-  private final String uri;
+  private final String servletName;
   
-  public ServerRequestDispatcher(HttpServiceContext context,String uri)
+  public ServletRequestDispatcher(HttpServiceContext context,String servletName)
   { 
     this.context=context;
-    this.uri=uri;
+    this.servletName=servletName;
   }
-  
   
   public void include(ServletRequest request,ServletResponse response)
     throws ServletException,IOException
@@ -49,28 +49,27 @@ public class ServerRequestDispatcher
     if (context.isDebug())
     { 
       log.fine
-        ("Including "+uri+" in "
+        ("Including servlet "+servletName+" in "
         +((HttpServletRequest) request).getRequestURL()
         );
     }
 
     // If the Writer has been used, and the service method we are calling for
-    //   the include uses the OutputStream, the output may be out of
+    //   the include uses the OutputStream, the output will may be out of
     //   sequence. 
     response.getWriter().flush();
-    
     
     DispatchServerRequest dispatchRequest
       =new DispatchServerRequest
         ((HttpServletRequest) request
-        ,uri
+        ,servletName
         ,false
         ,context.getServer()
         );
     DispatchServerResponse dispatchResponse
       =new DispatchServerResponse((HttpServletResponse) response);
-
-     
+    
+    
     context.service(dispatchRequest,dispatchResponse);
     
   }
@@ -79,20 +78,23 @@ public class ServerRequestDispatcher
     throws ServletException,IOException
   {
     if (context.isDebug())
-    { log.fine("Forwarding to "+uri);
+    { 
+      log.fine
+        ("Forwarding to servlet "+servletName+" in "
+        +((HttpServletRequest) request).getRequestURL()
+        );
     }
+
 
     DispatchServerRequest dispatchRequest
       =new DispatchServerRequest
         ((HttpServletRequest) request
-        ,uri
+        ,servletName
         ,true
         ,context.getServer()
         );
 
-    context.service(dispatchRequest,(HttpServletResponse) response);
-    response.getWriter().flush();
-    response.getOutputStream().flush();
+    context.service(dispatchRequest,(HttpServerResponse) response);
     
   }
 }

@@ -14,9 +14,7 @@
 //
 package spiralcraft.pioneer.httpd;
 
-
-
-import spiralcraft.log.Level;
+import spiralcraft.util.IteratorEnumeration;
 
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +26,9 @@ import javax.servlet.ServletInputStream;
 import java.security.Principal;
 
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Locale;
 
@@ -44,18 +45,95 @@ public class DispatchServerRequest
 	implements HttpServletRequest
 {
   
-  private final AbstractHttpServletRequest containingRequest;
+  private final HttpServletRequest containingRequest;
 
 	public DispatchServerRequest
-    (AbstractHttpServletRequest containingRequest
+    (HttpServletRequest containingRequest
     ,String uri
+    ,boolean forward
+    ,HttpServer server
     )
   { 
     this.containingRequest=containingRequest;
+    setHttpServer(server);
     start();
     setURI(uri);
+    
+    boolean original=true; 
+    if (containingRequest.getAttribute("javax.servlet.include.request_uri")
+         !=null
+       )
+    {
+      original=false;
+      copyAttributes
+        ("javax.servlet.include.request_uri"
+        ,"javax.servlet.include.context_path"
+        ,"javax.servlet.include.servlet_path"
+        ,"javax.servlet.include.path_info"
+        ,"javax.servlet.include.query_string"
+        );
+    }
+    
+    if (containingRequest.getAttribute("javax.servlet.forward.request_uri")
+         !=null
+       )
+    {
+      original=false;
+      copyAttributes
+        ("javax.servlet.forward.request_uri"
+        ,"javax.servlet.forward.context_path"
+        ,"javax.servlet.forward.servlet_path"
+        ,"javax.servlet.forward.path_info"
+        ,"javax.servlet.forward.query_string"
+        );
+    }
+
+    
+    if (original)
+    {
+      String nature=forward?"forward":"include";
+      setAttribute
+        ("javax.servlet."+nature+".request_uri"
+        ,containingRequest.getRequestURI()
+        );
+      setAttribute
+        ("javax.servlet."+nature+".context_path"
+        ,containingRequest.getContextPath()
+        );
+      setAttribute
+        ("javax.servlet."+nature+".servlet_path"
+        ,containingRequest.getServletPath()
+        );
+      setAttribute
+        ("javax.servlet."+nature+".path_info"
+        ,containingRequest.getPathInfo()
+        );
+      setAttribute
+        ("javax.servlet."+nature+".query_string"
+        ,containingRequest.getQueryString()
+        );
+      
+    }
+    
   }
 
+	private void copyAttributes(String ... names)
+	{
+	  for (String name:names)
+	  { setAttribute(name,containingRequest.getAttribute(name));
+	  }
+	}
+	
+	@Override
+	public Object getAttribute(String name)
+	{
+    Object ret=super.getAttribute(name);
+    if (ret==null)
+    { ret=containingRequest.getAttribute(name);
+    }
+    return ret;
+	}
+	
   public Principal getUserPrincipal()
   { return containingRequest.getUserPrincipal();
   }
@@ -86,6 +164,47 @@ public class DispatchServerRequest
   { return containingRequest.getHeaders(name);
   }
 
+  
+  @Override
+  public String getParameter(String name)
+  { 
+    String ret=super.getParameter(name);
+    if (ret==null)
+    { ret=containingRequest.getParameter(name);
+    }
+    return ret;
+  }
+  
+  @SuppressWarnings("unchecked")
+  @Override
+  public Enumeration<String> getParameterNames()
+  { 
+    HashSet<String> names=new HashSet<String>();
+
+    Enumeration<String> originalParameterNames=super.getParameterNames();
+    while (originalParameterNames.hasMoreElements())
+    { names.add(originalParameterNames.nextElement());
+    }
+    
+    Enumeration<String> parameterNames=containingRequest.getParameterNames();
+    while (parameterNames.hasMoreElements())
+    { names.add(parameterNames.nextElement());
+    }
+    
+    return new IteratorEnumeration<String>(names.iterator());
+  }
+  
+  @Override
+  public String[] getParameterValues(String name)
+  {
+    String[] ret=super.getParameterValues(name);
+    if (ret==null || ret.length==0)
+    { ret=containingRequest.getParameterValues(name);
+    }
+    return ret;
+  }
+
+  
 	public Cookie[] getCookies()
   { return containingRequest.getCookies();
 	}
@@ -162,7 +281,20 @@ public class DispatchServerRequest
 	
 	@Override
   public byte[] getRawRemoteAddress()
-  { return containingRequest.getRawRemoteAddress();
+  { 
+	  if (containingRequest instanceof AbstractHttpServletRequest)
+	  { return ((AbstractHttpServletRequest) containingRequest)
+	      .getRawRemoteAddress();
+	  }
+	  else
+	  { 
+	    String[] ip=getRemoteAddr().split("\\.");
+	    byte[] bytes=new byte[4];
+	    for (int i=0;i<4;i++)
+	    { bytes[i]=Byte.parseByte(ip[i]);
+	    }
+	    return bytes;
+	  }
   }
   
 	public String getProtocol()
@@ -198,25 +330,70 @@ public class DispatchServerRequest
  	{ return containingRequest.getServerPort();
  	}
 
+ 	public int getLocalPort()
+  { return containingRequest.getLocalPort();
+  }
+ 	  
+  public String getLocalName()
+  { return containingRequest.getLocalName();
+  }
+
+  public String getLocalAddr()
+  { return containingRequest.getLocalAddr();
+  }
+  
+  public int getRemotePort()
+  { return containingRequest.getRemotePort();
+  }
+  
   public StringBuffer getRequestURL()
-  {
-    _log.log(Level.SEVERE,"getRequestURL() not implemented");
-    // TODO Auto-generated method stub
-    return null;
+  { 
+    StringBuffer buf=new StringBuffer();
+    if (isSecure())
+    { buf.append("https://");
+    }
+    else
+    { buf.append("http://");
+    }
+    buf.append(getServerName());
+    if (   (!isSecure() && getServerPort()!=80)
+        || (isSecure() && getServerPort()!=443)
+       )
+    { buf.append(":").append(getServerPort());
+    }
+    buf.append(getRequestURI());
+    if (getQueryString()!=null)
+    { buf.append("?").append(getQueryString());
+    }
+    return buf;
   }
 
   public Map<?,?> getParameterMap()
   {
-    // TODO Auto-generated method stub
-    _log.log(Level.SEVERE,"getParameterMap() not implemented");
-    return null;
+    HashMap<String,String[]> map=new HashMap<String,String[]>();
+    if (_query!=null)
+    {
+      Iterator<String> it=_query.getNames();
+      while (it.hasNext())
+      { 
+        String name=it.next();
+        map.put(name,_query.getList(name));
+      }
+    }
+    if (_post!=null)
+    {
+      Iterator<String> it=_post.getNames();
+      while (it.hasNext())
+      { 
+        String name=it.next();
+        map.put(name,_post.getList(name));
+      }
+    }
+    return map;
   }
 
   public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
-  {
-    // TODO Auto-generated method stub
-    _log.log(Level.SEVERE,"setCharacterEncoding() not implemented");
-    
+  { containingRequest.setCharacterEncoding(arg0);    
   }
   
 }

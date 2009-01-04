@@ -44,6 +44,7 @@ public final class ServerInputStream
   { _trace=traceStream;
   }
 
+  
   public int getCount()
   { return _count;
   }
@@ -89,10 +90,26 @@ public final class ServerInputStream
     throws IOException
   {
     final int count=_in.read(b,start,len);
-    _count+=count;
+    if (_count>-1)
+    { _count+=count;
+    }
+    
     if (_trace!=null)
     { 
-      _trace.write(b,start,count);
+      if (start>-1 && start<b.length && start+count<=b.length)
+      { 
+        _trace.write(b,start,count);
+      }
+      else if (count==-1)
+      { _trace.write("[EOS]".getBytes());
+      }
+      else 
+      { 
+        _trace.write
+          (("Index? b.length="+b.length+", start="+start+", count="+count)
+            .getBytes()
+          );
+      }
       _trace.flush();
     }
     return count;

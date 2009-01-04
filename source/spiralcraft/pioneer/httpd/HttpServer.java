@@ -77,9 +77,11 @@ public class HttpServer
   private boolean started;
   private boolean stopping;
   private Resource traceResource;
+  
   private boolean debugProtocol;
   private boolean debugService;
   private boolean debugIO;
+  private boolean debugAPI;
  
   public void setServerInfo(String serverInfo)
   { _serverInfo=serverInfo;
@@ -100,6 +102,16 @@ public class HttpServer
   public boolean getDebugService()
   { return debugService;
   }
+  
+  public void setDebugAPI(boolean debugAPI)
+  { this.debugAPI=debugAPI;
+  }
+  
+  public boolean getDebugAPI()
+  { return debugAPI;
+  }
+  
+  
 
   public void setDebugIO(boolean val)
   { debugIO=val;
@@ -117,6 +129,9 @@ public class HttpServer
   { 
     if (_meter!=null)
     { _bytesOutputRegister.adjustValue(count);
+    }
+    if (debugProtocol)
+    { _log.fine("Wrote "+count+" bytes");
     }
   }
   
@@ -151,6 +166,7 @@ public class HttpServer
   { return _serviceContext;
   }
   
+  @Override
   public synchronized void start()
     throws LifecycleException
   {
@@ -163,9 +179,10 @@ public class HttpServer
         if (_meter!=null)
         { serviceContext.installMeter(_meter.createChildMeter("defaultContext"));
         }
-        serviceContext.init();
         _serviceContext=serviceContext;
       }
+      _serviceContext.setServer(this);
+      _serviceContext.start();
     
       if (_serverInfo==null)
       {
@@ -184,6 +201,7 @@ public class HttpServer
     
   }
 
+  @Override
   public synchronized void stop()
     throws LifecycleException
   { 
@@ -192,7 +210,7 @@ public class HttpServer
     try
     {
       if (_serviceContext==null)
-      { _serviceContext.stopService();
+      { _serviceContext.stop();
       }
     }
     finally
@@ -431,6 +449,7 @@ public class HttpServer
         }
 
         _request.cleanup();
+        _response.cleanup();
         try
         {
           if (traceStream!=null)

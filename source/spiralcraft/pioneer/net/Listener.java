@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 
+import spiralcraft.common.Lifecycle;
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
 import spiralcraft.time.Clock;
@@ -50,7 +51,7 @@ import spiralcraft.pioneer.net.StandardServerSocketFactory;
  *   request queueing.
  */
 public class Listener
-  implements Runnable
+  implements Runnable,Lifecycle
 {
 
   public static void test(String[] args)
@@ -78,7 +79,7 @@ public class Listener
       { sd.setServerSocketFactory(factory);
       }
       sd.setConnectionHandler(new DebugConnectionHandler());
-			sd.startService();
+			sd.start();
 			sd.join();
       
 
@@ -232,32 +233,17 @@ public class Listener
   /**
    * Stop listening and close the server socket.
    */
-  public void stopService()
+	@Override
+  public void stop()
   {
     _finished=true;
     stopListening();
   }
 
   /**
-   *@deprecated Use Service.startService() instead
-   */
-  @Deprecated
-  public void start()
-  { startService();
-  }
-
-  /**
-   *@deprecated Use Service.stopService() instead
-   */
-  @Deprecated
-  public void stop()
-  { stopService();
-  }
-
-  /**
    * Start the Listener in a new daemon thread.
    */
-	public void startService()
+	public void start()
 	{
     try
     {

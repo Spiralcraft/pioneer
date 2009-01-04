@@ -23,6 +23,7 @@ import spiralcraft.pioneer.util.MappedList;
 import spiralcraft.pioneer.util.ListMap;
 import spiralcraft.pioneer.util.Translator;
 
+import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
 
 import spiralcraft.time.Clock;
@@ -48,6 +49,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
 import java.net.Socket;
+import java.nio.charset.Charset;
 
 import javax.net.ssl.SSLSocket;
 
@@ -65,7 +67,8 @@ public class HttpServerRequest
   extends AbstractHttpServletRequest
 	implements HttpServletRequest
 {
-  
+  private static final ClassLog log
+    =ClassLog.getInstance(HttpServerRequest.class);
 
 	
 	private HttpServerResponse _response;
@@ -91,6 +94,7 @@ public class HttpServerRequest
 
 	
 	private final ServerInputStream _inputStream=new ServerInputStream();
+	private ServletInputStream _apiInputStream;
 
 	private BufferedReader _reader;
   private Socket _socket;
@@ -112,11 +116,12 @@ public class HttpServerRequest
 				}
 			);
 			
-  private HttpServer _httpServer;
+  
   private boolean _started;
   private boolean _headersRead;
   
   private boolean debugProtocol;
+  private boolean debugAPI;
 
 	public HttpServerRequest()
   {
@@ -124,19 +129,25 @@ public class HttpServerRequest
 
 
 
-  public void setHttpServer(HttpServer server)
-  { _httpServer=server;
-  }
+
 
   public void setTraceStream(OutputStream traceStream)
   { _inputStream.setTraceStream(traceStream);
   }
 
+  /**
+   * Start a new request.
+   * 
+   * @param sock
+   * @throws IOException
+   */
   public void start(Socket sock)
     throws IOException
 	{
     super.start();
     debugProtocol=_httpServer.getDebugProtocol();
+    debugAPI=_httpServer.getDebugAPI();
+    
     _started=false;
     _socket=sock;
 		_inputStream.start(sock.getInputStream());
@@ -198,14 +209,25 @@ public class HttpServerRequest
   }
 
   /**
-   * Ensure that any stray input data is discarded.
+   * Ensure that any stray input data is discarded, after each request
    */
   public void finish()
   {
+    _apiInputStream=null;
     try
     {
       if (_inputStream.getCount()<getContentLength())
-      { _inputStream.discard(getContentLength()-_inputStream.getCount());
+      { 
+        if (_httpServer.getDebugProtocol())
+        { 
+          log.fine
+            ("Discarding "
+            +(getContentLength()-_inputStream.getCount())
+            +" bytes of unread unput"
+            );
+        }
+        
+        _inputStream.discard(getContentLength()-_inputStream.getCount());
       }
     }
     catch (IOException x)
@@ -214,7 +236,8 @@ public class HttpServerRequest
   }
 
   /**
-   * Release any important references
+   * Release any important references after a connection is closed (after
+   *   multiple requests)
    */
   @Override
   public void cleanup()
@@ -250,10 +273,11 @@ public class HttpServerRequest
 
   public Locale getLocale()
   { 
+    // TODO: Use Accept-Langage header to specify locales
     if (_locales.size()>0)
     { return _locales.get(0);
     }
-    return null;
+    return Locale.getDefault();
   }
 
 
@@ -368,7 +392,7 @@ public class HttpServerRequest
     ensureQuery();
     String urlSessionId=_query.getValue("ssid");
     if (urlSessionId!=null)
-    { _session=_server.getSessionManager().getSession(urlSessionId,false);
+    { _session=_context.getSessionManager().getSession(urlSessionId,false);
     }
     if (_session!=null)
     { 
@@ -381,7 +405,7 @@ public class HttpServerRequest
     {
       // Use session cookie, or create a new session
       _session
-        =_server.getSessionManager().getSession(_requestedSessionId,create);
+        =_context.getSessionManager().getSession(_requestedSessionId,create);
       if (_session!=null && _session.isNew())
       { 
         Cookie sessionCookie=new Cookie("spiralSessionId",_session.getId());
@@ -423,13 +447,13 @@ public class HttpServerRequest
 	}
 
 	public boolean isRequestedSessionIdValid()
-	{ return _server.getSessionManager().isSessionIdValid(_requestedSessionId);
+	{ return _context.getSessionManager().isSessionIdValid(_requestedSessionId);
 	}
 	
 
 
 	public ServletInputStream getInputStream()
-	{ return _inputStream;
+	{ return _apiInputStream;
 	}
 	
 	
@@ -438,10 +462,34 @@ public class HttpServerRequest
 	}
 	
 	public BufferedReader getReader()
+	  throws IOException
 	{
+	  
 		if (_reader==null)
-		{ _reader=new BufferedReader(new InputStreamReader(_inputStream));
+		{ 
+		  String charset=getCharacterEncoding();
+      if (charset!=null)
+      { 
+        if (debugAPI)
+        { log.fine("New reader has charset="+charset);
+        }
+          
+        _reader
+          =new BufferedReader
+            (new InputStreamReader(_apiInputStream,charset));
+      
+      }
+      else
+      { 
+        if (debugAPI)
+        { log.fine("New reader has default charset");
+        }
+        
+        _reader
+          =new BufferedReader(new InputStreamReader(_apiInputStream));
+      }
 		}
+		
 		return _reader;
 	}	
 	
@@ -489,7 +537,23 @@ public class HttpServerRequest
     }
     return _port;
  	}
+ 	
+ 	public String getLocalName()
+ 	{ return _socket.getLocalAddress().getHostName();
+ 	}
 
+ 	public int getLocalPort()
+ 	{ return _socket.getLocalPort();
+ 	}
+ 	
+ 	public String getLocalAddr()
+ 	{ return _socket.getLocalAddress().toString();
+ 	}
+ 	
+ 	public int getRemotePort()
+ 	{ return _socket.getPort();
+ 	}
+ 	
   private void parseHost()
   { 
     String fullHost=getHeader("Host");
@@ -530,14 +594,16 @@ public class HttpServerRequest
 
 
 
-  public void readHeaders()
-    throws IOException
-  { readHeaders(null);
-  }
 
- 	public void readHeaders(List<String> buf)
+  /**
+   * Read the headers, called after the request is started
+   * 
+   * @throws IOException
+   */
+ 	public void readHeaders()
  		throws IOException
  	{
+ 	  
     if (_headersRead)
     { return;
     }
@@ -550,16 +616,21 @@ public class HttpServerRequest
  			{ break;
  			}
  			else
- 			{ 
-        if (buf!=null)
-        { buf.add(line);
-        }
-        parseHeader(line);
+ 			{ parseHeader(line);
  			}
  		}
  		parseCookies();
     _inputStream.resetCount();
-
+    int contentLength=getContentLength();
+    if (contentLength>0)
+    { 
+      _apiInputStream
+        =new CappedServletInputStream(_inputStream,contentLength);
+    }
+    else
+    { _apiInputStream=_inputStream;
+    }
+    
  	}
  	
  	private void parseRequest()
@@ -696,10 +767,14 @@ public class HttpServerRequest
 
 
 
-  public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
+  public void setCharacterEncoding(String encoding) 
+    throws UnsupportedEncodingException
   {
-    // TODO Auto-generated method stub
-    _log.log(Level.SEVERE,"setCharacterEncoding() not implemented");
+    Charset.forName(encoding);
+    if (debugAPI)
+    { log.fine("Changed CharacterEncoding to "+encoding+" reader="+_reader);
+    }
+    _characterEncoding=encoding;
   }
  	
   

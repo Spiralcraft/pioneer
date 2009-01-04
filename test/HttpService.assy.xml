@@ -17,7 +17,7 @@
 
       <maxSessionInactiveInterval>7200
       </maxSessionInactiveInterval>
-                    
+      
       <servletMappings>
 
         <httpd:ServletMapping>
@@ -45,7 +45,6 @@
         </httpd:ServletHolder>
                         
       </servletHolders>
-                   
     </httpd:SimpleHttpServiceContext>
   </serviceContext>
 </httpd:HttpService>

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2009,2009 Michael Toth
+// Copyright (c) 1998,2008 Michael Toth
 // Spiralcraft Inc., All Rights Reserved
 //
 // This package is part of the Spiralcraft project and is licensed under
@@ -15,21 +15,39 @@
 package spiralcraft.pioneer.httpd;
 
 /**
- * <p>Identical to PatternMapping, intended for backwards compatibility
- * </p>
- * 
- * @author mike
- *
+ * Maps a path to a filter or servlet
  */
-public class ServletMapping
-    extends PatternMapping
+public class PatternMapping
 {
+
+  private String name;
+  private String urlPattern;
   
-  public void setServletName(String name)
-  { setName(name);
+  public PatternMapping(String name,String urlPattern)
+  { 
+    this.name=name;
+    this.urlPattern=urlPattern;
+  
   }
   
-  public String getServletName()
-  { return getName();
+  public PatternMapping()
+  {
   }
+  
+  public void setName(String name)
+  { this.name=name;
+  }
+  
+  public String getName()
+  { return name;
+  }
+  
+  public void setURLPattern(String urlPattern)
+  { this.urlPattern=urlPattern;
+  }
+  
+  public String getURLPattern()
+  { return urlPattern;
+  }
+  
 }

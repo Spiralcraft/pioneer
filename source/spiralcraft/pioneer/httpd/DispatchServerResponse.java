@@ -16,8 +16,11 @@ package spiralcraft.pioneer.httpd;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponseWrapper;
 
 import javax.servlet.ServletOutputStream;
+
+import spiralcraft.log.ClassLog;
 
 import java.util.Locale;
 
@@ -30,148 +33,186 @@ import java.io.IOException;
  *   responses
  */
 public class DispatchServerResponse
+  extends HttpServletResponseWrapper
   implements HttpServletResponse
 {
-  private final HttpServletResponse containingResponse;
+ 
+  private static final ClassLog log
+    =ClassLog.getInstance(DispatchServerResponse.class);
   
   public DispatchServerResponse(HttpServletResponse containingResponse)
-  { this.containingResponse=containingResponse;
+  { super(containingResponse);
   }
   
+  @Override
   public int getBufferSize()
-  { return containingResponse.getBufferSize();
+  { return super.getBufferSize();
   }
 
+  @Override
   public void flushBuffer()
     throws IOException
-  { containingResponse.flushBuffer();
+  { super.flushBuffer();
   }
 
+  @Override
   public void setBufferSize(int bufferSize)
-  { containingResponse.setBufferSize(bufferSize);
+  { super.setBufferSize(bufferSize);
   }
 
+  @Override
   public boolean isCommitted()
-  { return containingResponse.isCommitted();
+  { return super.isCommitted();
   }
 
-
+  @Override
   public void addCookie(Cookie cookie)
   { 
   }
 
+  @Override
   public boolean containsHeader(String name)
-  { return containingResponse.containsHeader(name);
+  { return super.containsHeader(name);
   }
 
-  @SuppressWarnings("deprecation") // Implementing Servlet API
   @Deprecated
+  @Override
   public String encodeRedirectUrl(String url)
-  { return containingResponse.encodeRedirectUrl(url);
+  { return super.encodeRedirectUrl(url);
   }
   
-  @SuppressWarnings("deprecation")
   @Deprecated
+  @Override
   public String encodeUrl(String url)
-  { return containingResponse.encodeUrl(url);
+  { return super.encodeUrl(url);
   }
 
+  @Override
   public String encodeRedirectURL(String url)
-  { return containingResponse.encodeRedirectURL(url);
+  { return super.encodeRedirectURL(url);
   }
   
+  @Override
   public String encodeURL(String url)
-  { return containingResponse.encodeURL(url);
+  { return super.encodeURL(url);
   }
 
+  @Override
   public void sendError(int code,String msg) 
   	throws IOException
   {
   }
       
+  @Override
   public void sendError(int code) 
     throws IOException
   {
   }
 
+  @Override
   public void sendRedirect(String location)
     throws IOException
   {
   }
 
+  @Override
   public void setLocale(Locale locale)
   { 
   }
 
+  @Override
   public Locale getLocale()
-  { return containingResponse.getLocale();
+  { return super.getLocale();
   }
 
+  @Override
   public void setStatus(int code)
   { 
   }
 
-  @SuppressWarnings("deprecation")
   @Deprecated
+  @Override
   public void setStatus(int code,String message)
   {
   }
 
 
+  @Override
   public void setIntHeader(String name, int value)
   {
   }
 
+  @Override
   public void setDateHeader(String name, long date)
   {
   }
   
+  @Override
   public void addIntHeader(String name, int value)
   { 
   }
 
+  @Override
   public void addDateHeader(String name,long date)
   { 
   }
 
+  @Override
   public void addHeader(String name, String value)
   { 
   }
 
+  @Override
   public void setHeader(String name, String value)
   {
   }
 
 
+  @Override
   public void setContentType(String value)
-  { 
+  { log.warning("Ignoring setContentType(\""+value+")\"");
   }
 
+  @Override
   public void setContentLength(int len)
   { 
   }
 
+  @Override
+  public void setCharacterEncoding(String encoding)
+  {
+  }
+  
+  @Override
   public void reset()
   {
   }
   
+  @Override
   public ServletOutputStream getOutputStream()
     throws IOException
-  { return containingResponse.getOutputStream();
+  { return super.getOutputStream();
   }
 
+  @Override
   public PrintWriter getWriter()
     throws IOException
-  { return containingResponse.getWriter();
+  { return super.getWriter();
   }
 
+  @Override
   public String getCharacterEncoding()
-  { return containingResponse.getCharacterEncoding();
+  { return super.getCharacterEncoding();
   }
 
+  @Override
+  public String getContentType()
+  { return super.getContentType();
+  }
+
+  @Override
   public void resetBuffer()
-  {
-    // XXX ??? TODO Auto-generated method stub
+  { 
     
   }
 

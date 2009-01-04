@@ -3,3 +3,4 @@ build.number
 out
 bin
 *.local
+$jarplug.work

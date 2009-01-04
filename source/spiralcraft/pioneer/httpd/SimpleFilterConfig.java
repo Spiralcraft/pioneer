@@ -1,5 +1,5 @@
 //
-// Copyright (c) 1998,2009 Michael Toth
+// Copyright (c) 2009,2009 Michael Toth
 // Spiralcraft Inc., All Rights Reserved
 //
 // This package is part of the Spiralcraft project and is licensed under
@@ -14,7 +14,7 @@
 //
 package spiralcraft.pioneer.httpd;
 
-import javax.servlet.ServletConfig;
+import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 
 import java.util.Enumeration;
@@ -24,24 +24,25 @@ import java.util.Properties;
 /**
  * Simple implementation of the ServletConfig interface
  */
-public class SimpleServletConfig
-  implements ServletConfig
+public class SimpleFilterConfig
+  implements FilterConfig
 {
+  
   
   private ServletContext _context;
   private Properties _params=new Properties();
-  private String _servletName;
-  
-  public SimpleServletConfig(String name,ServletContext context,Properties params)
+  private String _filterName;
+
+  public SimpleFilterConfig(String name,ServletContext context,Properties params)
   {
-    _servletName=name;
+    _filterName=name;
     _context=context;
     _params=params;
   }
 
-  public SimpleServletConfig(String name,ServletConfig config)
+  public SimpleFilterConfig(String name,FilterConfig config)
   { 
-    _servletName=name;
+    _filterName=name;
     _context=config.getServletContext();
     Enumeration<?> e=config.getInitParameterNames();
     while (e.hasMoreElements())
@@ -52,18 +53,18 @@ public class SimpleServletConfig
   }
 
   /** 
-   * Return a shallow copy with a differet Servlet name
+   * Return a shallow copy with a differet Filter name
    */
-  public SimpleServletConfig getClone(String name)
-  { return new SimpleServletConfig(name,_context,_params);
+  public SimpleFilterConfig getClone(String name)
+  { return new SimpleFilterConfig(name,_context,_params);
   }
 
   public ServletContext getServletContext()
   { return _context;
   }
 
-  public String getServletName()
-  { return _servletName;
+  public String getFilterName()
+  { return _filterName;
   }
 
   public String getInitParameter(String name)
@@ -73,7 +74,6 @@ public class SimpleServletConfig
   public Enumeration<?> getInitParameterNames()
   { return _params.keys();
   }
-
 
   
 }

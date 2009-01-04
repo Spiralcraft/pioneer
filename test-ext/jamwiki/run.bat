@@ -1,0 +1,1 @@
+c:\apps\java\jdk1.6.0_11\bin\java -jar ../../lib/spiralcraft.jar httpd.dev

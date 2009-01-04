@@ -33,6 +33,7 @@ import javax.servlet.RequestDispatcher;
 
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
+import spiralcraft.net.mime.ContentTypeHeader;
 
 import spiralcraft.time.Clock;
 
@@ -49,6 +50,9 @@ import spiralcraft.util.IteratorEnumeration;
 public abstract class AbstractHttpServletRequest
   implements HttpServletRequest
 {
+  private static final ClassLog log
+    =ClassLog.getInstance(AbstractHttpServletRequest.class);
+  
   protected static final VariableManager NULL_FORM=new VariableManager();
 
   protected final DateFormat _rfc1123HeaderDateFormat
@@ -77,7 +81,7 @@ public abstract class AbstractHttpServletRequest
     }
 	}
 
-	protected HttpServiceContext _server;
+	protected HttpServiceContext _context;
   protected String _alias;
 	protected String _pathInfo;
 	protected String _pathTranslated;
@@ -89,16 +93,25 @@ public abstract class AbstractHttpServletRequest
   protected final HashMap<String,Object> _attributes
     =new HashMap<String,Object>();
   protected long _startTime;	
+  protected HttpServer _httpServer;
+  protected String _characterEncoding;
 
   protected ClassLog _log
     =ClassLog.getInstance(AbstractHttpServletRequest.class);
 
+  public HttpServer getHttpServer()
+  { return _httpServer;
+  }
+  
+  public void setHttpServer(HttpServer server)
+  { _httpServer=server;
+  }  
   /**
    * Initialize before use
    */
   public void start()
   { 
-    _server=null;
+    _context=null;
     _alias=null;
     _pathInfo=null;
     _pathTranslated=null;
@@ -119,29 +132,48 @@ public abstract class AbstractHttpServletRequest
   public abstract byte[] getRawRemoteAddress();
   
   public void setServiceContext(HttpServiceContext context)
-  { _server=context;
+  { _context=context;
   }
 
   public RequestDispatcher getRequestDispatcher(String uri)
   { 
     URI absoluteURI=URI.create(getRequestURI());
-    return _server.getRequestDispatcher(absoluteURI.resolve(uri).toString());
+    return _context.getRequestDispatcher(absoluteURI.resolve(uri).toString());
   }
 
   public String getContextPath()
-  { return "/"+_server.getAlias();
+  { 
+    String ret=null;
+    if (_context.getAlias()!=null)
+    { ret="/"+_context.getAlias();
+    }
+    else
+    { ret="";
+    }
+    if (_httpServer.getDebugService())
+    { log.fine(ret);
+    }
+    return ret;
   }
 
 	public String getPathTranslated()
 	{
 		if (_pathTranslated==null)
-		{ _pathTranslated=_server.getRealPath(_pathInfo);
+		{ _pathTranslated=_context.getRealPath(_pathInfo);
 		}
+    if (_httpServer.getDebugService())
+    { log.fine(_pathTranslated);
+    }
 		return _pathTranslated;
 	}
   
 	public String getPathInfo()
-	{ return _pathInfo;
+	{ 
+	  
+    if (_httpServer.getDebugService())
+    { log.fine(_pathInfo);
+    }
+	  return _pathInfo;
 	}
 	
 	
@@ -162,15 +194,25 @@ public abstract class AbstractHttpServletRequest
 	@SuppressWarnings("deprecation")
   @Deprecated
   public String getRealPath(String alias)
-	{ return _server.getRealPath(alias);
+	{ return _context.getRealPath(alias);
 	}
   
 	public String getServletPath()
-	{ return _servletPath;
+	{ 
+    if (_httpServer.getDebugService())
+    { log.fine(_servletPath);
+    }
+	  
+	  return _servletPath;
 	} 
 
 	public String getRequestURI()
-	{ return _requestURI;
+	{ 
+	  
+    if (_httpServer.getDebugService())
+    { log.fine(_requestURI);
+    }
+	  return _requestURI;
 	}
   
   /**
@@ -264,7 +306,12 @@ public abstract class AbstractHttpServletRequest
 	}
 
 	public Object getAttribute(String name)
-	{ return _attributes.get(name);
+	{ 
+	  Object ret=_attributes.get(name);
+	  if (_httpServer.getDebugService())
+	  { log.fine(name +" = "+ ret);
+	  }
+	  return ret;
 	}
 
   public Enumeration<String> getAttributeNames()
@@ -272,11 +319,34 @@ public abstract class AbstractHttpServletRequest
   }
 
   public void setAttribute(String name,Object value)
-  { _attributes.put(name,value);
+  { 
+    if (_httpServer.getDebugService())
+    { log.fine(name +" = "+ value);
+    }
+    
+    Object oldval=_attributes.remove(name);
+    if (oldval!=null)
+    { 
+      _attributes.put(name,value);
+      if (_context!=null)
+      { _context.fireRequestAttributeReplaced(this,name,oldval);
+      }
+    }
+    else
+    {
+      _attributes.put(name,value);
+      if (_context!=null)
+      { _context.fireRequestAttributeAdded(this,name,value);
+      }
+    }
   }
 
   public void removeAttribute(String name)
-  { _attributes.remove(name);
+  { 
+    Object oldval=_attributes.remove(name);
+    if (oldval!=null && _context!=null)
+    { _context.fireRequestAttributeRemoved(this,name,oldval);
+    }
   }
   
 	public int getContentLength()
@@ -288,7 +358,27 @@ public abstract class AbstractHttpServletRequest
 	}
 	
   public String getCharacterEncoding()
-  { return getHeader("Content-Encoding");
+  { 
+    if (_characterEncoding==null)
+    { 
+      String header=getHeader("Content-Type");
+      try
+      {
+        if (header!=null)
+        { 
+          ContentTypeHeader parsed=new ContentTypeHeader("Content-Type",header);
+          String encoding=parsed.getParameter("charset");
+          if (encoding!=null)
+          { _characterEncoding=encoding;
+          }
+        }
+      }
+      catch (IOException x)
+      { log.log(Level.WARNING,"Error parsing Content-Type: "+header,x);
+      }
+
+    }
+    return _characterEncoding;
   }
   
 	protected void calcPathInfo()

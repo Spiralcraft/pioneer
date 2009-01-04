@@ -58,14 +58,10 @@ public class HttpService
     { listener.setConnectionHandler(handlerQueue);
     }
     
-    if (getServiceContext()!=null)
-    { getServiceContext().startService();
-    }
-    
     super.start();
     handlerQueue.init();
     for (Listener listener: listeners)
-    { listener.startService();
+    { listener.start();
     }
     
    
@@ -76,7 +72,7 @@ public class HttpService
     throws LifecycleException
   {
     for (Listener listener: listeners)
-    { listener.stopService();
+    { listener.stop();
     }
     handlerQueue.stop();
     super.stop();

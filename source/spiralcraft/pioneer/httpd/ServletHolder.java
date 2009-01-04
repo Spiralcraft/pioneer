@@ -20,18 +20,18 @@ import javax.servlet.ServletException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.Properties;
 
 import spiralcraft.data.persist.AbstractXmlObject;
-import spiralcraft.exec.ExecutionContext;
 
-import spiralcraft.pioneer.util.ThrowableUtil;
+import spiralcraft.log.ClassLog;
+import spiralcraft.log.Level;
 import spiralcraft.vfs.Resolver;
 
 /**
@@ -40,12 +40,15 @@ import spiralcraft.vfs.Resolver;
 public class ServletHolder
   implements FilterChain
 {
+  private static final ClassLog log
+    =ClassLog.getInstance(ServletHolder.class);
+    
   private Servlet _servlet;
   private String _servletClass;
   private ServletException _servletException;
   private HttpServiceContext _serviceContext;
   private Properties _initParams=new Properties();
-  private boolean _loadAtStartup=false;
+  private int _loadOnStartup=-1;
   private String _servletName;
   private URI dataURI;
 
@@ -109,8 +112,15 @@ public class ServletHolder
   { _servletName=name;
   }
 
-  public void setInitParameters(Properties params)
+  public void setInitProperties(Properties params)
   { _initParams=params;
+  }
+  
+  public void setInitParameters(InitParameter[] parameters)
+  {
+    for (InitParameter param:parameters)
+    { setInitParameter(param.getName(),param.getValue());
+    }
   }
   
   public void setInitParametersAsText(String initParametersText)
@@ -124,13 +134,29 @@ public class ServletHolder
     }
   }
 
+  public void setInitParameter(String name,String value)
+  {
+    if (_initParams==null)
+    { _initParams=new Properties();
+    }
+    _initParams.put(name,value);
+  }
+  
   public void setLoadAtStartup(boolean val)
-  { _loadAtStartup=val;
+  { _loadOnStartup=(val?0:-1);
   }
 
+  public void setLoadOnStartup(int val)
+  { _loadOnStartup=val;
+  }
+  
+  public int getLoadOnStartup()
+  { return _loadOnStartup;
+  }
+  
   public void init()
   {
-    if (_loadAtStartup)
+    if (_loadOnStartup>-1)
     { load();
     }
   }
@@ -164,16 +190,30 @@ public class ServletHolder
         }
       }
       else
-      { servlet=(Servlet) Class.forName(_servletClass).newInstance();
+      { 
+        servlet
+          =(Servlet) Class.forName
+            (_servletClass
+            ,true
+            ,Thread.currentThread().getContextClassLoader()
+            ).newInstance();
+      }
+      if (_serviceContext.isDebug())
+      { log.fine("Initializing servlet "+_servletName+" with "+_initParams);
       }
       servlet.init(new SimpleServletConfig(_servletName,_serviceContext,_initParams));  
       _servlet=servlet;
     }
     catch (ServletException x)
-    { _servletException=x;
+    { 
+      _servletException=x;
+      log.log(Level.WARNING,"Error initializing servlet "+_servletName,x);
     }
     catch (Exception x)
-    { _servletException=new ServletException(x.toString()+"\r\n"+ThrowableUtil.getStackTrace(x));
+    { 
+      log.log(Level.WARNING,"Error initializing servlet "+_servletName,x);
+      _servletException=new ServletException(x.toString(),x);
+      _servletException.initCause(x);
     }
   }
 
@@ -183,15 +223,34 @@ public class ServletHolder
     )
     throws IOException, ServletException
   { 
+    if (_serviceContext.isDebug())
+    { 
+      log.fine(((HttpServletRequest) request).getRequestURI()+" -> "
+         +getServlet());
+    }    
     try
     { getServlet().service(request,response);
     }
     catch (ServletException x)
     { 
-      PrintStream err=ExecutionContext.getInstance().err();
-      x.printStackTrace(err);
-      if (x.getRootCause()!=null)
-      { x.getRootCause().printStackTrace(err);
+      log.log
+        (Level.WARNING
+        ,"Error handling request "
+          +((HttpServletRequest) request).getRequestURI()
+        ,x
+        );
+      throw x;
+    }
+    catch (IOException x)
+    {
+      if (_serviceContext.isDebug())
+      { 
+        log.log
+          (Level.DEBUG
+          ,"IOException handling request "
+            +((HttpServletRequest) request).getRequestURI()
+          ,x
+          );
       }
       throw x;
     }
