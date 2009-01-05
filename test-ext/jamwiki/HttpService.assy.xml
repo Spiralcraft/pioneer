@@ -10,122 +10,19 @@
   </listeners>
       
   <serviceContext>
-    <httpd:SimpleHttpServiceContext>
-                  
+    <here:JAMWikiContext>
       <documentRoot>/work/opt/jamwiki
       </documentRoot>
-      
-      <useURLClassLoader>true
-      </useURLClassLoader>
-                   
-      <debug>false
-      </debug>
 
-      <debugWAR>false
-      </debugWAR>
-      
       <accessLog>
         <httpd:RotatingFileAccessLog>
-
           <directory>logs
           </directory>
-
         </httpd:RotatingFileAccessLog>
       </accessLog>
-            
-      <servletMappings>
-        <httpd:ServletMapping>
-          <URLPattern>*.jsp
-          </URLPattern>
-          
-          <servletName>jsp
-          </servletName>
-        </httpd:ServletMapping>
+    
+    </here:JAMWikiContext>
 
-        <httpd:ServletMapping>
-          <URLPattern>*.jspx
-          </URLPattern>
-          
-          <servletName>jsp
-          </servletName>
-        </httpd:ServletMapping>
-        
-        <httpd:ServletMapping>
-          <servletName>file
-          </servletName>
-        
-          <URLPattern>/
-          </URLPattern>
-        </httpd:ServletMapping>        
-        
-      </servletMappings>
-      
-      <servletHolders>
-        <httpd:ServletHolder>
-          <servletName>jsp
-          </servletName>
-          
-          <servletClass>org.apache.jasper.servlet.JspServlet
-          </servletClass>
-          
-          <initParameters>
-            <httpd:InitParameter>
-              <name>fork
-              </name>
-              
-              <value>false
-              </value>
-            </httpd:InitParameter>
-
-            <httpd:InitParameter>
-              <name>xPoweredBy
-              </name>
-              
-              <value>false
-              </value>
-            </httpd:InitParameter>
-
-            <httpd:InitParameter>
-              <name>logVerbosityLevel
-              </name>
-              
-              <value>ALL
-              </value>
-            </httpd:InitParameter>
-                
-            <httpd:InitParameter>
-              <name>scratchdir
-              </name>
-              
-              <value>./jspscratch
-              </value>
-            </httpd:InitParameter>
-
-            <httpd:InitParameter>
-              <name>sendErrToClient
-              </name>
-              
-              <value>true
-              </value>
-            </httpd:InitParameter>
-          </initParameters>
-          
-          <loadOnStartup>0
-          </loadOnStartup>
-        </httpd:ServletHolder>
-        
-        <httpd:ServletHolder>
-                            
-          <servletName>file
-          </servletName>
-          
-          <servletClass>spiralcraft.pioneer.httpd.FileServlet
-          </servletClass>
-                            
-        </httpd:ServletHolder>        
-      </servletHolders>
-      
-    </httpd:SimpleHttpServiceContext>
   </serviceContext>
 </httpd:HttpService>
     

@@ -40,8 +40,15 @@ public class DispatchServerResponse
   private static final ClassLog log
     =ClassLog.getInstance(DispatchServerResponse.class);
   
-  public DispatchServerResponse(HttpServletResponse containingResponse)
-  { super(containingResponse);
+  private final HttpServer server;
+  
+  public DispatchServerResponse
+    (HttpServletResponse containingResponse
+    ,HttpServer server
+    )
+  { 
+    super(containingResponse);
+    this.server=server;
   }
   
   @Override
@@ -170,7 +177,10 @@ public class DispatchServerResponse
 
   @Override
   public void setContentType(String value)
-  { log.warning("Ignoring setContentType(\""+value+")\"");
+  { 
+    if (server.getDebugAPI())
+    { log.fine("Ignoring setContentType(\""+value+")\"");
+    }
   }
 
   @Override

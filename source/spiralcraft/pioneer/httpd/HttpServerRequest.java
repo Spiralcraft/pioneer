@@ -14,10 +14,12 @@
 //
 package spiralcraft.pioneer.httpd;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.HashMap;
+import java.util.Set;
 
 import spiralcraft.pioneer.util.MappedList;
 import spiralcraft.pioneer.util.ListMap;
@@ -37,7 +39,6 @@ import javax.servlet.ServletInputStream;
 import java.security.Principal;
 
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Locale;
 
@@ -57,6 +58,7 @@ import javax.net.ssl.SSLSocket;
 import java.text.ParseException;
 
 import spiralcraft.text.CaseInsensitiveString;
+import spiralcraft.util.EmptyIterator;
 import spiralcraft.util.IteratorEnumeration;
 
 
@@ -298,7 +300,7 @@ public class HttpServerRequest
     { return new IteratorEnumeration(list.iterator());
     }
     else
-    { return null;
+    { return new IteratorEnumeration(new EmptyIterator());
     }
   }
 
@@ -348,12 +350,17 @@ public class HttpServerRequest
     }
 	}
 	
-	@SuppressWarnings("unchecked")
+  @SuppressWarnings("unchecked")
   public Enumeration<?> getHeaderNames()
 	{ 
-    // XXX Must wrap in another iterator than unwraps the CaseInsensitiveStrings
-    //       being used as keys.
-    return new IteratorEnumeration(_headerMap.keySet().iterator());
+	  ArrayList<String> names=new ArrayList<String>(_headerMap.size());
+	  for (CaseInsensitiveString name 
+	        : (Set<CaseInsensitiveString>) _headerMap.keySet()
+	      )
+	  { names.add(name.toString());
+	  }
+	  
+    return new IteratorEnumeration<String>(names.iterator());
 	}
 	
 	public int getIntHeader(String name)
@@ -757,13 +764,6 @@ public class HttpServerRequest
 
 
 
-  public Map<?,?> getParameterMap()
-  {
-    // XXX: Since HTTPUtils is deprecated- we NEED to implement this
-    // TODO Auto-generated method stub
-    _log.log(Level.SEVERE,"getParameterMap() not implemented");
-    return null;
-  }
 
 
 

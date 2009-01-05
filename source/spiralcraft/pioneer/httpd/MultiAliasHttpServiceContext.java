@@ -120,7 +120,7 @@ public class MultiAliasHttpServiceContext
       { context.setAlias(key);
       }
     }
-    if (log.canLog(Level.DEBUG))
+    if (debug)
     { log.log(Level.DEBUG,"aliasMap="+_aliasMap.keySet());
     }
   }

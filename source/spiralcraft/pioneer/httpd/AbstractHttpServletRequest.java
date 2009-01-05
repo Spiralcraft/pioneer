@@ -14,6 +14,8 @@
 //
 package spiralcraft.pioneer.httpd;
 
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.Iterator;
 import java.util.HashMap;
@@ -260,8 +262,18 @@ public abstract class AbstractHttpServletRequest
     return _post.getValue(name);
 	}
 	
-	public Enumeration<String> getParameterNames()
-	{ 
+	@Override
+  public Map<String,String[]> getParameterMap()
+  {
+    Map<String,String[]> map=new HashMap<String,String[]>();
+    for (String name : getParameterNameList())
+    { map.put(name, getParameterValues(name));
+    }
+    return map;
+  }
+  
+  protected List<String> getParameterNameList()
+  {
     ensureParameters();
     ArrayList<String> names=new ArrayList<String>();
     Iterator<String> it=_query.getNames();
@@ -272,8 +284,12 @@ public abstract class AbstractHttpServletRequest
     while (it.hasNext())
     { names.add(it.next());
     }
+    return names;
     
-    return new IteratorEnumeration<String>(names.iterator());
+  }
+  
+	public Enumeration<String> getParameterNames()
+	{ return new IteratorEnumeration<String>(getParameterNameList().iterator());
 	}
 	
 	public String[] getParameterValues(String name)

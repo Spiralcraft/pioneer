@@ -67,7 +67,10 @@ public class ServletRequestDispatcher
         ,context.getServer()
         );
     DispatchServerResponse dispatchResponse
-      =new DispatchServerResponse((HttpServletResponse) response);
+      =new DispatchServerResponse
+        ((HttpServletResponse) response
+        ,context.getServer()
+        );
     
     
     context.service(dispatchRequest,dispatchResponse);

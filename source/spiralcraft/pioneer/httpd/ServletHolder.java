@@ -213,7 +213,6 @@ public class ServletHolder
     { 
       log.log(Level.WARNING,"Error initializing servlet "+_servletName,x);
       _servletException=new ServletException(x.toString(),x);
-      _servletException.initCause(x);
     }
   }
 

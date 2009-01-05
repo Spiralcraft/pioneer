@@ -28,9 +28,8 @@ import java.security.Principal;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Locale;
+import java.util.Map;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -203,7 +202,19 @@ public class DispatchServerRequest
     }
     return ret;
   }
-
+  
+  @Override
+  public Map<String,String[]> getParameterMap()
+  {
+    Map<String,String[]> map=new HashMap<String,String[]>();
+    Enumeration<String> names=getParameterNames();
+    while (names.hasMoreElements())
+    { 
+      String name=names.nextElement();
+      map.put(name, getParameterValues(name));
+    }
+    return map;
+  }
   
 	public Cookie[] getCookies()
   { return containingRequest.getCookies();
@@ -291,7 +302,7 @@ public class DispatchServerRequest
 	    String[] ip=getRemoteAddr().split("\\.");
 	    byte[] bytes=new byte[4];
 	    for (int i=0;i<4;i++)
-	    { bytes[i]=Byte.parseByte(ip[i]);
+	    { bytes[i]=Short.valueOf(ip[i]).byteValue();
 	    }
 	    return bytes;
 	  }
@@ -368,29 +379,7 @@ public class DispatchServerRequest
     return buf;
   }
 
-  public Map<?,?> getParameterMap()
-  {
-    HashMap<String,String[]> map=new HashMap<String,String[]>();
-    if (_query!=null)
-    {
-      Iterator<String> it=_query.getNames();
-      while (it.hasNext())
-      { 
-        String name=it.next();
-        map.put(name,_query.getList(name));
-      }
-    }
-    if (_post!=null)
-    {
-      Iterator<String> it=_post.getNames();
-      while (it.hasNext())
-      { 
-        String name=it.next();
-        map.put(name,_post.getList(name));
-      }
-    }
-    return map;
-  }
+
 
   public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
   { containingRequest.setCharacterEncoding(arg0);    

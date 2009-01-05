@@ -16,6 +16,7 @@
 package spiralcraft.pioneer.servlet;
 
 
+import spiralcraft.net.http.URLCodec;
 import spiralcraft.text.html.URLDataEncoder;
 
 import spiralcraft.vfs.StreamUtil;
@@ -42,29 +43,27 @@ public class VariableManager
 
 	public static HashMap<String,String[]> decodeURLEncoding(String encodedForm)
 	{
-	  HashMap<String,ArrayList<String>> buf
-	    =new HashMap<String,ArrayList<String>>();
-	  
+    HashMap<String,ArrayList<String>> buf
+      =new HashMap<String,ArrayList<String>>();
+
     String[] pairs=encodedForm.split("&");
     for (String pair: pairs)
     {
       int eqpos=pair.indexOf('=');
       if (eqpos>0 && eqpos<pair.length()-1)
       {
-        String name=URLDataEncoder.decode(pair.substring(0,eqpos));
-        String valuesString=URLDataEncoder.decode(pair.substring(eqpos+1));
-        
-        ArrayList<String> values=buf.get(name);
-        if (values==null)
+        String name=URLCodec.decode(pair.substring(0,eqpos));
+        String[] rawValues=pair.substring(eqpos+1).split(",");
+        ArrayList<String> valueList=buf.get(name);
+        if (valueList==null)
         { 
-          values=new ArrayList<String>();
-          buf.put(name,values);
+          valueList=new ArrayList<String>();
+          buf.put(name,valueList);
         }
-        for (String value : valuesString.split(","))
-        { values.add(value);
+        for (String rawValue:rawValues)
+        { valueList.add(URLCodec.decode(rawValue));
         }
       }
-
     }
     
     HashMap<String,String[]> ret=new HashMap<String,String[]>();
