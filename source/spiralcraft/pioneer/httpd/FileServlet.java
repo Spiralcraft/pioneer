@@ -292,11 +292,19 @@ public class FileServlet
 
       Resource resource=Resolver.getInstance().resolve(new File(path).toURI());
       OutputStream out=resource.getOutputStream();
-      InputStream in=request.getInputStream();
-      StreamUtil.copyRaw(in,out,16384,contentLength);
-      out.flush();
-      out.close();
-      response.setStatus(201);
+      try
+      {
+        InputStream in=request.getInputStream();
+        StreamUtil.copyRaw(in,out,16384,contentLength);
+        out.flush();
+        response.setStatus(201);
+      }
+      finally
+      {
+        if (out!=null)
+        { out.close();
+        }
+      }
     }
     catch (IOException x)
     { 
@@ -529,7 +537,6 @@ public class FileServlet
         ,rangeHeader!=null?rangeHeader.getMaxBytes():-1
         );
       
-      resourceInputStream.close();
       response.getOutputStream().flush();
       
     }
