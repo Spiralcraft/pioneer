@@ -14,220 +14,46 @@
 //
 package spiralcraft.pioneer.httpd;
 
-import spiralcraft.util.ByteBuffer;
 
+import spiralcraft.io.RotatingFileOutputAgent;
 import spiralcraft.log.Level;
-import spiralcraft.log.ClassLog;
 
-import spiralcraft.time.Scheduler;
-import spiralcraft.time.Clock;
-
-import java.io.RandomAccessFile;
+import java.io.IOException;
 
 import spiralcraft.util.string.StringUtil;
-
-
-import java.util.Calendar;
-import java.util.Date;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-
-import java.io.File;
 
 /**
  * A log that uses a rotating file
  */
 public class RotatingFileAccessLog
-  implements AccessLog,Runnable
+  extends RotatingFileOutputAgent
+  implements AccessLog
 {
-  
-  private static final byte[] CRLF="\r\n".getBytes();
-  private static final ClassLog _log
-    =ClassLog.getInstance(RotatingFileAccessLog.class);
 
-  private String _filePrefix="access";
-  private DateFormat _fileDateFormat=new SimpleDateFormat("-yyyy-MM-dd--HH-mm-ss");
-
-  private RandomAccessFile _file;
   private AccessLogFormat _format=new ECLFAccessLogFormat();
-  private ByteBuffer[] _buffers={new ByteBuffer(),new ByteBuffer()};
-  private Object _mutex=new Object();
-  private int _currentBuffer=0;
-  private long _flushIntervalMs=1000;
-  private boolean _initialized=false;
-  private long _maxLengthKB=16384;
-  private File _directory=new File(System.getProperty("user.dir"));
-  private File targetFile;
-  private Calendar calendar=Calendar.getInstance();
-  private int day=calendar.get(Calendar.DAY_OF_YEAR);
+ 
+  { 
+    setFilePrefix("access");
+    setFileSuffix("log");
+    this.setMaxDelayMs(1000);
+    this.setMinDelayMs(250);
+  }
   
 
   public void setFormat(AccessLogFormat format)
   { _format=format;
   }
 
-  public final void log(final HttpServerRequest request,final HttpServerResponse response)
+  public final void log
+    (final HttpServerRequest request
+    ,final HttpServerResponse response
+    )
   { 
-    assertInit();
-    final byte[] bytes=StringUtil.asciiBytes(_format.format(request,response));
-    synchronized (_mutex)
-    {
-      _buffers[_currentBuffer].append(bytes);
-      _buffers[_currentBuffer].append(CRLF);
-    }
-  }
-
-  public synchronized void start()
-  {
-    Scheduler.instance().scheduleIn
-      (this
-      ,_flushIntervalMs
-      );
-    _initialized=true;
-    notify();
-  }
-  
-  public synchronized void stop()
-  {
-    _initialized=false;
-    notify();
-  }
-
-  public void setMaxLengthKB(long maxLengthKB)
-  { _maxLengthKB=maxLengthKB;
-  }
-
-  public void setFilePrefix(String filePrefix)
-  { _filePrefix=filePrefix;
-  }
-
-  public void setDirectory(File directory)
-  { _directory=directory;
-  }
-
-  public void run()
-  {
     try
-    {
-      if (!_initialized)
-      { 
-        if (_file!=null)
-        { _file.close();
-        }
-        _file=null;
-        return;
-      }
-      
-      if (_file==null)
-      { 
-        targetFile=
-          new File
-            (_directory
-            ,_filePrefix
-            +".log"
-            );
-
-        if (targetFile.exists())
-        { 
-          calendar.setTime(new Date(targetFile.lastModified()));
-          day=calendar.get(Calendar.DAY_OF_YEAR);
-        }
-        
-        _file=new RandomAccessFile
-          (targetFile
-          ,"rw"
-          );
-      }
-      if (_file.length()==0)
-      {
-        if (_file.length()==0)
-        { 
-          String header=_format.header();
-          if (header!=null)
-          { _file.write(StringUtil.asciiBytes(header+"\r\n"));
-          }
-        }
-      }
-      else
-      { _file.skipBytes((int) _file.length());
-      }
-
-
-      int flushBuffer;
-      synchronized (_mutex)
-      { 
-        // Swap buffers
-        flushBuffer=_currentBuffer;
-        _currentBuffer=(_currentBuffer==0?1:0);
-      }
-    
-      _file.write(_buffers[flushBuffer].toByteArray());
-      _buffers[flushBuffer].clear();
-
-      if (dateChanged() || _file.length()>=_maxLengthKB*1024)
-      {
-        _file.getFD().sync();
-        _file.close();
-        String lastModified=
-          _fileDateFormat.format(new Date(targetFile.lastModified()));
-        new File(_directory,_filePrefix+".log")
-          .renameTo(new File(_directory,_filePrefix+lastModified+".log"));
-        _file=null;
-      }
-      
-      Scheduler.instance().scheduleIn
-        (this
-        ,_flushIntervalMs
-        );
+    { write(StringUtil.asciiBytes(_format.format(request,response)+"\r\n"));
     }
-    catch (Exception x)
-    { 
-      // Back off for a minute
-      _log.log(Level.SEVERE,"Error writing access log \r\n",x);
-      Scheduler.instance().scheduleIn
-        (this
-        ,60000
-        );
+    catch (IOException x)
+    { log.log(Level.SEVERE,"Error writing httpd access log",x);
     }
-
-  }
-  
-  private boolean dateChanged()
-  { 
-    calendar.setTime(new Date(Clock.instance().approxTimeMillis()));
-    int newDay=calendar.get(Calendar.DAY_OF_YEAR);
-    if (newDay!=day)
-    { 
-      day=newDay;
-      return true;
-    }
-    else
-    { return false;
-    }
-  }
-
-  private void assertInit()
-  { 
-    if (!_initialized)
-    { 
-      synchronized (this)
-      { 
-        if (!_initialized)
-        { 
-          try
-          { wait();
-          }
-          catch (InterruptedException x)
-          { throw new RuntimeException("Interrupted waiting for initialization");
-          }
-        }
-      }
-      if (!_initialized)
-      { throw new RuntimeException("RotatingFileAccessLog has not been initialized");
-      }
-    }
-  }
-
-  
+  }  
 }
