@@ -28,6 +28,12 @@
       <serviceContext.documentRoot>webroot
       </serviceContext.documentRoot>
       
+      <serviceContext.accessLog>
+        <httpd:RotatingFileAccessLog>
+          <directory>logs</directory>
+        </httpd:RotatingFileAccessLog>
+      </serviceContext.accessLog>
+      
     </here:HttpService>
   </services>
 </service:Daemon>
