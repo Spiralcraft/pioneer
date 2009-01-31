@@ -44,18 +44,28 @@ import javax.servlet.http.HttpSessionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Hashtable;
 
+import java.util.HashMap;
+
+import java.net.URI;
+import java.net.URL;
+import java.net.MalformedURLException;
+
+
 import spiralcraft.util.IteratorEnumeration;
+
 import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
 import spiralcraft.vfs.batch.Search;
@@ -70,31 +80,22 @@ import spiralcraft.pioneer.io.SimpleGoverner;
 import spiralcraft.pioneer.io.Filename;
 
 import spiralcraft.text.html.URLEncoder;
+
 import spiralcraft.time.Clock;
 
 import spiralcraft.pioneer.util.ThrowableUtil;
 
-
 import spiralcraft.pioneer.security.servlet.ServletAuthenticator;
 import spiralcraft.pioneer.security.SecurityException;
-
-
-import java.util.HashMap;
-
-import java.net.URI;
-import java.net.URL;
-import java.net.MalformedURLException;
-
-
-//import spiralcraft.text.html.HTEncoder;
 
 import spiralcraft.pioneer.telemetry.Meter;
 import spiralcraft.pioneer.telemetry.Register;
 import spiralcraft.pioneer.telemetry.Meterable;
 
-import spiralcraft.pioneer.net.IpFilter;
+import spiralcraft.net.ip.AddressSet;
 
 import spiralcraft.servlet.autofilter.Controller;
+
 
 public class SimpleHttpServiceContext
   implements HttpServiceContext
@@ -154,8 +155,8 @@ public class SimpleHttpServiceContext
 
   private Meter _meter;
   private Register _requestsRegister;
-	private IpFilter _allowedIpFilter;
-  private IpFilter _deniedIpFilter;
+	private AddressSet _allowedIpFilter;
+  private AddressSet _deniedIpFilter;
   
   private Controller controller=new Controller();
   
@@ -218,6 +219,9 @@ public class SimpleHttpServiceContext
     throws ServletException
           ,IOException
   { 
+    
+    // TODO: Unwrap this logic to use a "ServerFilter", perhaps in
+    //   new httpd module.
     if (debug || request.getHttpServer().getDebugService())
     { log.fine(request.getRequestURI());
     }
@@ -638,6 +642,33 @@ public class SimpleHttpServiceContext
   { return _initParameters.get(name);
   }
 
+  public void setInitParameters(InitParameter[] params)
+  {
+    for (InitParameter param:params)
+    { setInitParameter(param.getName(),param.getValue());
+    }
+  }
+  
+  /**
+   * Specify the initialization parameters as a block of text in the
+   *   java.util.Properties format.
+   * 
+   * @param initParameterText
+   */
+  public void setInitParametersAsText(String initParametersText)
+  {
+    Properties props=new Properties();
+    try
+    { props.load(new StringReader(initParametersText));
+    }
+    catch (IOException x)
+    { throw new IllegalArgumentException(x);
+    }
+    for (String name: props.stringPropertyNames())
+    { _initParameters.put(name,props.getProperty(name));
+    }
+  }
+  
   /**
    * Log a message
    */
@@ -1452,11 +1483,11 @@ public class SimpleHttpServiceContext
   { return debug;
   }
   
-  public void setAllowedIpFilter(IpFilter val)
+  public void setAllowedIpFilter(AddressSet val)
   { _allowedIpFilter=val;
   }
 
-  public void setDeniedIpFilter(IpFilter val)
+  public void setDeniedIpFilter(AddressSet val)
   { _deniedIpFilter=val;
   }
 
