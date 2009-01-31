@@ -14,6 +14,7 @@
 //
 package spiralcraft.pioneer.httpd;
 
+import spiralcraft.net.ip.AddressSet;
 import spiralcraft.pioneer.net.ConnectionHandlerFactory;
 import spiralcraft.pioneer.net.ConnectionHandler;
 
@@ -77,6 +78,8 @@ public class HttpServer
   private boolean started;
   private boolean stopping;
   private Resource traceResource;
+  private String _remoteAddressHeaderName;
+  private AddressSet _serverProxyAddresses;
   
   private boolean debugProtocol;
   private boolean debugService;
@@ -123,6 +126,28 @@ public class HttpServer
     Resource resource=Resolver.getInstance().resolve(uri);
     traceResource=resource;
     
+  }
+  
+  public void setRemoteAddressHeaderName(String headerName)
+  { this._remoteAddressHeaderName=headerName;
+  }
+  
+  public String getRemoteAddressHeaderName()
+  { return _remoteAddressHeaderName;
+  }
+  
+  public AddressSet getServerProxyAddresses()
+  { return _serverProxyAddresses;
+  }
+  
+  public void setServerProxyAddresses(AddressSet addresses)
+  { this._serverProxyAddresses=addresses;
+  }
+  
+  boolean isProxy(byte[] ipAddress)
+  {
+    return _serverProxyAddresses!=null
+       && _serverProxyAddresses.contains(ipAddress);
   }
   
   public void wroteBytes(int count)

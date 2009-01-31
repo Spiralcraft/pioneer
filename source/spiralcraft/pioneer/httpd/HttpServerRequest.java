@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.Set;
 
+import spiralcraft.net.ip.Subnet;
 import spiralcraft.pioneer.util.MappedList;
 import spiralcraft.pioneer.util.ListMap;
 import spiralcraft.pioneer.util.Translator;
@@ -49,6 +50,7 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
+import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.Charset;
 
@@ -90,6 +92,8 @@ public class HttpServerRequest
 	private String _remoteAddr;
   private byte[] _rawRemoteAddr;
   private String _remoteHost;
+  private InetAddress _remoteInetAddress;
+  
   private String _host;
   private int _port;
 	private String _scheme="http";
@@ -152,6 +156,7 @@ public class HttpServerRequest
     
     _started=false;
     _socket=sock;
+    _remoteInetAddress=sock.getInetAddress();
 		_inputStream.start(sock.getInputStream());
     
 
@@ -503,7 +508,7 @@ public class HttpServerRequest
 	public String getRemoteAddr()
 	{ 
     if (_remoteAddr==null)
-    { _remoteAddr=_socket.getInetAddress().getHostAddress();
+    { _remoteAddr=_remoteInetAddress.getHostAddress();
     }
     return _remoteAddr;
 	}
@@ -512,7 +517,7 @@ public class HttpServerRequest
   public byte[] getRawRemoteAddress()
 	{ 
     if (_rawRemoteAddr==null)
-    { _rawRemoteAddr=_socket.getInetAddress().getAddress();
+    { _rawRemoteAddr=_remoteInetAddress.getAddress();
     }
     return _rawRemoteAddr;
 	}
@@ -520,10 +525,12 @@ public class HttpServerRequest
 	public String getRemoteHost()
 	{ 
     if (_remoteHost==null)
-    { _remoteHost=_socket.getInetAddress().getHostName();
+    { _remoteHost=_remoteInetAddress.getHostName();
     }
     return _remoteHost;
 	}
+	
+	
 	
 	public String getScheme()
 	{ return _scheme;
@@ -603,11 +610,13 @@ public class HttpServerRequest
 
 
   /**
-   * Read the headers, called after the request is started
+   * <p>Read the headers, called after the request is started, from the
+   *   ConnectionHandler
+   * </p>
    * 
    * @throws IOException
    */
- 	public void readHeaders()
+ 	void readHeaders()
  		throws IOException
  	{
  	  
@@ -638,6 +647,38 @@ public class HttpServerRequest
     { _apiInputStream=_inputStream;
     }
     
+    determineRemoteAddress();
+ 	}
+
+ 	/**
+ 	 * <p>Determine the remote IP address if there is server-side proxying
+ 	 *   involved
+ 	 * </p>
+ 	 * @throws IOException
+ 	 */
+ 	private void determineRemoteAddress()
+ 	  throws IOException
+ 	{
+    if (_httpServer.isProxy(_socket.getInetAddress().getAddress()))
+    { 
+      String headerName=_httpServer.getRemoteAddressHeaderName();
+      if (headerName!=null)
+      {
+        String headerVal=getHeader(headerName);
+        if (headerVal!=null)
+        { 
+          if (_httpServer.getDebugService())
+          { log.log(Level.DEBUG,"Proxied remote address header is "+headerVal);
+          }
+          // Reset our remote address to the one the proxy supplied
+          this._remoteInetAddress
+            =InetAddress.getByAddress(Subnet.parse(headerVal));
+          this._remoteAddr=null;
+          this._rawRemoteAddr=null;
+          this._remoteHost=null;
+        }
+      }
+    }
  	}
  	
  	private void parseRequest()
