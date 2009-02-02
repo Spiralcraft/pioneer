@@ -1,5 +1,5 @@
 //
-// Copyright (c) 1998,2008 Michael Toth
+// Copyright (c) 1998,2009 Michael Toth
 // Spiralcraft Inc., All Rights Reserved
 //
 // This package is part of the Spiralcraft project and is licensed under
@@ -17,6 +17,7 @@ package spiralcraft.pioneer.httpd;
 
 import spiralcraft.io.RotatingFileOutputAgent;
 import spiralcraft.log.Level;
+import spiralcraft.net.ip.AddressSet;
 
 import java.io.IOException;
 
@@ -30,8 +31,9 @@ public class RotatingFileAccessLog
   implements AccessLog
 {
 
-  private AccessLogFormat _format=new ECLFAccessLogFormat();
- 
+  private AccessLogFormat format=new ECLFAccessLogFormat();
+  private AddressSet filterAddresses;
+  
   { 
     setFilePrefix("access");
     setFileSuffix("log");
@@ -41,7 +43,7 @@ public class RotatingFileAccessLog
   
 
   public void setFormat(AccessLogFormat format)
-  { _format=format;
+  { this.format=format;
   }
 
   public final void log
@@ -49,11 +51,23 @@ public class RotatingFileAccessLog
     ,final HttpServerResponse response
     )
   { 
+    if (filterAddresses!=null 
+        && filterAddresses.contains(request.getRawRemoteAddress())
+       )
+    { return;
+    }
+    
     try
-    { write(StringUtil.asciiBytes(_format.format(request,response)+"\r\n"));
+    { write(StringUtil.asciiBytes(format.format(request,response)+"\r\n"));
     }
     catch (IOException x)
     { log.log(Level.SEVERE,"Error writing httpd access log",x);
     }
   }  
+  
+  public void setFilterAddresses(AddressSet addresses)
+  { 
+    log.info("Access log filter installed: "+addresses);
+    this.filterAddresses=addresses;
+  }
 }
