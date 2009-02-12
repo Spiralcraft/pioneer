@@ -492,7 +492,9 @@ public class HttpServer
           }
         }
         catch (IOException x)
-        { }
+        { 
+          _log.log(Level.INFO,"Normal socket close threw Exception",x);
+        }
         
         
         if (debugProtocol)
