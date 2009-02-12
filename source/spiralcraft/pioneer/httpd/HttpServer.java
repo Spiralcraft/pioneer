@@ -484,6 +484,16 @@ public class HttpServer
         catch (Exception x)
         { }
 
+        try
+        {
+          if (!socket.isClosed())
+          { socket.close();
+          }
+        }
+        catch (IOException x)
+        { }
+        
+        
         if (debugProtocol)
         { _log.log(Level.DEBUG,"Finished HTTP connection from "+socket.getInetAddress().getHostAddress());
         }
