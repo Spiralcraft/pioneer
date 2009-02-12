@@ -486,6 +486,7 @@ public class HttpServer
 
         try
         {
+          // 2009-02-11 mike: Fix FD leak
           if (!socket.isClosed())
           { socket.close();
           }
