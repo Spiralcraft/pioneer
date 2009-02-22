@@ -19,7 +19,6 @@ import java.net.ServerSocket;
 import java.net.InetAddress;
 
 import java.io.IOException;
-import java.io.FileInputStream;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLContext;
@@ -82,7 +81,12 @@ public class SecureServerSocketFactory
       { ks.load(_keystoreResource.getInputStream(), passphrase);
       }
       else
-      { ks.load(new FileInputStream("testkeys"), passphrase);
+      { 
+        ks.load
+          (SecureServerSocketFactory.class
+            .getResourceAsStream("testkeys")
+          , passphrase
+          );
       }
       
       if (   (_keyAlias!=null) 
