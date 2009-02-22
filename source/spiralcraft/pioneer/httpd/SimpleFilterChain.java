@@ -71,7 +71,6 @@ public class SimpleFilterChain
   }
   
   public Filter getFilter()
-    throws ServletException
   { return _filter;
   }
 
