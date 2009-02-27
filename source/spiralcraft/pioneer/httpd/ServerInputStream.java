@@ -12,9 +12,7 @@
 // Unless otherwise agreed to in writing, this software is distributed on an
 // "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
 //
-/**
- * Implementation of the abstract ServerInputStream
- */
+
 package spiralcraft.pioneer.httpd;
 
 import java.io.InputStream;
@@ -27,6 +25,9 @@ import spiralcraft.io.NullOutputStream;
 
 import javax.servlet.ServletInputStream;
 
+/**
+ * Implementation of the abstract ServerInputStream
+ */
 public final class ServerInputStream
 	extends ServletInputStream
 {

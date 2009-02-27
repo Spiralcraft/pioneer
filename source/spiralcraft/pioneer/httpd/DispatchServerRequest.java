@@ -1,5 +1,5 @@
 //
-// Copyright (c) 1998,2008 Michael Toth
+// Copyright (c) 1998,2009 Michael Toth
 // Spiralcraft Inc., All Rights Reserved
 //
 // This package is part of the Spiralcraft project and is licensed under
@@ -15,7 +15,6 @@
 package spiralcraft.pioneer.httpd;
 
 import spiralcraft.util.IteratorEnumeration;
-
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -56,7 +55,7 @@ public class DispatchServerRequest
     this.containingRequest=containingRequest;
     setHttpServer(server);
     start();
-    setURI(uri);
+    updateURI(uri);
     
     boolean original=true; 
     if (containingRequest.getAttribute("javax.servlet.include.request_uri")
