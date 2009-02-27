@@ -43,6 +43,12 @@
       preserveLastModified="true"
     />
 
+    <copy 
+      file="../httpd/lib/spiralcraft-httpd.jar"
+      todir="lib"
+      verbose="true"
+      preserveLastModified="true"
+    />
   </target>
   
 </project>

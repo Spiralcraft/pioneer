@@ -1,5 +1,5 @@
 //
-// Copyright (c) 1998,2007 Michael Toth
+// Copyright (c) 1998,2009 Michael Toth
 // Spiralcraft Inc., All Rights Reserved
 //
 // This package is part of the Spiralcraft project and is licensed under
@@ -84,7 +84,6 @@ public abstract class AbstractHttpServletRequest
 	}
 
 	protected HttpServiceContext _context;
-  protected String _alias;
 	protected String _pathInfo;
 	protected String _pathTranslated;
 	protected String _queryString;
@@ -92,6 +91,7 @@ public abstract class AbstractHttpServletRequest
   protected VariableManager _query;
   protected VariableManager _post;
 	protected String _servletPath;
+	protected String _contextPath;
   protected final HashMap<String,Object> _attributes
     =new HashMap<String,Object>();
   protected long _startTime;	
@@ -114,7 +114,6 @@ public abstract class AbstractHttpServletRequest
   public void start()
   { 
     _context=null;
-    _alias=null;
     _pathInfo=null;
     _pathTranslated=null;
     _queryString=null;
@@ -122,6 +121,7 @@ public abstract class AbstractHttpServletRequest
     _query=null;
     _post=null;
     _servletPath="";
+    _contextPath="";
 	  _attributes.clear();
     _startTime=Clock.instance().approxTimeMillis();
 
@@ -139,23 +139,16 @@ public abstract class AbstractHttpServletRequest
 
   public RequestDispatcher getRequestDispatcher(String uri)
   { 
-    URI absoluteURI=URI.create(getRequestURI());
+    URI absoluteURI=URI.create(getContextPath()+getServletPath());
     return _context.getRequestDispatcher(absoluteURI.resolve(uri).toString());
   }
 
   public String getContextPath()
   { 
-    String ret=null;
-    if (_context.getAlias()!=null)
-    { ret="/"+_context.getAlias();
+    if (_httpServer.getDebugAPI())
+    { log.fine(_contextPath);
     }
-    else
-    { ret="";
-    }
-    if (_httpServer.getDebugService())
-    { log.fine(ret);
-    }
-    return ret;
+    return _contextPath;
   }
 
 	public String getPathTranslated()
@@ -172,7 +165,7 @@ public abstract class AbstractHttpServletRequest
 	public String getPathInfo()
 	{ 
 	  
-    if (_httpServer.getDebugService())
+    if (_httpServer.getDebugAPI())
     { log.fine(_pathInfo);
     }
 	  return _pathInfo;
@@ -199,9 +192,15 @@ public abstract class AbstractHttpServletRequest
 	{ return _context.getRealPath(alias);
 	}
   
+	/**
+	 * <p>The Servlet path relative to this context, starting with a "/", or
+	 *   "" if the Servlet is the default servlet for the root context (ie.
+	 *   mapped to "/**")
+	 * </p>
+	 */
 	public String getServletPath()
 	{ 
-    if (_httpServer.getDebugService())
+    if (_httpServer.getDebugAPI())
     { log.fine(_servletPath);
     }
 	  
@@ -211,7 +210,7 @@ public abstract class AbstractHttpServletRequest
 	public String getRequestURI()
 	{ 
 	  
-    if (_httpServer.getDebugService())
+    if (_httpServer.getDebugAPI())
     { log.fine(_requestURI);
     }
 	  return _requestURI;
@@ -220,7 +219,7 @@ public abstract class AbstractHttpServletRequest
   /**
    * Reset the URI 
    */
-  public void setURI(String uri)
+  public void updateURI(String uri)
   { 
     _requestURI=uri;
     _pathTranslated=null;
@@ -237,18 +236,29 @@ public abstract class AbstractHttpServletRequest
    *   properties such as pathTranslated() and
    *   pathInfo() can be determined.
    */
-  public void setServletPath(String servletPath)
+  public void updateServletPath(String servletPath)
   { 
     _servletPath=servletPath;
     calcPathInfo();
   }
-  
-  public void setAlias(String alias)
-  { _alias=alias;
-  }
 
-  public String getAlias()
-  { return _alias;
+  /**
+   * <p>The portion of the request URI that indicates the context of the
+   * request. The context path always comes first in a request URI. 
+   * </p>
+   * 
+   * <p>The path starts with a "/" character but does not end with a "/" 
+   * character.  For servlets in the default (root) context, this method 
+   * returns "".
+   * </p>
+   * 
+   */
+  
+  public void updateContextPath(String contextPath)
+  { 
+    _contextPath=contextPath;
+    calcPathInfo();
+  
   }
 
   
@@ -398,7 +408,9 @@ public abstract class AbstractHttpServletRequest
   }
   
 	protected void calcPathInfo()
-	{ _pathInfo=_requestURI.substring(_servletPath.length());
+	{ 
+	  _pathInfo=_requestURI.substring
+	    (_contextPath.length()+_servletPath.length());
 	}
 
   protected synchronized void ensureParameters()
@@ -419,7 +431,8 @@ public abstract class AbstractHttpServletRequest
     if (_post==null)
     {
       if (getContentType()!=null
-          && getContentType().equalsIgnoreCase("application/x-www-form-urlencoded")
+          && getContentType()
+            .equalsIgnoreCase("application/x-www-form-urlencoded")
          )
       { 
         try

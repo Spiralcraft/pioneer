@@ -1,5 +1,5 @@
 //
-// Copyright (c) 1998,2008 Michael Toth
+// Copyright (c) 1998,2009 Michael Toth
 // Spiralcraft Inc., All Rights Reserved
 //
 // This package is part of the Spiralcraft project and is licensed under
@@ -17,6 +17,7 @@ package spiralcraft.pioneer.httpd;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import java.io.IOException;
 
@@ -37,27 +38,27 @@ import spiralcraft.pioneer.io.Filename;
 public class MultiAliasHttpServiceContext
   extends SimpleHttpServiceContext
 {
- 
+
+  private HashMap<String,HttpServiceContext> _aliasMap
+    =new HashMap<String,HttpServiceContext>();
+  
+  private LinkedList<HttpServiceContext> _subcontextList
+    =new LinkedList<HttpServiceContext>();  
 
   @Override
-  public void service(AbstractHttpServletRequest request,HttpServletResponse response)
+  public void service
+    (AbstractHttpServletRequest request
+    ,HttpServletResponse response
+    )
     throws IOException
           ,ServletException
   { 
-    String alias;
-    if (getAlias()!=null)
-    { 
-      String relativeURI=new Filename(request.getRequestURI())
-              .subtract(new Filename("/"+getAlias()));
-
-      if (debug)
-      { log.log(Level.DEBUG,"RelativeURI="+relativeURI);
-      }
-      alias=new Filename(relativeURI).getFirstName();
+    if (getContextPath().length()>0)
+    { request.updateContextPath(getContextPath());
     }
-    else
-    { alias=new Filename(request.getRequestURI()).getFirstName();
-    }
+    
+    String alias=new Filename(request.getPathInfo()).getFirstName();
+    
     if (alias!=null)
     {
       if (debug)
@@ -69,18 +70,12 @@ public class MultiAliasHttpServiceContext
         if (debug)
         { log.log(Level.DEBUG,"Delegating to subcontext for alias "+alias);
         }
-        if (getAlias()!=null)
-        { request.setAlias(getAlias()+"/"+alias);
-        }
-        else
-        { request.setAlias(alias);
-        }
         subContext.service(request,response);
       }
       else
       { 
         if (debug)
-        { log.log(Level.DEBUG,"Nothing aliased to "+alias);
+        { log.log(Level.DEBUG,"Nothing aliased to '"+alias+"'");
         }
         super.service(request,response);
       }
@@ -98,7 +93,20 @@ public class MultiAliasHttpServiceContext
     if (_aliasMap!=null)
     { resolveAliasMap();
     }
+    for (HttpServiceContext context : _subcontextList)
+    { context.start();
+    }
     super.start();
+  }
+
+  @Override
+  public void stop()
+    throws LifecycleException
+  {
+    super.stop();
+    for (HttpServiceContext context : _subcontextList)
+    { context.stop();
+    }
   }
 
   public void setAliasMap(HashMap<String,HttpServiceContext> aliasMap)
@@ -113,20 +121,14 @@ public class MultiAliasHttpServiceContext
       String key= it.next();
       HttpServiceContext context=_aliasMap.get(key);
       context.setParentContext(this);
-      if (getAlias()!=null)
-      { context.setAlias(new Filename(getAlias(),key).toString());
-      }
-      else
-      { context.setAlias(key);
-      }
+      context.setContextPath(getContextPath()+"/"+key);
+      _subcontextList.add(context);
     }
     if (debug)
     { log.log(Level.DEBUG,"aliasMap="+_aliasMap.keySet());
     }
   }
 
-  private HashMap<String,HttpServiceContext> _aliasMap
-    =new HashMap<String,HttpServiceContext>();
 }
 
 

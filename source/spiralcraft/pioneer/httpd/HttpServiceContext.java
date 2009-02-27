@@ -55,6 +55,13 @@ public interface HttpServiceContext
    */
   void setServer(HttpServer server);
   
+  /** 
+   * The ContextPath associated with this context
+   * 
+   * @param contextPath
+   */
+  void setContextPath(String contextPath);
+  
   /**
    * Return the Session Manager associated with
    *   this Service Context
@@ -83,22 +90,9 @@ public interface HttpServiceContext
   String getName();
 
   /**
-   * Return the part of the request path handled by the
-   *   the HttpServiceContext.
-   */
-  String getAlias();
-
-  /**
    * The server port
    */ 
   int getPort();
-  
-  /**
-   * The alias that applies to all URIs handled
-   *   by this ServiceContext. Taken into consideration
-   *   by getRealPath()
-   */
-  void setAlias(String alias);
 
   /**
    * Get the FilterChain with the specified name. Used

@@ -112,7 +112,7 @@ public class SimpleHttpServiceContext
   private HttpSessionManager _sessionManager;
   private String _hostName;
   private int _port;
-  private String _alias;
+  private String _contextPath="";
   private String _defaultServletName=null; // Serves the specified URI (servletPath)
   private String _rootServletName=null; // Serves the whole context (gets pathInfo)
   private HttpServiceContext _parentContext=null;
@@ -241,7 +241,10 @@ public class SimpleHttpServiceContext
 			_requestsPending++;
 			_requestsHandled++;
       request.setServiceContext(this);
-      request.setServletPath("");
+      
+      // We must to this here to compute other path fields
+      request.updateContextPath(getContextPath());
+      
       
       if (request instanceof HttpServerRequest)
       {
@@ -417,6 +420,10 @@ public class SimpleHttpServiceContext
     }
   }
 
+  public void setContextPath(String contextPath)
+  { _contextPath=contextPath;
+  }
+  
   /**
    * Return a list of attribute names
    */
@@ -596,16 +603,10 @@ public class SimpleHttpServiceContext
     { log.fine("Getting dispatcher for "+uriPath);
     }
     
-    if (_alias!=null)
-    { return _parentContext.getRequestDispatcher(uriPath);
-    }
-    else
-    {
-      return new ServerRequestDispatcher
-        (this
-        ,uriPath
-        );
-    }
+    return new ServerRequestDispatcher
+      (this
+      ,_contextPath+uriPath
+      );
   }
   
   /**
@@ -801,7 +802,8 @@ public class SimpleHttpServiceContext
 
 	/**
 	 * Return the physical path that corresponds to
-	 *   a server path.
+	 *   a server path. The specified path parameter is always interpreted as
+	 *   relative to this context
 	 */
 	public String getRealPath(String rawUri)
   { 
@@ -814,21 +816,7 @@ public class SimpleHttpServiceContext
     if (uri.length()>0 && uri.charAt(0)=='/')
     { uri=uri.substring(1);
     }
-    if (_alias!=null)
-    {
-      if (!uri.startsWith(_alias))
-      {
-        log.log(Level.DEBUG,uri+" does not start with "+_alias);
-        return null;
-      }
-      else
-      { 
-        uri=new Filename(uri).subtract(new Filename(_alias));
-        if (uri==null)
-        { uri="";
-        }
-      }
-    }
+
 
     if (isPathBounded(uri))
     { 
@@ -841,7 +829,9 @@ public class SimpleHttpServiceContext
       if (relFile.isDirectory() && !realPath.endsWith("/"))
       { realPath=realPath+"/";
       }
-//      log.fine("Real path for "+rawUri+" is "+realPath);
+      if (_server.getDebugAPI())
+      { log.fine(realPath);
+      }
       return realPath;
     }
     else
@@ -1042,98 +1032,73 @@ public class SimpleHttpServiceContext
     (AbstractHttpServletRequest request)
     throws ServletException
   { 
-    FilterChain filterChain=null;
-    // String queryString=request.getQueryString();
-    String originalUri=request.getRequestURI();
-
-
+    // At this point, request.getPathInfo() will contain everything after the
+    //  context path.
+    //
     // Determine whether a Servlet is mapped to the part of the 
-    //   request path immediately after the context alias, if any.
+    //   request path immediately after the context path, if any.
     //
     // All requests paths 'contained' within this path will be handled
     //   by the Servlet.
     //
     String servletAlias=null;
     String servletPath=null;
-    String rootServletPath=null;
-    if (request.getAlias()!=null)
+    
+    servletAlias
+      =new Filename(request.getPathInfo()).getFirstName();
+    
+    if (servletAlias!=null)
     {
-      // +1 is for first  "/", which is removed for the alias
-      servletAlias
-        =new Filename
-          (request.getPathInfo().substring(request.getAlias().length()+1))
-          .getFirstName();
-      if (servletAlias!=null)
+      if (request.getPathInfo().length()>servletAlias.length())
       {
+        // There is a path following the servlet name
         servletPath
           =request.getPathInfo().substring
-            (0,request.getAlias().length()+1+servletAlias.length()+1
-            );
-        rootServletPath
-          =request.getPathInfo().substring
-            (0,request.getAlias().length()+1
-            );
+            (0,servletAlias.length()+1);
+      }
+      else
+      { 
+        // The servlet path is simply the path info
+        servletPath=request.getPathInfo();
       }
     }
-    else
-    { 
-      servletAlias
-        =new Filename(request.getPathInfo()).getFirstName();
-      if (servletAlias!=null)
-      {
-        if (request.getPathInfo().length()>servletAlias.length())
-        {
-          // There is some sort of path following the servlet path
-          servletPath
-            =request.getPathInfo().substring
-              (0,servletAlias.length()+1);
-        }
-        else
-        { 
-          servletPath=request.getPathInfo();
-          rootServletPath="/";
-        }
-      }
-    }
+      
     if (debug)
     { log.log(Level.DEBUG,"Checking servlet map for '"+servletAlias+"'");
     }
     String servletName=getServletNameForAlias(servletAlias);
     if (servletName==null)
     { 
-      servletPath=rootServletPath;
+      // No servlet mapping for the path component
+      servletPath="";
       servletName=_rootServletName;
     }
     
     if (servletName!=null)
-    {
+    { 
       if (debug)
       { log.log(Level.DEBUG,"Mapped to servlet named '"+servletName+"'");
       }
-      filterChain=getServletFilterChain(servletName);
-      if (filterChain==null)
-      { throw new ServletException("Servlet '"+servletName+"' not found.");
-      }
-      request.setServletPath(servletPath);
-      
-      if (debug)
-      { 
-        log.log(Level.DEBUG,"servletPath="+request.getServletPath()
-                  +" pathInfo="+request.getPathInfo()
-                  );
-      }
-      return filterChain;
+      return bindRequestToServletChain(request,servletName,servletPath);
     }
 
     
     // No explicit servlet mapping, so resolve using file system and
-    //   default servlet. This sets the servlet path to the whole URI,
+    //   default servlet. This sets the servlet path to the pathInfo
+    //   (whatever follows the context path),
     //   as a default whether or not we find a preset servlet.
-    request.setServletPath(request.getRequestURI());
 
-    String realPath=getRealPath(request.getRequestURI());
+    String realPath=getRealPath(request.getPathInfo());
     
-    if (realPath!=null && isDirectory(realPath))
+    if (realPath==null)
+    { 
+      log.info("Could not map "+request.getPathInfo()+" to a real path");
+      return null;
+    }
+    
+    // Try to complete a directory reference by locating a welcome file
+    //   in the file system
+    if (isDirectory(realPath))
     { 
             
       String uri=null;
@@ -1141,7 +1106,7 @@ public class SimpleHttpServiceContext
       { 
         for (String filename : _welcomeFileList)
         { 
-          uri=checkFilesystemCompletion(request.getServletPath(),filename);
+          uri=checkFilesystemCompletion(request.getPathInfo(),filename);
           if (uri!=null)
           { break;
           }
@@ -1154,71 +1119,94 @@ public class SimpleHttpServiceContext
         if (_defaultUriCompletion!=null)
         { 
           uri=checkFilesystemCompletion
-            (request.getServletPath(),_defaultUriCompletion);
+            (request.getPathInfo(),_defaultUriCompletion);
         }
         if (uri==null)
-        { uri=checkFilesystemCompletion(request.getServletPath(),"index.html");
+        { uri=checkFilesystemCompletion(request.getPathInfo(),"index.html");
         }
         if (uri==null)
-        { uri=checkFilesystemCompletion(request.getServletPath(),"index.htm");
+        { uri=checkFilesystemCompletion(request.getPathInfo(),"index.htm");
         }
       }
       
       if (uri!=null)
       { 
         // Use determined uri completion.
-        request.setURI(uri.toString());
-        request.setServletPath(uri.toString());
+        request.updateURI(request.getContextPath()+uri.toString());
+        request.updateContextPath(getContextPath());
+        realPath=getRealPath(request.getPathInfo());
       }
-      else
-      { 
-        // No default completion exists
-        request.setURI(originalUri);
-      }
+
       
     }
-    else
-    { request.setURI(originalUri);
-    }
-    
-    realPath=getRealPath(request.getRequestURI());
 
     if (debug)
     { log.log(Level.DEBUG,"Locating interpreter for real path "+realPath);
     }
     
-    if (realPath!=null)
+    String fileType=getFileType(realPath);
+    if (fileType==null)
     {
-      String fileType=getFileType(realPath);
-      if (fileType==null)
-      {
-        if (!originalUri.endsWith("/") && isDirectory(realPath))
-        { 
-          // Force a redirect to directory
-          return _directoryRedirectFilterChain;
-        }
-      }
-      servletName=getServletNameForRequestType(fileType);
-      if (servletName!=null)
+      if (!request.getRequestURI().endsWith("/") && isDirectory(realPath))
       { 
-        filterChain=getServletFilterChain(servletName);
-        
-        if (filterChain==null)
-        { throw new ServletException("Servlet '"+servletName+"' not found.");
-        }
-
-        if (debug)
-        { log.log(Level.DEBUG,"Using servlet '"+servletName+"' for servletPath "
-                    +request.getServletPath()+", file "+getRealPath(request.getServletPath())
-                    );
-        }
-        
-       
+        // Force a redirect to directory
+        return _directoryRedirectFilterChain;
       }
+    }
+    
+    servletName=getServletNameForRequestType(fileType);
+    if (servletName!=null)
+    { 
+      FilterChain filterChain=getServletFilterChain(servletName);
+      
+      if (filterChain==null)
+      { throw new ServletException("Servlet '"+servletName+"' not found.");
+      }
+
+      request.updateServletPath(request.getPathInfo());
+      if (debug)
+      { log.log(Level.DEBUG,"Using servlet '"+servletName+"' for servletPath "
+                  +request.getServletPath()+", file "+getRealPath(request.getServletPath())
+                  );
+      }
+        
+      return filterChain;
+       
+    }
+    else
+    { 
+      if (debug)
+      { log.log(Level.DEBUG,"Unable to map servlet to suffix '"+fileType+"'");
+      }
+      return null;
+    }
+    
+  }
+
+  private FilterChain bindRequestToServletChain
+    (AbstractHttpServletRequest request
+    ,String servletName
+    ,String servletPath
+    )
+    throws ServletException
+  {
+
+    FilterChain filterChain=getServletFilterChain(servletName);
+    if (filterChain==null)
+    { throw new ServletException("Servlet '"+servletName+"' not found.");
+    }
+    request.updateServletPath(servletPath);
+    
+    if (debug)
+    { 
+      log.log(Level.DEBUG," contextPath="+request.getContextPath()
+                +" servletPath="+request.getServletPath()
+                +" pathInfo="+request.getPathInfo()
+                );
     }
     return filterChain;
   }
-
+  
   private String checkFilesystemCompletion(String servletPath,String completion)
   {
     StringBuilder urib=new StringBuilder(64);
@@ -1361,6 +1349,9 @@ public class SimpleHttpServiceContext
     return servletName;
   }
 
+  /**
+   * Maps the specified file extension to a servlet name.
+   */
   public String getServletNameForRequestType(String type)
   { 
     
@@ -1546,30 +1537,10 @@ public class SimpleHttpServiceContext
   { _authenticateAllMethods=authenticateAll;
   }
   
-  /**
-   * Specify the alias that applies to this ServiceContext.
-   * The alias will be stripped from the beginning of the URI
-   *   when resolving URIs to paths. URIs that do not begin with
-   *   the alias will not be translated into a real path.
-   */
-  public void setAlias(String alias)
-  { _alias=alias;
-  }
+
 
   public String getContextPath()
-  { 
-    if (debug)
-    { log.fine("/"+_alias!=null?_alias:"");
-    }
-    return "/"+_alias!=null?_alias:"";
-  }
-  
-  /**
-   * Obtain the alias (URL prefix) that applies to
-   *   this service context.
-   */
-  public String getAlias()
-  { return _alias;
+  { return _contextPath;
   }
 
   /**
@@ -1918,11 +1889,19 @@ public class SimpleHttpServiceContext
         _attributes=new Hashtable<String,Object>();
       }
     }
-    if (_alias==null)
-    { log.log(Level.INFO,"Serving path '"+_docRoot.getPath()+"' for alias '/'");
+    if (_contextPath.length()==0)
+    { 
+      log.log
+        (Level.INFO
+        ,"Serving path '"+_docRoot.getPath()+"' for root context"
+        );
     }
     else
-    { log.log(Level.INFO,"Serving path '"+_docRoot.getPath()+"' for alias '"+_alias+"'");
+    { 
+      log.log
+        (Level.INFO,"Serving path '"+_docRoot.getPath()+"' for context '"
+        +_contextPath+"'"
+        );
     }
     if (_prefixServletNameMap!=null 
         && debug
