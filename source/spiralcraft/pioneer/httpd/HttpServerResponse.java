@@ -110,8 +110,6 @@ public class HttpServerResponse
   public final static byte[] END_CHUNK="0\r\n\r\n".getBytes();
 
   
-  @SuppressWarnings("unused")
-  private HttpServiceContext _context;
   private HttpServer _server;
   private Socket _socket;
   private HttpServerRequest _request;
@@ -209,7 +207,6 @@ public class HttpServerResponse
     throws IOException
   {
     _socket=socket;
-    _context=null;
     _outputStream.start(_socket.getOutputStream());
     recycle();
     debugProtocol=_server.getDebugProtocol();
