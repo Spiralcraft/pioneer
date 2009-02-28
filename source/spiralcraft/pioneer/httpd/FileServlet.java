@@ -603,7 +603,12 @@ public class FileServlet
     if (uri.length()>1)
     {
       out.append("<A href=\"");
-      out.append("http://");
+      if (request.isSecure())
+      { out.append("https://");
+      }
+      else
+      { out.append("http://");
+      }
       out.append(host);
       String parent=new Filename(uri).getParent();
       if (parent!=null)
