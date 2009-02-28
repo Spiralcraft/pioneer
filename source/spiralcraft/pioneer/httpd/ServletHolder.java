@@ -222,6 +222,12 @@ public class ServletHolder
     )
     throws IOException, ServletException
   { 
+    if (_serviceContext==null)
+    { throw new IllegalStateException
+        ("ServletContext is null in ServletHolder "+_servletName
+            +" : "+_servletClass
+         );
+    }
     if (_serviceContext.isDebug())
     { 
       log.fine(((HttpServletRequest) request).getRequestURI()+" -> "

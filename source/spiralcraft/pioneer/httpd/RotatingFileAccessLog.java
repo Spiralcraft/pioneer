@@ -16,6 +16,7 @@ package spiralcraft.pioneer.httpd;
 
 
 import spiralcraft.io.RotatingFileOutputAgent;
+import spiralcraft.io.TimestampFileSequence;
 import spiralcraft.log.Level;
 import spiralcraft.net.ip.AddressSet;
 
@@ -35,8 +36,12 @@ public class RotatingFileAccessLog
   private AddressSet filterAddresses;
   
   { 
-    setFilePrefix("access");
-    setFileSuffix("log");
+    TimestampFileSequence tfs=new TimestampFileSequence();
+
+    tfs.setPrefix("access");
+    tfs.setSuffix(".log");
+    setFileSequence(tfs);
+    
     this.setMaxDelayMs(1000);
     this.setMinDelayMs(250);
   }

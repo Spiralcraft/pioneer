@@ -196,8 +196,11 @@ public class SimpleHttpServiceContext
     }
   };
   
-  private FilterChain _directoryRedirectFilterChain
+  private ServletHolder _directoryRedirectFilterChain
     =new ServletHolder(_directoryRedirectServlet);
+  {
+    _directoryRedirectFilterChain.setServiceContext(this);
+  }
   
  
   private boolean _initialized=false;
@@ -826,8 +829,8 @@ public class SimpleHttpServiceContext
                   );
       String realPath
         =relFile.getAbsolutePath();
-      if (relFile.isDirectory() && !realPath.endsWith("/"))
-      { realPath=realPath+"/";
+      if (relFile.isDirectory() && !realPath.endsWith(File.separator))
+      { realPath=realPath+File.separator;
       }
       if (_server.getDebugAPI())
       { log.fine(realPath);

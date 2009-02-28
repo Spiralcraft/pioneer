@@ -97,7 +97,7 @@ public class HttpServerRequest
   private String _host;
   private int _port;
 	private String _scheme="http";
-
+	private boolean _secure;
 	
 	private final ServerInputStream _inputStream=new ServerInputStream();
 	private ServletInputStream _apiInputStream;
@@ -156,6 +156,7 @@ public class HttpServerRequest
     
     _started=false;
     _socket=sock;
+    _secure=_socket instanceof SSLSocket;    
     _remoteInetAddress=sock.getInetAddress();
 		_inputStream.start(sock.getInputStream());
     
@@ -293,7 +294,11 @@ public class HttpServerRequest
 	}
 	
   public boolean isSecure()
-  { return _socket instanceof SSLSocket;
+  { 
+    if (debugAPI)
+    { log.fine(""+_secure);
+    }
+    return _secure;
 
   }
 
@@ -696,15 +701,12 @@ public class HttpServerRequest
       _headers.add(var);
       _requestURL=_requestURL.substring(slashPos);
     }
+    _scheme=_secure?"https":"http";
     if (tk.hasMoreTokens())
-    {
-      _protocol=tk.nextToken();
-      _scheme=_protocol.substring(0,_protocol.indexOf('/')).toLowerCase();
+    { _protocol=tk.nextToken();
     }
     else
-    { 
-      _protocol="HTTP/0.9";
-      _scheme="http";
+    { _protocol="HTTP/0.9";
     }
     int queryPos=_requestURL.indexOf("?");
     if (queryPos>0)
@@ -781,27 +783,7 @@ public class HttpServerRequest
     }
   }
 
-  public StringBuffer getRequestURL()
-  {
-    StringBuffer buf=new StringBuffer();
-    if (isSecure())
-    { buf.append("https://");
-    }
-    else
-    { buf.append("http://");
-    }
-    buf.append(getServerName());
-    if (   (!isSecure() && getServerPort()!=80)
-        || (isSecure() && getServerPort()!=443)
-       )
-    { buf.append(":").append(getServerPort());
-    }
-    buf.append(getRequestURI());
-    if (getQueryString()!=null)
-    { buf.append("?").append(getQueryString());
-    }
-    return buf;
-  }
+
 
 
 

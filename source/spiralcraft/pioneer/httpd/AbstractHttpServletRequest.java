@@ -407,6 +407,23 @@ public abstract class AbstractHttpServletRequest
     return _characterEncoding;
   }
   
+  public StringBuffer getRequestURL()
+  {
+    StringBuffer buf=new StringBuffer();
+    buf.append(getScheme()).append("://");
+    buf.append(getServerName());
+    if (   (!isSecure() && getServerPort()!=80)
+        || (isSecure() && getServerPort()!=443)
+       )
+    { buf.append(":").append(getServerPort());
+    }
+    buf.append(getRequestURI());
+    if (getQueryString()!=null)
+    { buf.append("?").append(getQueryString());
+    }
+    return buf;
+  }  
+  
 	protected void calcPathInfo()
 	{ 
 	  _pathInfo=_requestURI.substring

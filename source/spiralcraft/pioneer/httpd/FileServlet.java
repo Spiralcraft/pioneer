@@ -603,12 +603,7 @@ public class FileServlet
     if (uri.length()>1)
     {
       out.append("<A href=\"");
-      if (request.isSecure())
-      { out.append("https://");
-      }
-      else
-      { out.append("http://");
-      }
+      out.append(request.getScheme()+"://");
       out.append(host);
       String parent=new Filename(uri).getParent();
       if (parent!=null)
@@ -653,7 +648,7 @@ public class FileServlet
 
           out.append("<TD><TT>");
           out.append("<A href=\"");
-          out.append("http://");
+          out.append(request.getScheme()+"://");
           out.append(host);
           out.append(uri);
           out.append(dirs[i]);
@@ -695,7 +690,7 @@ public class FileServlet
 
           out.append("<TD><TT>");
           out.append("<A href=\"");
-          out.append("http://");
+          out.append(request.getScheme()+"://");
           out.append(host);
           out.append(uri);
           out.append(files[i]);

@@ -356,29 +356,6 @@ public class DispatchServerRequest
   { return containingRequest.getRemotePort();
   }
   
-  public StringBuffer getRequestURL()
-  { 
-    StringBuffer buf=new StringBuffer();
-    if (isSecure())
-    { buf.append("https://");
-    }
-    else
-    { buf.append("http://");
-    }
-    buf.append(getServerName());
-    if (   (!isSecure() && getServerPort()!=80)
-        || (isSecure() && getServerPort()!=443)
-       )
-    { buf.append(":").append(getServerPort());
-    }
-    buf.append(getRequestURI());
-    if (getQueryString()!=null)
-    { buf.append("?").append(getQueryString());
-    }
-    return buf;
-  }
-
-
 
   public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
   { containingRequest.setCharacterEncoding(arg0);    

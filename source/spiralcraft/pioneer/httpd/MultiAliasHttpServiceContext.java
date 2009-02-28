@@ -29,7 +29,6 @@ import spiralcraft.common.LifecycleException;
 import spiralcraft.log.Level;
 
 import spiralcraft.pioneer.io.Filename;
-
 /**
  * Service context that delegates the request
  *   to an appropriate subcontext based on a specific 
@@ -53,32 +52,41 @@ public class MultiAliasHttpServiceContext
     throws IOException
           ,ServletException
   { 
-    if (getContextPath().length()>0)
-    { request.updateContextPath(getContextPath());
-    }
+    boolean debugService=debug || request.getHttpServer().getDebugService();
+    
+    // Force pathInfo computation
+    request.updateContextPath(getContextPath());
     
     // At this point, request.getServletPath() should be empty and
     //   request.getPathInfo() should contain everything after the
     //   context path
     
-    String alias=new Filename(request.getPathInfo()).getFirstName();
+    String alias=null;
+    if (request.getPathInfo()!=null)
+    { 
+      if (debugService)
+      { log.log(Level.DEBUG,"request.getPathInfo() = "+request.getPathInfo());
+      }
+      alias=new Filename(request.getPathInfo()).getFirstName();
+    }
+    
     
     if (alias!=null)
     {
-      if (debug)
+      if (debugService)
       { log.log(Level.DEBUG,"Checking alias map for '"+alias+"'");
       }
       HttpServiceContext subContext=_aliasMap.get(alias);
       if (subContext!=null)
       {
-        if (debug)
+        if (debugService)
         { log.log(Level.DEBUG,"Delegating to subcontext for alias "+alias);
         }
         subContext.service(request,response);
       }
       else
       { 
-        if (debug)
+        if (debugService)
         { log.log(Level.DEBUG,"Nothing aliased to '"+alias+"'");
         }
         super.service(request,response);
@@ -113,8 +121,13 @@ public class MultiAliasHttpServiceContext
     }
   }
 
-  public void setAliasMap(HashMap<String,HttpServiceContext> aliasMap)
-  { _aliasMap=aliasMap;
+  public void setPathMappings(PathMapping[] pathMappings)
+  {
+    _aliasMap=new HashMap<String,HttpServiceContext>();
+    for (PathMapping mapping: pathMappings)
+    { _aliasMap.put(mapping.getName(),mapping.getContext());
+    }
+    
   }
 
   protected void resolveAliasMap()
