@@ -57,6 +57,10 @@ public class MultiAliasHttpServiceContext
     { request.updateContextPath(getContextPath());
     }
     
+    // At this point, request.getServletPath() should be empty and
+    //   request.getPathInfo() should contain everything after the
+    //   context path
+    
     String alias=new Filename(request.getPathInfo()).getFirstName();
     
     if (alias!=null)
