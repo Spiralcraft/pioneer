@@ -15,6 +15,7 @@
 package spiralcraft.pioneer.httpd;
 
 
+import spiralcraft.io.FileSequence;
 import spiralcraft.io.RotatingFileOutputAgent;
 import spiralcraft.io.TimestampFileSequence;
 import spiralcraft.log.Level;
@@ -34,19 +35,22 @@ public class RotatingFileAccessLog
 
   private AccessLogFormat format=new ECLFAccessLogFormat();
   private AddressSet filterAddresses;
+  private FileSequence fileSequence=new TimestampFileSequence();
   
   { 
-    TimestampFileSequence tfs=new TimestampFileSequence();
-
-    tfs.setPrefix("access");
-    tfs.setSuffix(".log");
-    setFileSequence(tfs);
+    fileSequence.setPrefix("access");
+    fileSequence.setSuffix(".log");
+    setFileSequence(fileSequence);
     
     this.setMaxDelayMs(1000);
     this.setMinDelayMs(250);
   }
   
 
+  public FileSequence getFileSequence()
+  { return fileSequence;
+  }
+  
   public void setFormat(AccessLogFormat format)
   { this.format=format;
   }
