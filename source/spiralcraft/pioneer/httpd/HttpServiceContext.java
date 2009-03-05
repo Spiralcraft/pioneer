@@ -48,6 +48,10 @@ public interface HttpServiceContext
    */
   HttpServer getServer();
   
+  void setVirtualHostName(String hostName);
+  
+  HttpServiceContext getParentContext();
+  
   /**
    * The server that contains this context
    * 

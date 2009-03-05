@@ -51,6 +51,7 @@ public class ServletHolder
   private int _loadOnStartup=-1;
   private String _servletName;
   private URI dataURI;
+  private boolean _loaded;
 
   /**
    * Create a new Bean configured ServletHolder
@@ -70,17 +71,26 @@ public class ServletHolder
   { _servlet=servlet;
   }
   
+  /**
+   * Provide a Servlet instance directly.
+   * 
+   * @param servlet
+   */
+  public void setServletInstance(Servlet servlet)
+  { _servlet=servlet;
+  }
   
   public Servlet getServlet()
     throws ServletException
   {
-    if (_servlet==null)
+    if (!_loaded)
     { 
-      if (_servletClass!=null || dataURI!=null)
+      if (_servletClass!=null || dataURI!=null || _servlet!=null)
       { load();
       }
       else
-      { throw new ServletException("No servlet class or XML object URI specified");
+      { throw new ServletException
+          ("No Servlet class, XML object URI, or Servlet instance specified");
       }
     }
 
@@ -164,6 +174,10 @@ public class ServletHolder
 
   private synchronized void load()
   {
+    if (_loaded)
+    { return;
+    }
+    
     if (_servlet!=null)
     { return;
     }
@@ -189,7 +203,7 @@ public class ServletHolder
         { throw new ServletException("Servlet data resource not found "+dataURI);
         }
       }
-      else
+      else if (_servletClass!=null)
       { 
         servlet
           =(Servlet) Class.forName
@@ -197,6 +211,11 @@ public class ServletHolder
             ,true
             ,Thread.currentThread().getContextClassLoader()
             ).newInstance();
+      }
+      else
+      { 
+        // Use provided instance
+        servlet=_servlet;
       }
       if (_serviceContext.isDebug())
       { log.fine("Initializing servlet "+_servletName+" with "+_initParams);
@@ -214,6 +233,7 @@ public class ServletHolder
       log.log(Level.WARNING,"Error initializing servlet "+_servletName,x);
       _servletException=new ServletException(x.toString(),x);
     }
+    _loaded=true;
   }
 
   public void doFilter

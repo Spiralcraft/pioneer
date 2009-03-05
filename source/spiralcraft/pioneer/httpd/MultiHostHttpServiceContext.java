@@ -93,6 +93,9 @@ public class MultiHostHttpServiceContext
   public void start()
     throws LifecycleException
   { 
+    if (getParentContext()!=null)
+    { setServer(getParentContext().getServer());
+    }
     for (HttpServiceContext context : _hostList)
     { context.start();
     }
@@ -115,11 +118,17 @@ public class MultiHostHttpServiceContext
   {
     for (HostMapping mapping: hostMappings)
     { 
+      String primaryHostName=null;
       for (String hostName : mapping.getHostNames())
-      { _hostMap.put(new CaseInsensitiveString(hostName),mapping.getContext());
+      { 
+        if (primaryHostName==null)
+        { primaryHostName=hostName;
+        }
+        _hostMap.put(new CaseInsensitiveString(hostName),mapping.getContext());
       }
       _hostList.add(mapping.getContext());
       mapping.getContext().setParentContext(this);
+      mapping.getContext().setVirtualHostName(primaryHostName);
     }
     
   }

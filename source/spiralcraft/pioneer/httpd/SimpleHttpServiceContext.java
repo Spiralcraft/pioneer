@@ -24,20 +24,20 @@ import javax.servlet.ServletContextAttributeListener;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRequestAttributeEvent;
 import javax.servlet.ServletRequestAttributeListener;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
-import javax.servlet.ServletResponse;
+//import javax.servlet.ServletRequest;
+//import javax.servlet.ServletResponse;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServlet;
+//import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpSessionAttributeListener;
 import javax.servlet.http.HttpSessionListener;
 
@@ -166,41 +166,42 @@ public class SimpleHttpServiceContext
 
   private AccessLog localAccessLog;
   protected AccessLog _accessLog=null;
-  private String _servletContextName=""+hashCode();
+  private String _servletContextName=null;
   protected boolean debug;
   private HttpServer _server;
+  protected String virtualHostName;
 
 
   
-
-  private Servlet _directoryRedirectServlet
-    =new HttpServlet()
-  {
-    private static final long serialVersionUID = 1L;
-
-    @Override
-    public void service(ServletRequest request,ServletResponse response)
-      throws IOException,ServletException
-    {
-      HttpServletRequest httpRequest=(HttpServletRequest) request;
-      HttpServletResponse httpResponse=(HttpServletResponse) response;
-      String thisUrl=httpRequest.getRequestURL().toString();
-      
-      int queryPos=thisUrl.lastIndexOf("?");
-      if (queryPos>=0)
-      { httpResponse.sendRedirect(thisUrl.substring(0,queryPos)+"/"+thisUrl.substring(queryPos));
-      }
-      else
-      { httpResponse.sendRedirect(thisUrl+"/");
-      }
-    }
-  };
-  
-  private ServletHolder _directoryRedirectFilterChain
-    =new ServletHolder(_directoryRedirectServlet);
-  {
-    _directoryRedirectFilterChain.setServiceContext(this);
-  }
+//  // 2009-02-28 mike : Moved directory redirect to the file servlet
+//  private Servlet _directoryRedirectServlet
+//    =new HttpServlet()
+//  {
+//    private static final long serialVersionUID = 1L;
+//
+//    @Override
+//    public void service(ServletRequest request,ServletResponse response)
+//      throws IOException,ServletException
+//    {
+//      HttpServletRequest httpRequest=(HttpServletRequest) request;
+//      HttpServletResponse httpResponse=(HttpServletResponse) response;
+//      String thisUrl=httpRequest.getRequestURL().toString();
+//      
+//      int queryPos=thisUrl.lastIndexOf("?");
+//      if (queryPos>=0)
+//      { httpResponse.sendRedirect(thisUrl.substring(0,queryPos)+"/"+thisUrl.substring(queryPos));
+//      }
+//      else
+//      { httpResponse.sendRedirect(thisUrl+"/");
+//      }
+//    }
+//  };
+//  
+//  private ServletHolder _directoryRedirectFilterChain
+//    =new ServletHolder(_directoryRedirectServlet);
+//  {
+//    _directoryRedirectFilterChain.setServiceContext(this);
+//  }
   
  
   private boolean _initialized=false;
@@ -702,6 +703,12 @@ public class SimpleHttpServiceContext
   }
 
 
+  public String getLogPrefix()
+  { 
+    return (virtualHostName!=null?"//"+virtualHostName:"")
+       +(getContextPath().length()>0?getContextPath():"/")
+       +(getServletContextName()!=null?" \""+getServletContextName()+"\" ":"");
+  }
 
 
   public FilterChain getServletFilterChain(String servletName)
@@ -716,9 +723,13 @@ public class SimpleHttpServiceContext
       { return holder;
       }
     }
-    if (_parentContext!=null)
-    { return _parentContext.getServletFilterChain(servletName);
-    }
+
+//    // 2009-03-03 mike
+//    // Don't delegate to parent context for this- it screws up the path
+//    // management.    
+//    if (_parentContext!=null)
+//    { return _parentContext.getServletFilterChain(servletName);
+//    }
     return null;
   }
 
@@ -1148,14 +1159,16 @@ public class SimpleHttpServiceContext
     }
     
     String fileType=getFileType(realPath);
-    if (fileType==null)
-    {
-      if (!request.getRequestURI().endsWith("/") && isDirectory(realPath))
-      { 
-        // Force a redirect to directory
-        return _directoryRedirectFilterChain;
-      }
-    }
+
+//    // 2009-02-28 mike : Moved directory redirect to the file servlet    
+//    if (fileType==null)
+//    {
+//      if (!request.getRequestURI().endsWith("/") && isDirectory(realPath))
+//      { 
+//        // Force a redirect to directory
+//        return _directoryRedirectFilterChain;
+//      }
+//    }
     
     servletName=getServletNameForRequestType(fileType);
     if (servletName!=null)
@@ -1380,7 +1393,8 @@ public class SimpleHttpServiceContext
           && _defaultServletName==null
           && _rootServletName==null
           )
-      { servletName=_parentContext.getServletNameForRequestType(type);
+      { 
+        servletName=_parentContext.getServletNameForRequestType(type);
       }
     }
     if (servletName==null)
@@ -1487,6 +1501,10 @@ public class SimpleHttpServiceContext
 
   public void setUseURLClassLoader(boolean val)
   { this.useURLClassLoader=val;
+  }
+  
+  public HttpServiceContext getParentContext()
+  { return _parentContext;
   }
   
   public void installMeter(Meter meter)
@@ -1814,6 +1832,10 @@ public class SimpleHttpServiceContext
     _requestListeners.add(listener);
   }
   
+  public void setVirtualHostName(String hostName)
+  { this.virtualHostName=hostName;
+  }
+  
   /////////////////////////////////////////////////////////////////////////
   //
   // Startup sequence
@@ -1834,7 +1856,9 @@ public class SimpleHttpServiceContext
     if (_parentContext!=null)
     { _server=_parentContext.getServer();
     }
-
+    
+    log.info
+      (getLogPrefix()+": Starting. root="+_docRoot);
 
 //    try
 //    { _baseUrl=new URL("http",_hostName,_port,"/");
@@ -1892,24 +1916,13 @@ public class SimpleHttpServiceContext
         _attributes=new Hashtable<String,Object>();
       }
     }
-    if (_contextPath.length()==0)
-    { 
-      log.log
-        (Level.INFO
-        ,"Serving path '"+_docRoot.getPath()+"' for root context"
-        );
-    }
-    else
-    { 
-      log.log
-        (Level.INFO,"Serving path '"+_docRoot.getPath()+"' for context '"
-        +_contextPath+"'"
-        );
-    }
+
     if (_prefixServletNameMap!=null 
         && debug
         )
-    { log.log(Level.DEBUG,"Servlet alias map: "+_prefixServletNameMap.toString());
+    { 
+      log.log(Level.DEBUG,getLogPrefix()+": Servlet alias map: "
+          +_prefixServletNameMap.toString());
     }
 
     loadWAR();
@@ -1953,6 +1966,7 @@ public class SimpleHttpServiceContext
       
     _startTime = Clock.instance().approxTimeMillis();
     _running=true;
+    log.info(getLogPrefix()+": Started");
   }
   
   /**

@@ -105,8 +105,13 @@ public class MultiAliasHttpServiceContext
     if (_aliasMap!=null)
     { resolveAliasMap();
     }
+    if (getParentContext()!=null)
+    { setServer(getParentContext().getServer());
+    }
     for (HttpServiceContext context : _subcontextList)
-    { context.start();
+    { 
+      context.setVirtualHostName(virtualHostName);
+      context.start();
     }
     super.start();
   }

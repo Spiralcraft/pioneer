@@ -424,10 +424,20 @@ public abstract class AbstractHttpServletRequest
     return buf;
   }  
   
+  
 	protected void calcPathInfo()
 	{ 
+	  // From servlet 2.5 getPathInfo() docs:
+	  //
+	  // The extra path information follows the servlet path but precedes the
+	  //   query string and will start with a "/" character.
+	  // This method returns null if there was no extra path information. 
+	  
 	  _pathInfo=_requestURI.substring
 	    (_contextPath.length()+_servletPath.length());
+	  if (_pathInfo.length()==0)
+	  { _pathInfo=null;
+	  }
 	}
 
   protected synchronized void ensureParameters()
