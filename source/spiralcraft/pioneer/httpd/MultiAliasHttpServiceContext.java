@@ -99,31 +99,37 @@ public class MultiAliasHttpServiceContext
 
 
   @Override
+  /**
+   * <p>Prepare the ServiceContext for request handling.
+   * </p>
+   * 
+   * <p>Starts this RequestContext first, then children, so that children
+   *   can inherit final configuration details
+   * </p>
+   */
   public void start()
     throws LifecycleException
   {
     if (_aliasMap!=null)
     { resolveAliasMap();
     }
-    if (getParentContext()!=null)
-    { setServer(getParentContext().getServer());
-    }
+
+    super.start();
     for (HttpServiceContext context : _subcontextList)
     { 
       context.setVirtualHostName(virtualHostName);
       context.start();
     }
-    super.start();
   }
 
   @Override
   public void stop()
     throws LifecycleException
   {
-    super.stop();
     for (HttpServiceContext context : _subcontextList)
     { context.stop();
     }
+    super.stop();
   }
 
   public void setPathMappings(PathMapping[] pathMappings)

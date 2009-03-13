@@ -90,16 +90,21 @@ public class MultiHostHttpServiceContext
   }
 
   @Override
+  /**
+   * <p>Prepare the ServiceContext for request handling.
+   * </p>
+   * 
+   * <p>Starts this RequestContext first, then children, so that children
+   *   can inherit final configuration details
+   * </p>
+   */  
   public void start()
     throws LifecycleException
   { 
-    if (getParentContext()!=null)
-    { setServer(getParentContext().getServer());
-    }
+    super.start();    
     for (HttpServiceContext context : _hostList)
     { context.start();
     }
-    super.start();
 
   }
   
@@ -108,10 +113,10 @@ public class MultiHostHttpServiceContext
     throws LifecycleException
   { 
 
-    super.stop();
     for (HttpServiceContext context : _hostList)
     { context.stop();
     }
+    super.stop();
   }
 
   public void setHostMappings(HostMapping[] hostMappings)
