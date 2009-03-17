@@ -36,8 +36,6 @@ import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.StreamUtil;
 import spiralcraft.vfs.Resource;
 
-import spiralcraft.pioneer.io.Filename;
-
 import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
@@ -634,7 +632,7 @@ public class FileServlet
       out.append("<A href=\"");
       out.append(request.getScheme()+"://");
       out.append(host);
-      String parent=new Filename(uri).getParent();
+      String parent=new Path(uri,'/').parentPath().format("/");
       if (parent!=null)
       { out.append(parent);
       }

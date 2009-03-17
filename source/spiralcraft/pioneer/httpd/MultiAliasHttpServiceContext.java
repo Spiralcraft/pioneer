@@ -28,7 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 import spiralcraft.common.LifecycleException;
 import spiralcraft.log.Level;
 
-import spiralcraft.pioneer.io.Filename;
+import spiralcraft.util.Path;
+
 /**
  * Service context that delegates the request
  *   to an appropriate subcontext based on a specific 
@@ -67,7 +68,7 @@ public class MultiAliasHttpServiceContext
       if (debugService)
       { log.log(Level.DEBUG,"request.getPathInfo() = "+request.getPathInfo());
       }
-      alias=new Filename(request.getPathInfo()).getFirstName();
+      alias=new Path(request.getPathInfo(),'/').firstElement();
     }
     
     

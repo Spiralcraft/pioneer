@@ -65,6 +65,7 @@ import java.net.MalformedURLException;
 
 
 import spiralcraft.util.IteratorEnumeration;
+import spiralcraft.util.Path;
 
 import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
@@ -77,8 +78,6 @@ import spiralcraft.log.Level;
 
 import spiralcraft.pioneer.io.Governer;
 import spiralcraft.pioneer.io.SimpleGoverner;
-import spiralcraft.pioneer.io.Filename;
-
 import spiralcraft.text.html.URLEncoder;
 
 import spiralcraft.time.Clock;
@@ -108,7 +107,9 @@ public class SimpleHttpServiceContext
   //private static final String DEBUG_GROUP
   //  =SimpleHttpServiceContext.class.getName();
 
-  private File _docRoot=new File(System.getProperty("user.dir"));
+  private File _docRootDir=new File(System.getProperty("user.dir"));
+  private URI _docRootURI=_docRootDir.toURI();
+  
   private HttpSessionManager _sessionManager;
   private String _hostName;
   private int _port;
@@ -792,7 +793,7 @@ public class SimpleHttpServiceContext
     if (!name.startsWith("/"))
     { throw new MalformedURLException(name+" does not start with '/'");
     }
-    return _docRoot.toURI().resolve(name.substring(1)).toURL();
+    return _docRootDir.toURI().resolve(name.substring(1)).toURL();
   }
 
   /**
@@ -835,8 +836,8 @@ public class SimpleHttpServiceContext
     if (isPathBounded(uri))
     { 
       File relFile
-        =new File(_docRoot
-                  ,new Filename(uri).localize().getPath()
+        =new File(_docRootDir
+                  ,new Path(uri,'/').format(File.separatorChar)
                   );
       String realPath
         =relFile.getAbsolutePath();
@@ -1059,7 +1060,7 @@ public class SimpleHttpServiceContext
     String servletPath=null;
     
     servletAlias
-      =new Filename(request.getPathInfo()).getFirstName();
+      =new Path(request.getPathInfo(),'/').firstElement();
     
     if (servletAlias!=null)
     {
@@ -1438,7 +1439,7 @@ public class SimpleHttpServiceContext
       }
       path=path.substring(1);
       Resource dirResource
-        =Resolver.getInstance().resolve(_docRoot.toURI().resolve(path));
+        =Resolver.getInstance().resolve(_docRootDir.toURI().resolve(path));
       
       
       LinkedHashSet<String> set=new LinkedHashSet<String>();
@@ -1523,9 +1524,19 @@ public class SimpleHttpServiceContext
   }
   
   public void setDocumentRoot(String root)
-  { _docRoot=new Filename(root).localize();
+  { 
+    _docRootDir=new File(new Path(root,'/').format(File.separatorChar));
+    if (!root.endsWith("/") && _docRootDir.isDirectory())
+    { root=root+"/";
+    }
+    _docRootURI=URI.create(root);
   }
 
+  
+  public URI getDocumentRootURI()
+  { return _docRootURI;
+  }
+  
   public void setDefaultServletName(String servletName)
   { _defaultServletName=servletName;
   }
@@ -1857,8 +1868,23 @@ public class SimpleHttpServiceContext
     { _server=_parentContext.getServer();
     }
     
+    if (!_docRootDir.isAbsolute())
+    { 
+      if (_parentContext!=null)
+      {
+        setDocumentRoot
+          (_parentContext.getDocumentRootURI()
+            .resolve(getDocumentRootURI())
+            .getPath()
+          );
+      }
+      else
+      { setDocumentRoot(_docRootDir.toURI().getPath());
+      }
+    }
+    
     log.info
-      (getLogPrefix()+": Starting. root="+_docRoot);
+      (getLogPrefix()+": Starting. root="+_docRootDir);
 
 //    try
 //    { _baseUrl=new URL("http",_hostName,_port,"/");
@@ -1911,7 +1937,7 @@ public class SimpleHttpServiceContext
         log.log
           (Level.INFO
           ,getClass().getName()
-            +" serving "+_docRoot.getPath()+" is attributes root"
+            +" serving "+_docRootDir.getPath()+" is attributes root"
           );
         _attributes=new Hashtable<String,Object>();
       }
@@ -1994,7 +2020,7 @@ public class SimpleHttpServiceContext
   {   
     try
     {
-      Resource docRoot=Resolver.getInstance().resolve(_docRoot.toURI());
+      Resource docRoot=Resolver.getInstance().resolve(_docRootDir.toURI());
       if (docRoot.asContainer()!=null)
       {
         Resource warRoot=docRoot.asContainer().getChild("WEB-INF");
@@ -2136,7 +2162,7 @@ public class SimpleHttpServiceContext
   {
     try
     {
-      Resource docRoot=Resolver.getInstance().resolve(_docRoot.toURI());
+      Resource docRoot=Resolver.getInstance().resolve(_docRootDir.toURI());
       if (docRoot.asContainer()!=null)
       {
         Resource warRoot=docRoot.asContainer().getChild("WEB-INF");
@@ -2162,7 +2188,7 @@ public class SimpleHttpServiceContext
       else
       { 
         log.log
-          (Level.SEVERE,"Document root "+_docRoot+" is not a valid directory"
+          (Level.SEVERE,"Document root "+_docRootDir+" is not a valid directory"
               +", not loading WAR ClassLoader"
            );
       }

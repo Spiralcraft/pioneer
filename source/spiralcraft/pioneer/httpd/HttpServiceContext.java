@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 
 import java.io.IOException;
+import java.net.URI;
 
 import spiralcraft.common.Lifecycle;
 
@@ -167,4 +168,6 @@ public interface HttpServiceContext
    * @param value
    */
   public void setInitParameter(String name,String value);
+  
+  public URI getDocumentRootURI();
 }
