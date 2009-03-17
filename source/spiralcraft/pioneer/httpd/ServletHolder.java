@@ -177,10 +177,7 @@ public class ServletHolder
     if (_loaded)
     { return;
     }
-    
-    if (_servlet!=null)
-    { return;
-    }
+
 
     try
     {
