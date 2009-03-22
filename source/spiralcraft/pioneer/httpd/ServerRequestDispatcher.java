@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import spiralcraft.log.ClassLog;
+import spiralcraft.pioneer.httpd.AbstractHttpServletRequest.RequestSource;
 
 import java.io.IOException;
 
@@ -64,7 +65,7 @@ public class ServerRequestDispatcher
       =new DispatchServerRequest
         ((HttpServletRequest) request
         ,uri
-        ,false
+        ,RequestSource.INCLUDE
         ,context.getServer()
         );
     DispatchServerResponse dispatchResponse
@@ -89,7 +90,7 @@ public class ServerRequestDispatcher
       =new DispatchServerRequest
         ((HttpServletRequest) request
         ,uri
-        ,true
+        ,RequestSource.FORWARD
         ,context.getServer()
         );
 

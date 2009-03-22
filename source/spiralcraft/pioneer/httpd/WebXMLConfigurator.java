@@ -293,7 +293,7 @@ public class WebXMLConfigurator
   }
   
   class FilterMappingReader
-    extends PatternMappingReader
+    extends PatternMappingReader<FilterMapping>
   {
     public FilterMappingReader()
     { 
@@ -306,12 +306,19 @@ public class WebXMLConfigurator
       throws SAXException
     {
       super.close(element);
-      context.setFilterMapping(get());
+      context.addFilterMapping(get());
     }
+
+    @Override
+    public void open(Element element)
+    { 
+      super.open(element);
+      set(new FilterMapping());
+    }      
   }
 
   class ServletMappingReader
-    extends PatternMappingReader
+    extends PatternMappingReader<PatternMapping>
   {
     public ServletMappingReader()
     { 
@@ -326,10 +333,17 @@ public class WebXMLConfigurator
       super.close(element);
       context.setServletMapping(get());
     }
+    
+    @Override
+    public void open(Element element)
+    { 
+      super.open(element);
+      set(new PatternMapping());
+    }      
   }
   
-  class PatternMappingReader
-    extends ElementReader<PatternMapping>
+  abstract class PatternMappingReader<T extends PatternMapping>
+    extends ElementReader<T>
   {
     
     public PatternMappingReader(String nameElement)
@@ -362,12 +376,7 @@ public class WebXMLConfigurator
         );
     }
     
-    @Override
-    public void open(Element element)
-    { 
-      super.open(element);
-      set(new PatternMapping());
-    }    
+  
   }
   
   class WelcomeFileListReader

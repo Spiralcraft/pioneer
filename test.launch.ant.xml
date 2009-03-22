@@ -1,0 +1,13 @@
+<project name="spiralcraft-pioneer" default="launch" basedir=".">
+
+
+  
+  <target name="launch">
+    <devdaemon dir="test" env="httpd.dev" libdir="../lib"/>
+      
+  </target>
+  
+
+  <import file="../../build/build-common.xml"/>  
+</project>
+  

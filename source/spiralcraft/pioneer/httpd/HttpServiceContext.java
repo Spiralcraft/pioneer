@@ -106,6 +106,13 @@ public interface HttpServiceContext
   FilterChain getServletFilterChain(String servletName)
     throws ServletException;
 
+
+  /**
+   * Return the chain of filters inheritable by a child context 
+   */
+  SimpleFilterChain chainGlobalFilters
+    (AbstractHttpServletRequest request,SimpleFilterChain endChain)
+    throws ServletException;
   
   /**
    * Get the name of the servlet that handles requests

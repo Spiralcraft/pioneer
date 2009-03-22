@@ -48,7 +48,7 @@ public class DispatchServerRequest
 	public DispatchServerRequest
     (HttpServletRequest containingRequest
     ,String uri
-    ,boolean forward
+    ,RequestSource source
     ,HttpServer server
     )
   { 
@@ -89,7 +89,7 @@ public class DispatchServerRequest
     
     if (original)
     {
-      String nature=forward?"forward":"include";
+      String nature=(source==RequestSource.FORWARD?"forward":"include");
       setAttribute
         ("javax.servlet."+nature+".request_uri"
         ,containingRequest.getRequestURI()
@@ -112,6 +112,7 @@ public class DispatchServerRequest
         );
       
     }
+    this._source=source;
     
   }
 

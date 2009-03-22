@@ -129,6 +129,9 @@ public class HttpServerRequest
   private boolean debugProtocol;
   private boolean debugAPI;
 
+  { _source=RequestSource.REQUEST;
+  }
+  
 	public HttpServerRequest()
   {
   }

@@ -45,12 +45,7 @@ public class RotatingFileAccessLog
     this.setMaxDelayMs(1000);
     this.setMinDelayMs(250);
   }
-  
-
-  public FileSequence getFileSequence()
-  { return fileSequence;
-  }
-  
+   
   public void setFormat(AccessLogFormat format)
   { this.format=format;
   }

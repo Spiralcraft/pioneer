@@ -120,7 +120,7 @@ public class SimpleHttpServiceContext
   private HashMap<String,ServletHolder> _servletMap=null;
   private HashMap<String,String> _suffixServletNameMap=null;
   private HashMap<String,String> _prefixServletNameMap=null;
-  private ArrayList<PatternMapping> _filterMappings=null;
+  private ArrayList<FilterMapping> _filterMappings=null;
   private HashMap<String,FilterHolder> _filterMap=null;
   private ArrayList<String> _listenerClassNames;
   private ArrayList<ServletContextListener> _listeners;
@@ -171,6 +171,8 @@ public class SimpleHttpServiceContext
   protected boolean debug;
   private HttpServer _server;
   protected String virtualHostName;
+  
+  
 
 
   
@@ -822,6 +824,9 @@ public class SimpleHttpServiceContext
 	 */
 	public String getRealPath(String rawUri)
   { 
+	  if (rawUri==null)
+	  { return null;
+	  }
     String uri=URLEncoder.decode(rawUri);
     if (uri==null)
     { 
@@ -941,30 +946,64 @@ public class SimpleHttpServiceContext
     }
   }
 
-
+  public SimpleFilterChain chainGlobalFilters
+    (AbstractHttpServletRequest request,SimpleFilterChain endChain)
+    throws ServletException
+  { 
     
-  protected boolean matches(String urlPattern,String uri)
-  {
-    boolean matches=false;
-    if (urlPattern.equals("/*"))
-    { matches=true;
-    }
-    else if (urlPattern.startsWith("*") && uri.endsWith(urlPattern.substring(1)))
-    { matches=true;
-    }
-    else if (urlPattern.endsWith("/*") 
-              && uri.startsWith(urlPattern.substring(0,urlPattern.length()-3))
-            )
-    { matches=true;
-    }
-    else if (uri.startsWith(urlPattern))
-    { matches=true;
+    if (_parentContext!=null)
+    { endChain=_parentContext.chainGlobalFilters(request,endChain);
     }
     
-    if (debug)
-    { log.fine((matches?"MATCH":"NO-MATCH")+": "+urlPattern+" : "+uri);
+    String relativeURI
+      =request.getRequestURI().substring(request.getContextPath().length());
+    
+    if (_filterMappings!=null)
+    {
+      for (FilterMapping mapping : _filterMappings)
+      { 
+        if (mapping.isGlobal()
+            && mapping.matchesDispatch(request.getSource())
+            && mapping.matchesPattern(relativeURI)
+           )
+        { 
+          SimpleFilterChain next
+            =new SimpleFilterChain
+              (_filterMap.get(mapping.getName()).getFilter());
+          next.setContext(this);
+          endChain=endChain.chain(next);
+        }
+      }
     }
-    return matches;
+    return endChain;
+    
+  }
+  
+  private SimpleFilterChain chainLocalFilters
+    (AbstractHttpServletRequest request,SimpleFilterChain endChain)
+    throws ServletException
+  { 
+    
+    String relativeURI
+      =request.getRequestURI().substring(request.getContextPath().length());
+    
+    if (_filterMappings!=null)
+    {
+      for (FilterMapping mapping : _filterMappings)
+      { 
+        if (mapping.matchesDispatch(request.getSource())
+            && mapping.matchesPattern(relativeURI)
+           )
+        { 
+          SimpleFilterChain next
+            =new SimpleFilterChain
+              (_filterMap.get(mapping.getName()).getFilter());
+          next.setContext(this);
+          endChain=endChain.chain(next);
+        }
+      }
+    }
+    return endChain;
     
   }
 
@@ -981,32 +1020,16 @@ public class SimpleHttpServiceContext
     throws ServletException
   {
     
-    FilterChain filterChain=null;
-    SimpleFilterChain last=null;
     
-    String originalURI=request.getRequestURI();
-
-    if (_filterMappings!=null)
-    {
-      for (PatternMapping mapping : _filterMappings)
-      {
-        if (matches(mapping.getURLPattern(),originalURI))
-        { 
-          SimpleFilterChain next
-            =new SimpleFilterChain
-              (_filterMap.get(mapping.getName()).getFilter());
-          next.setContext(this);
-        
-          if (filterChain==null)
-          { filterChain=next;
-          }
-          if (last!=null)
-          { last.setNext(next);
-          }
-          last=next;
-        }
-      }
+    SimpleFilterChain end=new SimpleFilterChain();
+    FilterChain filterChain=end;
+    
+    if (_parentContext!=null)
+    { end=_parentContext.chainGlobalFilters(request,end);
     }
+    
+    chainLocalFilters(request,end);
+    
     
     if (controller!=null)
     {
@@ -1014,14 +1037,7 @@ public class SimpleHttpServiceContext
       SimpleFilterChain controllerChain
         =new SimpleFilterChain(controller);
       controllerChain.setContext(this);
-      
-      if (filterChain==null)
-      { filterChain=controllerChain;
-      }
-      if (last!=null)
-      { last.setNext(controllerChain);
-      }
-      last=controllerChain;
+      end=end.chain(controllerChain);
     }
     
     // Insert the servlet endpoint, if there is one
@@ -1034,8 +1050,8 @@ public class SimpleHttpServiceContext
       if (filterChain==null)
       { filterChain=next;
       }
-      if (last!=null)
-      { last.setNext(next);
+      if (end!=null)
+      { end.setNext(next);
       }
     
       return filterChain;
@@ -1059,8 +1075,20 @@ public class SimpleHttpServiceContext
     String servletAlias=null;
     String servletPath=null;
     
-    servletAlias
-      =new Path(request.getPathInfo(),'/').firstElement();
+    if (debug)
+    { 
+      log.fine
+        ("Locating servlet chain: contextPath="
+        +request.getContextPath()
+        +" pathInfo="+request.getPathInfo()
+        );
+    } 
+    
+    if (request.getPathInfo()!=null)
+    {
+      servletAlias
+        =new Path(request.getPathInfo(),'/').firstElement();
+    }
     
     if (servletAlias!=null)
     {
@@ -1085,7 +1113,7 @@ public class SimpleHttpServiceContext
     if (servletName==null)
     { 
       // No servlet mapping for the path component
-      servletPath="";
+      servletPath="/";
       servletName=_rootServletName;
     }
     
@@ -1102,8 +1130,15 @@ public class SimpleHttpServiceContext
     //   default servlet. This sets the servlet path to the pathInfo
     //   (whatever follows the context path),
     //   as a default whether or not we find a preset servlet.
-
-    String realPath=getRealPath(request.getPathInfo());
+    
+    
+    String realPath;
+    if (request.getPathInfo()!=null)
+    { realPath=getRealPath(request.getPathInfo());
+    }
+    else
+    { realPath=getRealPath("/");
+    }
     
     if (realPath==null)
     { 
@@ -1146,6 +1181,9 @@ public class SimpleHttpServiceContext
       
       if (uri!=null)
       { 
+        if (debug)
+        { log.fine("Rewriting request URI for default completion "+uri);
+        }
         // Use determined uri completion.
         request.updateURI(request.getContextPath()+uri.toString());
         request.updateContextPath(getContextPath());
@@ -1180,9 +1218,19 @@ public class SimpleHttpServiceContext
       { throw new ServletException("Servlet '"+servletName+"' not found.");
       }
 
-      request.updateServletPath(request.getPathInfo());
+      
+      // This will either be a path or may be empty if the intrinsic default
+      //   servlet is returned. In any case, we're using the rules for 
+      //   an extension mapping which says the pathInfo is null and the
+      //   servlet path is used.
       if (debug)
-      { log.log(Level.DEBUG,"Using servlet '"+servletName+"' for servletPath "
+      { log.log(Level.DEBUG,"Updating servletPath to "+request.getPathInfo());
+      }
+      request.updateServletPath(request.getPathInfo());
+      
+      if (debug)
+      { 
+        log.log(Level.DEBUG,"Using servlet '"+servletName+"' for servletPath "
                   +request.getServletPath()+", file "+getRealPath(request.getServletPath())
                   );
       }
@@ -1200,6 +1248,16 @@ public class SimpleHttpServiceContext
     
   }
 
+  /**
+   *  Called when a servlet is mapped to a URI segment using a specific
+   *    servlet path
+   *  
+   * @param request
+   * @param servletName
+   * @param servletPath
+   * @return
+   * @throws ServletException
+   */
   private FilterChain bindRequestToServletChain
     (AbstractHttpServletRequest request
     ,String servletName
@@ -1226,6 +1284,10 @@ public class SimpleHttpServiceContext
   
   private String checkFilesystemCompletion(String servletPath,String completion)
   {
+    if (servletPath==null)
+    { servletPath="/";
+    }
+    
     StringBuilder urib=new StringBuilder(64);
     urib.append(servletPath)
       .append(servletPath.endsWith("/")?"":"/")
@@ -1410,6 +1472,7 @@ public class SimpleHttpServiceContext
           +_defaultServletName
           );
       }
+      
       return _defaultServletName;
     }
     else
@@ -1593,6 +1656,13 @@ public class SimpleHttpServiceContext
     
   }
   
+  public void setFilters(FilterHolder[] filterHolders)
+  {
+    _filterMap=new HashMap<String,FilterHolder>();
+    for (FilterHolder filterHolder: filterHolders)
+    { addFilter(filterHolder);
+    }
+  }
   
   /**
    * Specify the servlet map, which maps names to
@@ -1618,17 +1688,25 @@ public class SimpleHttpServiceContext
     _filterMap.put(filterHolder.getFilterName(),filterHolder);
     filterHolder.setServiceContext(this);
   }
+   
+  public void setFilterMappings(FilterMapping[] mappings)
+  { 
+    _filterMappings=new ArrayList<FilterMapping>();
+    for (FilterMapping mapping:mappings)
+    { _filterMappings.add(mapping);
+    }
+  }
   
-  public void setFilterMapping(PatternMapping mapping)
+  public void addFilterMapping(FilterMapping mapping)
   { 
     if (_filterMappings==null)
-    { _filterMappings=new ArrayList<PatternMapping>();
+    { _filterMappings=new ArrayList<FilterMapping>();
     }
     _filterMappings.add(mapping);
   }
   
-  public void setFilterMapping(String name,String urlPattern)
-  { setFilterMapping(new PatternMapping(urlPattern,name));
+  public void addFilterMapping(String name,String urlPattern)
+  { addFilterMapping(new FilterMapping(urlPattern,name,true,false,false));
   }
   
   public void addServlet(ServletHolder servletHolder)

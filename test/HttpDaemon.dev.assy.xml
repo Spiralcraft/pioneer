@@ -30,7 +30,8 @@
       
       <serviceContext.accessLog>
         <httpd:RotatingFileAccessLog>
-          <directory>logs</directory>
+          <fileSequence.directory>logs
+          </fileSequence.directory>
         </httpd:RotatingFileAccessLog>
       </serviceContext.accessLog>
       

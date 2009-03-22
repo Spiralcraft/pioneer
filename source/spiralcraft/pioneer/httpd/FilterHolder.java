@@ -26,7 +26,8 @@ import java.util.Properties;
 
 import spiralcraft.data.persist.AbstractXmlObject;
 
-import spiralcraft.pioneer.util.ThrowableUtil;
+import spiralcraft.log.ClassLog;
+import spiralcraft.log.Level;
 import spiralcraft.vfs.Resolver;
 
 /**
@@ -34,6 +35,10 @@ import spiralcraft.vfs.Resolver;
  */
 public class FilterHolder
 {
+
+  private static final ClassLog log
+    =ClassLog.getInstance(FilterHolder.class);
+  
   private Filter _filter;
   private String _filterClass;
   private ServletException _servletException;
@@ -42,6 +47,8 @@ public class FilterHolder
   private boolean _loadAtStartup=false;
   private String _filterName;
   private URI dataURI;
+  private boolean _loaded;
+  
 
   /**
    * Create a new Bean configured FilterHolder
@@ -65,13 +72,13 @@ public class FilterHolder
   public Filter getFilter()
     throws ServletException
   {
-    if (_filter==null)
+    if (!_loaded)
     { 
-      if (_filterClass!=null || dataURI!=null)
+      if (_filterClass!=null || dataURI!=null || _filter!=null)
       { load();
       }
       else
-      { throw new ServletException("No Filter class or XML object URI specified");
+      { throw new ServletException("No Filter class, XML object URI, or Filter instance specified");
       }
     }
 
@@ -81,6 +88,15 @@ public class FilterHolder
     else
     { return _filter;
     }
+  }
+  
+  /**
+   * Provide a pre-configured filter instance
+   * 
+   * @param filter
+   */
+  public void setFilterInstance(Filter filter)
+  { this._filter=filter;
   }
 
   public void setServiceContext(HttpServiceContext context)
@@ -140,7 +156,7 @@ public class FilterHolder
 
   private synchronized void load()
   {
-    if (_filter!=null)
+    if (_loaded)
     { return;
     }
 
@@ -165,7 +181,7 @@ public class FilterHolder
         { throw new ServletException("Servlet data resource not found "+dataURI);
         }
       }
-      else
+      else if (_filterClass!=null)
       { 
         filter
           =(Filter) Class.forName
@@ -174,15 +190,28 @@ public class FilterHolder
             ,Thread.currentThread().getContextClassLoader()
             ).newInstance();
       }
+      else
+      {
+      	// Use provided instance
+      	filter=_filter;
+      }
+      if (_serviceContext.isDebug())
+      { log.fine("Initializing filter "+_filterName+" with "+_initParams);
+      }
       filter.init(new SimpleFilterConfig(_filterName,_serviceContext,_initParams));  
       _filter=filter;
     }
     catch (ServletException x)
-    { _servletException=x;
+    { 
+    	_servletException=x;
+      log.log(Level.WARNING,"Error initializing filter "+_filterName,x);
     }
     catch (Exception x)
-    { _servletException=new ServletException(x.toString()+"\r\n"+ThrowableUtil.getStackTrace(x));
+    { 
+      log.log(Level.WARNING,"Error initializing filter "+_filterName,x);
+    	_servletException=new ServletException(x.toString(),x);
     }
+    _loaded=true;
   }
 
 }

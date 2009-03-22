@@ -71,6 +71,12 @@ public abstract class AbstractHttpServletRequest
     _altDateFormats[1].setTimeZone(TimeZone.getTimeZone("GMT"));
   }
 
+  public enum RequestSource
+  {
+    FORWARD
+    ,INCLUDE
+    ,REQUEST
+  }
   
 	protected class Variable
 	{
@@ -97,6 +103,7 @@ public abstract class AbstractHttpServletRequest
   protected long _startTime;	
   protected HttpServer _httpServer;
   protected String _characterEncoding;
+  protected RequestSource _source;
 
   protected ClassLog _log
     =ClassLog.getInstance(AbstractHttpServletRequest.class);
@@ -127,6 +134,10 @@ public abstract class AbstractHttpServletRequest
 
   }
 
+  public RequestSource getSource()
+  { return _source;
+  }
+  
   public void cleanup()
   { _attributes.clear();
   }
@@ -238,7 +249,7 @@ public abstract class AbstractHttpServletRequest
    */
   public void updateServletPath(String servletPath)
   { 
-    _servletPath=servletPath;
+    _servletPath=(servletPath==null?"":servletPath);
     calcPathInfo();
   }
 

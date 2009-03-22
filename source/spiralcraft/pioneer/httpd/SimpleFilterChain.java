@@ -38,15 +38,15 @@ public class SimpleFilterChain
   private static final ClassLog log
     =ClassLog.getInstance(SimpleFilterChain.class);
   
-  private Filter _filter;
-  private FilterChain _next;
+  private final Filter filter;
+  private FilterChain next;
   private HttpServiceContext context;
 
   /**
    * Create a new FilterChainImpl
    */
   public SimpleFilterChain()
-  {
+  { filter=null;
   }
   
   public void setContext(HttpServiceContext context)
@@ -58,7 +58,7 @@ public class SimpleFilterChain
    * Create a new FilterChain link for a Filter
    */
   public SimpleFilterChain(Filter filter)
-  { _filter=filter;
+  { this.filter=filter;
   }
   
   /**
@@ -67,11 +67,13 @@ public class SimpleFilterChain
    * @param next
    */
   public void setNext(FilterChain next)
-  { this._next=next;
+  { this.next=next;
   }
   
-  public Filter getFilter()
-  { return _filter;
+  public SimpleFilterChain chain(SimpleFilterChain next)
+  {
+    this.next=next;
+    return next;
   }
 
   public void doFilter
@@ -80,20 +82,28 @@ public class SimpleFilterChain
     )
     throws IOException, ServletException
   { 
-    if (context.isDebug())
-    { log.fine(((HttpServletRequest) request).getRequestURI()+" -> "+getFilter());
-    }
-    try
-    { getFilter().doFilter(request,response,_next);
-    }
-    catch (ServletException x)
-    { 
-      PrintStream err=ExecutionContext.getInstance().err();
-      x.printStackTrace(err);
-      if (x.getRootCause()!=null)
-      { x.getRootCause().printStackTrace(err);
+    
+    if (filter!=null)
+    {
+      if (context.isDebug())
+      { log.fine(((HttpServletRequest) request).getRequestURI()+" -> "+filter);
       }
-      throw x;
+    
+      try
+      { filter.doFilter(request,response,next);
+      }
+      catch (ServletException x)
+      { 
+        PrintStream err=ExecutionContext.getInstance().err();
+        x.printStackTrace(err);
+        if (x.getRootCause()!=null)
+        { x.getRootCause().printStackTrace(err);
+        }
+        throw x;
+      }
+    }
+    else
+    { next.doFilter(request,response);
     }
   }
 
