@@ -16,11 +16,13 @@
 
       <accessLog>
         <httpd:RotatingFileAccessLog>
-          <directory>logs
-          </directory>
+          <fileSequence.directory>logs
+          </fileSequence.directory>
         </httpd:RotatingFileAccessLog>
       </accessLog>
-    
+
+      <debug>true
+      </debug>
     </here:JAMWikiContext>
 
   </serviceContext>

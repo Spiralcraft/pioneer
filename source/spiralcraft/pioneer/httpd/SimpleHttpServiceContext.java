@@ -1028,7 +1028,7 @@ public class SimpleHttpServiceContext
     { end=_parentContext.chainGlobalFilters(request,end);
     }
     
-    chainLocalFilters(request,end);
+    end=chainLocalFilters(request,end);
     
     
     if (controller!=null)

@@ -7,6 +7,10 @@
       
   </target>
   
+  <target name="launch-jamwiki">
+    <devdaemon dir="test-ext/jamwiki" env="httpd.dev" libdir="../../lib"/>
+      
+  </target>
 
   <import file="../../build/build-common.xml"/>  
 </project>
