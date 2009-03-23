@@ -198,7 +198,7 @@ public class FileServlet
           { sendFile(request,response,path);
           }
           else if (request.getMethod().equals("HEAD"))
-          { sendHeaders(request,response,path);
+          { sendHead(request,response,path);
           }
           else if (request.getMethod().equals("PUT"))
           { putFile(request,response,path);
@@ -248,7 +248,7 @@ public class FileServlet
       { sendFile(request,response,path);
       }
       else if (request.getMethod().equals("HEAD"))
-      { sendHeaders(request,response,path);
+      { sendHead(request,response,path);
       }
       else if (request.getMethod().equals("PUT"))
       { putFile(request,response,path);
@@ -353,10 +353,7 @@ public class FileServlet
     if (contentType!=null)
     { response.setContentType(contentType);
     }
-    long size=resource.getSize();
-    if (size>0 && size<Integer.MAX_VALUE)
-    { response.setContentLength((int) size);
-    }
+
     response.setDateHeader
       (HttpServerResponse.HDR_LAST_MODIFIED
       ,floorToSecond(resource.getLastModified())
@@ -382,7 +379,7 @@ public class FileServlet
   /**
    * Send the headers for the specified file to the client
    */
-  private void sendHeaders
+  private void sendHead
     (HttpServletRequest request
     ,HttpServletResponse response
     ,String path
@@ -430,6 +427,11 @@ public class FileServlet
       }      
 
       setHeaders(response,resource);
+      
+      long size=resource.getSize();
+      if (size>0 && size<Integer.MAX_VALUE)
+      { response.setContentLength((int) size);
+      } 
       
       response.getOutputStream().flush();
     }
