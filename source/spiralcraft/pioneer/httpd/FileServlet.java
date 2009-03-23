@@ -532,19 +532,12 @@ public class FileServlet
         contentLength
           =(int) Math.max(0,resource.getSize()-rangeHeader.getSkipBytes());
         
-        if (rangeHeader.getMaxBytes()==-1)
-        { response.setContentLength(contentLength);
-          
+        if (rangeHeader.getMaxBytes()>-1)
+        { contentLength=Math.min(contentLength,rangeHeader.getMaxBytes());
         }
-        else
-        { 
-          response.setContentLength
-            (Math.min(contentLength,rangeHeader.getMaxBytes()));
-        }
-      }
-      
-      if (rangeHeader!=null)
-      { 
+        
+        response.setContentLength(contentLength);
+        
         response.setStatus(206);
         response.setHeader
           (HttpServerResponse.HDR_CONTENT_RANGE
@@ -556,12 +549,15 @@ public class FileServlet
           +resource.getSize()
           );
       }
+      else
+      { response.setContentLength(contentLength);
+      }
       
       StreamUtil.copyRaw
         (resourceInputStream
         ,response.getOutputStream()
         ,_bufferSize
-        ,rangeHeader!=null?rangeHeader.getMaxBytes():-1
+        ,contentLength
         );
       
       response.getOutputStream().flush();
