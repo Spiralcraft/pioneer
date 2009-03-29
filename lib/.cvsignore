@@ -1,1 +1,2 @@
-spiralcraft-pioneer.jar
+*.jar
+ivy.xml
