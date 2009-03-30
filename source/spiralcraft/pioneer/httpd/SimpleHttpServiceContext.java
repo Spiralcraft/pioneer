@@ -1047,9 +1047,6 @@ public class SimpleHttpServiceContext
     }
     else
     {
-      if (filterChain==null)
-      { filterChain=next;
-      }
       if (end!=null)
       { end.setNext(next);
       }
