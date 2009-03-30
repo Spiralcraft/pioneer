@@ -33,7 +33,11 @@ public class FilterMapping
     ,boolean onInclude
     ,boolean onForward
     )
-  { super(name,urlPattern);
+  { 
+    super(name,urlPattern);
+    this.onRequest=onRequest;
+    this.onInclude=onInclude;
+    this.onForward=onForward;
   }
   
   public FilterMapping()
