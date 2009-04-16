@@ -3,7 +3,7 @@
 
   
   <target name="launch">
-    <devdaemon dir="test" env="httpd.dev" libdir="../lib"/>
+    <devdaemon dir="test" env="httpd.dev" codebase=".."/>
       
   </target>
   
@@ -12,6 +12,6 @@
       
   </target>
 
-  <import file="../../build/build-common.xml"/>  
+  <import file="../../build/build-spiralcraft-common.xml"/>  
 </project>
   
