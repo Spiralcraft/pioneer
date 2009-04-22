@@ -1,0 +1,36 @@
+<scm:Change.list
+  xmlns:scm="class:/spiralcraft/scm/meta/"
+  >
+  <scm:Change>
+    <revision>0.3.2
+    </revision>
+    
+    <authorId>miketoth
+    </authorId>
+    
+    <path>/source/spiralcraft/pioneer/httpd/
+    </path>
+    
+    <detail>
+
+      <scm:Change>
+        <date>2009-04-20
+        </date>
+
+        <notes>
+          <scm:Note>Refactor for AbstractXmlObject.create() change
+          </scm:Note>
+        </notes>
+
+    
+        <resources>
+          <URI>FilterHolder.java</URI>
+          <URI>ServletHolder.java</URI>
+          <URI>HttpService.java</URI>
+        </resources>
+      </scm:Change>
+      
+    </detail>
+  </scm:Change>
+  
+</scm:Change.list>

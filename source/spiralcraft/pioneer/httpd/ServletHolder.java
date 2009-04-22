@@ -192,8 +192,6 @@ public class ServletHolder
               ?null
               :AbstractXmlObject.typeFromClass(Class.forName(_servletClass))
             ,dataURI
-            ,null
-            ,null
             ).get();
         }
         else

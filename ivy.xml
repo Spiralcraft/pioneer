@@ -8,19 +8,19 @@
   </publications> 
     
   <dependencies>
-    <dependency org="spiralcraft" name="core" rev="latest.integration">
-      <exclude name="spiralcraft-core-test"/>
-    </dependency>
+    <dependency org="spiralcraft" name="core" rev="[0.3.3,)"/>
 
     <dependency org="spiralcraft" name="net" rev="latest.integration"/>
 
-    <dependency org="spiralcraft" name="textgen" rev="latest.integration">
-      <exclude name="spiralcraft-textgen-test"/>
-    </dependency>
+    <dependency org="spiralcraft" name="textgen" rev="latest.integration"/>
     
     <dependency org="spiralcraft" name="servlet" rev="latest.integration"/>
 
     <dependency org="spiralcraft" name="launcher" rev="latest.integration"/>
+
+    <exclude artifact="spiralcraft-core-test"/>
+    <exclude artifact="spiralcraft-textgen-test"/>
+
   </dependencies>
 
 </ivy-module>

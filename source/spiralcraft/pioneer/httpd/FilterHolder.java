@@ -173,8 +173,6 @@ public class FilterHolder
               ?null
               :AbstractXmlObject.typeFromClass(Class.forName(_filterClass))
             ,dataURI
-            ,null
-            ,null
             ).get();
         }
         else
