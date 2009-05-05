@@ -190,7 +190,7 @@ public class HttpServerRequest
 	  _headers.clear();
     
     
-    _requestLine=_inputStream.readAsciiLine();
+    _requestLine=sanitizeAscii(_inputStream.readAsciiLine());
     
     if (_requestLine!=null)
     {
@@ -219,6 +219,20 @@ public class HttpServerRequest
   { return _started;
   }
 
+  private String sanitizeAscii(final String input)
+    throws IOException
+  {
+    int len=input.length();
+    for (int i=0;i<len;i++)
+    {
+      char chr=input.charAt(i);
+      if (chr<0x20 || chr>0x7F)
+      { throw new IOException("Illegal character "+((int) chr)+" in request");
+      }
+    }
+    return input;
+  }
+  
   /**
    * Ensure that any stray input data is discarded, after each request
    */

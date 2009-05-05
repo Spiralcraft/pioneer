@@ -2,6 +2,21 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.3.3
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <path>/source/spiralcraft/pioneer/httpd/HttpServerRequest.java
+    </path>
+    
+    <notes>Prevent log poisoning- reject request lines with chars outside the
+      standard ascii range.
+    </notes>
+  </scm:Change>
+
+  <scm:Change>
     <revision>0.3.2
     </revision>
     
