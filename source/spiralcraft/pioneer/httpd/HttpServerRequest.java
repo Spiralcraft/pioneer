@@ -190,10 +190,12 @@ public class HttpServerRequest
 	  _headers.clear();
     
     
-    _requestLine=sanitizeAscii(_inputStream.readAsciiLine());
+    
+    _requestLine=_inputStream.readAsciiLine();
     
     if (_requestLine!=null)
     {
+      _requestLine=sanitizeAscii(_requestLine);
       _started=true;
       _startTime=Clock.instance().approxTimeMillis();
       _httpServer.requestStarted();
