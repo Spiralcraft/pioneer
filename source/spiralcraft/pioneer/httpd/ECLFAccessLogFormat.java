@@ -55,12 +55,17 @@ public final class ECLFAccessLogFormat
     if (userAgent==null)
     { userAgent="";
     }
-    String sessionId="";
+    String sessionId="-";
     final HttpSession session=request.getSession(false);
     if (session!=null)
     { sessionId=session.getId();
     }
 
+    String host=request.getHeader("host");
+    if (host==null)
+    { host="-";
+    }
+    
     out.append(request.getRemoteAddr())
       .append(" - ")
       .append(user!=null?user:"-")
@@ -85,7 +90,9 @@ public final class ECLFAccessLogFormat
       .append(" ")
       .append(Clock.instance().approxTimeMillis()-request.getStartTime())
       .append(" ")
-      .append(sessionId);
+      .append(sessionId)
+      .append(" ")
+      .append(host);
     return out.toString();
   }
 
