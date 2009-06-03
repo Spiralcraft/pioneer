@@ -24,6 +24,7 @@ import java.io.StringReader;
 import java.net.URI;
 import java.util.Properties;
 
+import spiralcraft.common.Lifecycle;
 import spiralcraft.data.persist.AbstractXmlObject;
 
 import spiralcraft.log.ClassLog;
@@ -34,6 +35,7 @@ import spiralcraft.vfs.Resolver;
  * Loads and manages a Filter instance
  */
 public class FilterHolder
+  implements Lifecycle
 {
 
   private static final ClassLog log
@@ -146,13 +148,23 @@ public class FilterHolder
   { _loadAtStartup=val;
   }
 
-  public void init()
+  public void start()
   {
     if (_loadAtStartup)
     { load();
     }
   }
 
+  public void stop()
+  {
+    if (_filter!=null)
+    { _filter.destroy();
+    }
+    if (dataURI!=null || _filter!=null)
+    { _filter=null;
+    }
+    _loaded=false;
+  }  
 
   private synchronized void load()
   {
@@ -176,7 +188,7 @@ public class FilterHolder
             ).get();
         }
         else
-        { throw new ServletException("Servlet data resource not found "+dataURI);
+        { throw new ServletException("Filter data resource not found "+dataURI);
         }
       }
       else if (_filterClass!=null)

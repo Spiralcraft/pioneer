@@ -28,6 +28,7 @@ import java.io.StringReader;
 import java.net.URI;
 import java.util.Properties;
 
+import spiralcraft.common.Lifecycle;
 import spiralcraft.data.persist.AbstractXmlObject;
 
 import spiralcraft.log.ClassLog;
@@ -38,7 +39,7 @@ import spiralcraft.vfs.Resolver;
  * Loads and manages a Servlet instance
  */
 public class ServletHolder
-  implements FilterChain
+  implements FilterChain,Lifecycle
 {
   private static final ClassLog log
     =ClassLog.getInstance(ServletHolder.class);
@@ -164,13 +165,23 @@ public class ServletHolder
   { return _loadOnStartup;
   }
   
-  public void init()
+  public void start()
   {
     if (_loadOnStartup>-1)
     { load();
     }
   }
 
+  public void stop()
+  {
+    if (_servlet!=null)
+    { _servlet.destroy();
+    }
+    if (dataURI!=null || _servletClass!=null)
+    { _servlet=null;
+    }
+    _loaded=false;
+  }
 
   private synchronized void load()
   {
