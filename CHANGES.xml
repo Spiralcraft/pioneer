@@ -1,6 +1,50 @@
 <scm:Change.list
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
+  
+  <scm:Change>
+    <revision>0.3.4
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <detail>
+      <scm:Change>
+        <notes>Add hostname to end of standard ECLF log format, ensure that
+          missing fields are replaced with placeholder "-" for null value
+        </notes>
+        
+        <path>/source/spiralcraft/pioneer/httpd/ECLFAccessLogFormat.java
+        </path>
+    
+      </scm:Change>    
+      
+      <scm:Change>
+        <notes>Allow Controller to be set up as standard configured filter
+          to remove container-specific dependency of webapps.
+        </notes>
+        
+        <notes>Make sure Filters and Servlets are stopped with Context
+        </notes>
+
+        <path>/source/spiralcraft/pioneer/httpd/
+        </path>
+        
+        <resources>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+          <URI>ServletHolder.java
+          </URI>
+          <URI>FilterHolder.java
+          </URI>
+        </resources>
+    
+      </scm:Change>    
+      
+    </detail>
+  </scm:Change>
+    
   <scm:Change>
     <revision>0.3.3
     </revision>
