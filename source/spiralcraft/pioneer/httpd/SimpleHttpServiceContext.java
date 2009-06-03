@@ -53,6 +53,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Hashtable;
@@ -129,6 +130,11 @@ public class SimpleHttpServiceContext
   private ArrayList<ServletRequestListener> _requestListeners;
   private ArrayList<String> _welcomeFileList;  
 
+  private Stack<ServletHolder> _servletStack
+    =new Stack<ServletHolder>();
+  private Stack<FilterHolder> _filterStack
+    =new Stack<FilterHolder>();
+
 
   private String _serverInfo="Spiralcraft Web Server v"+version;
 //  private URL _baseUrl;
@@ -159,7 +165,7 @@ public class SimpleHttpServiceContext
 	private AddressSet _allowedIpFilter;
   private AddressSet _deniedIpFilter;
   
-  private Controller controller=new Controller();
+  private Controller controller;
   
   private ClassLoader contextClassLoader;
   private boolean debugWAR;
@@ -170,42 +176,7 @@ public class SimpleHttpServiceContext
   private String _servletContextName=null;
   protected boolean debug;
   private HttpServer _server;
-  protected String virtualHostName;
-  
-  
-
-
-  
-//  // 2009-02-28 mike : Moved directory redirect to the file servlet
-//  private Servlet _directoryRedirectServlet
-//    =new HttpServlet()
-//  {
-//    private static final long serialVersionUID = 1L;
-//
-//    @Override
-//    public void service(ServletRequest request,ServletResponse response)
-//      throws IOException,ServletException
-//    {
-//      HttpServletRequest httpRequest=(HttpServletRequest) request;
-//      HttpServletResponse httpResponse=(HttpServletResponse) response;
-//      String thisUrl=httpRequest.getRequestURL().toString();
-//      
-//      int queryPos=thisUrl.lastIndexOf("?");
-//      if (queryPos>=0)
-//      { httpResponse.sendRedirect(thisUrl.substring(0,queryPos)+"/"+thisUrl.substring(queryPos));
-//      }
-//      else
-//      { httpResponse.sendRedirect(thisUrl+"/");
-//      }
-//    }
-//  };
-//  
-//  private ServletHolder _directoryRedirectFilterChain
-//    =new ServletHolder(_directoryRedirectServlet);
-//  {
-//    _directoryRedirectFilterChain.setServiceContext(this);
-//  }
-  
+  protected String virtualHostName;  
  
   private boolean _initialized=false;
 
@@ -1665,7 +1636,7 @@ public class SimpleHttpServiceContext
    * Specify the servlet map, which maps names to
    *   SerlvetHolders.
    *   
-   *@deprecated Use setServletHolders()
+   *@deprecated Use setServlets()
    */
   @Deprecated
   public void setServletMap(HashMap<String,ServletHolder> servletMap)
@@ -2137,24 +2108,43 @@ public class SimpleHttpServiceContext
       }
       
       for (ServletHolder holder:holders)
-      { holder.init();
+      { 
+        holder.start();
+        _servletStack.push(holder);
       }
     }  
   }
 
   private void startFilters()
   {
+    boolean startedController=false;
+    
     if (_filterMap!=null)
     { 
       for (FilterHolder holder:_filterMap.values())
-      { holder.init();
+      { 
+        holder.start();
+        try
+        {
+          if (holder.getFilter() instanceof Controller)
+          { startedController=true;
+          }
+        }
+        catch (ServletException x)
+        { log.log(Level.WARNING,"Unexpected exception getting filter",x);
+        }
       }
+      
     }
-    startControllerFilter();
+    
+    if (!startedController)
+    { startControllerFilter();
+    }
   }
 
   private void startControllerFilter()
   {
+    controller=new Controller();
     FilterConfig config=new FilterConfig()
     {
 
@@ -2288,14 +2278,16 @@ public class SimpleHttpServiceContext
     _running=false;
     
     
-    
     if (_listeners!=null)
     { 
       for (ServletContextListener listener:_listeners)
       { listener.contextDestroyed(new ServletContextEvent(this));
       }
     }
-
+    
+    stopFilters();
+    stopServlets();
+    
     if (localAccessLog!=null)
     { 
       try
@@ -2327,11 +2319,28 @@ public class SimpleHttpServiceContext
     }
     
   }  
-
-
-
+    
   
-
+  public void stopFilters()
+    throws LifecycleException
+  {
+    while (!_filterStack.isEmpty())
+    { _filterStack.pop().stop();
+    }
+    if (controller!=null)
+    { 
+      controller.destroy();
+      controller=null;
+    }
+  }
+  
+  public void stopServlets()
+    throws LifecycleException
+  {
+    while (!_servletStack.isEmpty())
+    { _servletStack.pop().stop();
+    }
+  }
 
 
 }
