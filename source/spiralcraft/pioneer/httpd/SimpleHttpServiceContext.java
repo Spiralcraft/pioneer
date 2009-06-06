@@ -1560,7 +1560,7 @@ public class SimpleHttpServiceContext
     if (!root.endsWith("/") && _docRootDir.isDirectory())
     { root=root+"/";
     }
-    _docRootURI=URI.create(root);
+    _docRootURI=new File(root).toURI();
   }
 
   

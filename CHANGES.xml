@@ -3,6 +3,33 @@
   >
   
   <scm:Change>
+    <revision>0.3.4.1
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2009-06-04
+    </date>
+    
+    <notes>
+      <scm:Note>Bug fix: Sanitize the documentRoot string on SimpleHttpServiceContext
+        before converting it to a URI.
+      </scm:Note>
+    </notes>
+    
+    
+    <path>/source/spiralcraft/pioneer/httpd/
+    </path>
+        
+    <resources>
+      <URI>SimpleHttpServiceContext.java
+      </URI>
+    </resources>
+
+  </scm:Change>
+
+  <scm:Change>
     <revision>0.3.4
     </revision>
 
