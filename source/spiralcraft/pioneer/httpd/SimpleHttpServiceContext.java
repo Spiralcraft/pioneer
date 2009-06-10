@@ -2050,8 +2050,6 @@ public class SimpleHttpServiceContext
     throws LifecycleException
   {
     loadWebXML();
-    startServlets();
-    startFilters();
     startListeners();
     if (_listeners!=null)
     { 
@@ -2059,6 +2057,8 @@ public class SimpleHttpServiceContext
       { listener.contextInitialized(new ServletContextEvent(this));
       }
     }
+    startFilters();
+    startServlets();
   }
   
   private void loadWebXML()
@@ -2278,15 +2278,11 @@ public class SimpleHttpServiceContext
     _running=false;
     
     
-    if (_listeners!=null)
-    { 
-      for (ServletContextListener listener:_listeners)
-      { listener.contextDestroyed(new ServletContextEvent(this));
-      }
-    }
     
-    stopFilters();
     stopServlets();
+    stopFilters();
+
+
     
     if (localAccessLog!=null)
     { 
@@ -2303,6 +2299,13 @@ public class SimpleHttpServiceContext
         && (_sessionManager instanceof SimpleHttpSessionManager)
         )
     { ((SimpleHttpSessionManager) _sessionManager).stop();
+    }
+    
+    if (_listeners!=null)
+    { 
+      for (ServletContextListener listener:_listeners)
+      { listener.contextDestroyed(new ServletContextEvent(this));
+      }
     }
     
     if (contextClassLoader!=null && !useURLClassLoader)
