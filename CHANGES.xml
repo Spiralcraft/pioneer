@@ -3,6 +3,32 @@
   >
   
   <scm:Change>
+    <revision>0.3.5
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2009-06-10
+    </date>
+    
+    <notes>
+      <scm:Note>Start Listeners, Filters and Servlets in that order
+      </scm:Note>
+    </notes>
+    
+    
+    <path>/source/spiralcraft/pioneer/httpd/
+    </path>
+        
+    <resources>
+      <URI>SimpleHttpServiceContext.java
+      </URI>
+    </resources>
+
+  </scm:Change>  
+  
+  <scm:Change>
     <revision>0.3.4.1
     </revision>
 
