@@ -1,9 +1,10 @@
 show();
-cookie="__utmz=188933353.1211169530.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utma=188933353.1420501554.1211169530.1211169530.1211169530.1; spiralSessionId=G21LXXK3UBXPHVDUT9B6";
+cookie="__utmz=188933353.1211169530.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utma=188933353.1420501554.1211169530.1211169530.1211169530.1; spiralSessionId=G21LXXK3UBXPHVDUT9B6; login; foo=bar";
 parser=new spiralcraft.pioneer.httpd.CookieParser(cookie);
 
 cookies=parser.parse();
 cookies.get(0).getName()+" = "+cookies.get(0).getValue();
 cookies.get(1).getName()+" = "+cookies.get(1).getValue();
 cookies.get(2).getName()+" = "+cookies.get(2).getValue();
+cookies.get(3).getName()+" = "+cookies.get(3).getValue();
 

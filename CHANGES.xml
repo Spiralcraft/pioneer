@@ -3,6 +3,33 @@
   >
   
   <scm:Change>
+    <revision>0.3.5.1
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2009-06-19
+    </date>
+    
+    <notes>
+      <scm:Note>Cookie parse corner case bug- valueless cookie header attribute 
+        has no '=' in ie.
+      </scm:Note>
+    </notes>
+    
+    
+    <path>/source/spiralcraft/pioneer/httpd/
+    </path>
+        
+    <resources>
+      <URI>CookieParser.java
+      </URI>
+    </resources>
+
+  </scm:Change> 
+    
+  <scm:Change>
     <revision>0.3.5
     </revision>
 
