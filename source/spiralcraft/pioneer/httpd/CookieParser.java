@@ -70,7 +70,8 @@ public class CookieParser
     {
       String versionAttr=readUntil('=');
       if (!"$version".equalsIgnoreCase(versionAttr))
-      { throw new ParseException("Cookie: Expected '$version', found '"+versionAttr+"'",pos);
+      { throw new ParseException
+          ("Cookie: Expected '$version', found '"+versionAttr+"'",pos);
       }
       version=Integer.parseInt(readUntil(';').trim());
     }
@@ -97,6 +98,10 @@ public class CookieParser
     if (attr==null)
     { throw new ParseException("Cookie: No attribute found",pos);
     }
+    
+    // Discard valueless attributes
+    String[] otherAttrs=attr.split(";");
+    attr=otherAttrs[otherAttrs.length-1];
     attr=attr.trim();
     
     String valspec=readUntil(';');
