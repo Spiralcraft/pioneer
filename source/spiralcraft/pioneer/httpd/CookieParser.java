@@ -132,7 +132,14 @@ public class CookieParser
       if (cookie!=null)
       { result.add(cookie);
       }
-      cookie=new Cookie(attr,valspec);
+      try
+      { cookie=new Cookie(attr,valspec);
+      }
+      catch (IllegalArgumentException x)
+      { 
+        throw new IllegalArgumentException
+          ("Error parsing cookie header ["+header+"]",x);
+      }
       if (version!=null)
       { cookie.setVersion(version);
       }
