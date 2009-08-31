@@ -1,6 +1,32 @@
 <scm:Change.list
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
+  <scm:Change>
+    <revision>0.3.5.2
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2009-08-31
+    </date>
+    
+    <notes>
+      <scm:Note>Cookie parse exception prints header value to aid in
+        corner case discovery.
+      </scm:Note>
+    </notes>
+    
+    
+    <path>/source/spiralcraft/pioneer/httpd/
+    </path>
+        
+    <resources>
+      <URI>CookieParser.java
+      </URI>
+    </resources>
+
+  </scm:Change> 
   
   <scm:Change>
     <revision>0.3.5.1
