@@ -32,6 +32,7 @@ import spiralcraft.pioneer.pool.ResourceFactory;
 import spiralcraft.pioneer.pool.Pool;
 
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
@@ -182,7 +183,8 @@ public class QueueConnectionHandler
     }
   }
 
-  private static int _handlerCount=0;
+  private static final AtomicInteger _handlerCount
+    =new AtomicInteger(0);
 
   class DispatchThread
     extends Thread
@@ -284,7 +286,7 @@ public class QueueConnectionHandler
 
 		public ConnectionHandlerThread(ConnectionHandler handler)
 		{ 
-      super("ConnectionHandler"+_handlerCount++);
+      super("ConnectionHandler"+_handlerCount.getAndIncrement());
       _handler=handler;
       
 		}
