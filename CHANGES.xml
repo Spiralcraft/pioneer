@@ -2,6 +2,33 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.3.5.3
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>?????
+    </date>
+    
+    <notes>
+      <scm:Note>Made thread id variable an AtomicInteger to ensure
+        uniqueness.
+      </scm:Note>
+    </notes>
+    
+    
+    <path>/source/spiralcraft/pioneer/net/
+    </path>
+        
+    <resources>
+      <URI>QueueConnectionHandler.java
+      </URI>
+    </resources>
+
+  </scm:Change> 
+
+  <scm:Change>
     <revision>0.3.5.2
     </revision>
 
