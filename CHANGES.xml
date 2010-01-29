@@ -2,6 +2,38 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.3
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>?????
+    </date>
+    
+    <notes>
+      <scm:Note>Multiple patterns in servlet/filter mapping
+      </scm:Note>
+      <scm:Note>Sync with core 0.4.3
+      </scm:Note>
+    </notes>
+    
+    
+    <path>/source/spiralcraft/pioneer/httpd/
+    </path>
+        
+    <resources>
+      <URI>PatternMapping.java
+      </URI>
+      <URI>SimpleHttpServiceContext.java
+      </URI>
+      <URI>WebXMLConfigurator.java
+      </URI>
+    </resources>
+
+  </scm:Change> 
+
+  <scm:Change>
     <revision>0.3.5.3
     </revision>
 

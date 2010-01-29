@@ -6,5 +6,7 @@
 	<classpathentry kind="lib" path="lib/spiralcraft-net.jar"/>
 	<classpathentry kind="lib" path="lib/spiralcraft-core.jar"/>
 	<classpathentry kind="lib" path="lib/spiralcraft-servlet.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/spiralcraft-modules-core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/spiralcraft-modules-servlet"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
