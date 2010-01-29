@@ -15,6 +15,7 @@
 package spiralcraft.pioneer.httpd;
 
 import spiralcraft.log.ClassLog;
+import spiralcraft.util.ArrayUtil;
 
 /**
  * Maps a path to a filter or servlet
@@ -23,14 +24,14 @@ public class PatternMapping
 {
   protected final ClassLog log=ClassLog.getInstance(getClass());
   private String name;
-  private String urlPattern;
+  private String[] urlPatterns;
   private boolean debug;
   
   
   public PatternMapping(String name,String urlPattern)
   { 
     this.name=name;
-    this.urlPattern=urlPattern;
+    addURLPattern(urlPattern);
   
   }
   
@@ -47,15 +48,33 @@ public class PatternMapping
   }
   
   public void setURLPattern(String urlPattern)
-  { this.urlPattern=urlPattern;
+  { this.urlPatterns=new String[] {urlPattern};
   }
   
-  public String getURLPattern()
-  { return urlPattern;
+  public void addURLPattern(String urlPattern)
+  { this.urlPatterns=ArrayUtil.append(urlPatterns,urlPattern);
   }
   
-    
+  public void setURLPatterns(String[] urlPatterns)
+  { this.urlPatterns=urlPatterns;
+  }
+
+  public String[] getURLPatterns()
+  { return urlPatterns;
+  }
+  
   public boolean matchesPattern(String uri)
+  {
+    for (String pattern:urlPatterns)
+    {
+      if (matchesPattern(pattern,uri))
+      { return true;
+      }
+    }
+    return false;
+  }
+    
+  public boolean matchesPattern(String urlPattern,String uri)
   {
     boolean matches=false;
     if (urlPattern.equals("/*"))

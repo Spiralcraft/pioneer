@@ -660,10 +660,8 @@ public class SimpleHttpServiceContext
 
   /**
    * Log an error
-   * @deprecated
    *@deprecated
    */
-  @SuppressWarnings("deprecation")
   @Deprecated
   public void log(Exception x,String msg)
   { log.log(Level.SEVERE,msg,x);
@@ -711,7 +709,6 @@ public class SimpleHttpServiceContext
    * Deprecated
    * @deprecated
    */  
-  @SuppressWarnings("deprecation")
   @Deprecated
   public Enumeration<Servlet> getServlets()
   { 
@@ -723,7 +720,6 @@ public class SimpleHttpServiceContext
    * Deprecated
    * @deprecated
    */
-  @SuppressWarnings("deprecation")
   @Deprecated
   public Enumeration<String> getServletNames()
   { 
@@ -735,7 +731,6 @@ public class SimpleHttpServiceContext
    * Deprecated
    *@deprecated
    */
-  @SuppressWarnings("deprecation")
   @Deprecated
   public Servlet getServlet(String name)
   { 
@@ -1698,46 +1693,53 @@ public class SimpleHttpServiceContext
   
   public void setServletMapping(PatternMapping mapping)
   {
-    if (mapping.getURLPattern().startsWith("*."))
-    { 
-      if (_suffixServletNameMap==null)
-      { _suffixServletNameMap=new HashMap<String,String>();
+    String[] patterns=mapping.getURLPatterns();
+    for (String pattern:patterns)
+    {
+      if (debug)
+      { log.fine("Servlet mapping "+pattern+" -> "+mapping.getName());
       }
+       
+      if (pattern.startsWith("*."))
+      { 
+        if (_suffixServletNameMap==null)
+        { _suffixServletNameMap=new HashMap<String,String>();
+        }
 
-      _suffixServletNameMap.put
-        (mapping.getURLPattern().substring(2)
-        ,mapping.getName()
-        );
-    }
-    else if (mapping.getURLPattern().equals("/"))
-    { _defaultServletName=mapping.getName();
-    }
-    else if (mapping.getURLPattern().startsWith("/")
-              && mapping.getURLPattern().endsWith("/*")
-              )
-    { 
-      if (_prefixServletNameMap==null)
-      { _prefixServletNameMap=new HashMap<String,String>();
+        _suffixServletNameMap.put
+          (pattern.substring(2)
+          ,mapping.getName()
+          );
       }
+      else if (pattern.equals("/"))
+      {  _defaultServletName=mapping.getName();
+      }
+      else if (pattern.startsWith("/")
+                && pattern.endsWith("/*")
+                )
+      { 
+        if (_prefixServletNameMap==null)
+        { _prefixServletNameMap=new HashMap<String,String>();
+        }
       
-      // XXX Doesn't conform to spec yet
-      _prefixServletNameMap.put
-        (mapping.getURLPattern().substring
-          (1,mapping.getURLPattern().length()-2)
-        ,mapping.getName()
-        );
-    }
-    else
-    { 
-      // XXX Doesn't conform to spec yet
-      String name=mapping.getName();
-      if (name.startsWith("/"))
-      { name=name.substring(1);
+        // XXX Doesn't conform to spec yet
+        _prefixServletNameMap.put
+          (pattern.substring
+            (1,pattern.length()-2)
+          ,mapping.getName()
+          );
       }
-      _prefixServletNameMap.put
-        (mapping.getURLPattern(),name);
+      else
+      { 
+        // XXX Doesn't conform to spec yet
+        String name=mapping.getName();
+        if (name.startsWith("/"))
+        { name=name.substring(1);
+        }
+        _prefixServletNameMap.put
+          (pattern,name);
+      }
     }
-
   
   }
   

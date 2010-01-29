@@ -370,7 +370,7 @@ public class WebXMLConfigurator
             public void close(Element element)
             { 
               super.close(element);
-              PatternMappingReader.this.get().setURLPattern(get());
+              PatternMappingReader.this.get().addURLPattern(get());
             }
           }
         );
