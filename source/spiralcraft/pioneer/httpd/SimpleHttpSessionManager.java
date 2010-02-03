@@ -12,6 +12,7 @@
 // Unless otherwise agreed to in writing, this software is distributed on an
 // "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
 //
+
 package spiralcraft.pioneer.httpd;
 
 import javax.servlet.ServletContext;
@@ -42,6 +43,9 @@ import spiralcraft.pioneer.telemetry.Meterable;
 
 
 @SuppressWarnings("deprecation")
+/**
+ * Manages sessions
+ */
 public class SimpleHttpSessionManager
   implements HttpSessionManager
             ,HttpSessionContext
