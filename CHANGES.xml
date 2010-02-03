@@ -2,7 +2,7 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
-    <revision>0.4.3
+    <revision>0.4.4
     </revision>
 
     <authorId>miketoth
@@ -14,7 +14,7 @@
     <notes>
       <scm:Note>Multiple patterns in servlet/filter mapping
       </scm:Note>
-      <scm:Note>Sync with core 0.4.3
+      <scm:Note>Sync with core 0.4.4
       </scm:Note>
     </notes>
     
