@@ -2,6 +2,32 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.4.1
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2010-02-03
+    </date>
+    
+    <notes>
+      <scm:Note>Fix NPE in PatternMapping.addUrlPattern()
+      </scm:Note>
+    </notes>
+    
+    
+    <path>/source/spiralcraft/pioneer/httpd/
+    </path>
+        
+    <resources>
+      <URI>PatternMapping.java
+      </URI>
+    </resources>
+
+  </scm:Change> 
+
+  <scm:Change>
     <revision>0.4.4
     </revision>
 
