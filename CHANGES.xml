@@ -8,11 +8,17 @@
     <authorId>miketoth
     </authorId>
     
-    <date>?????
+    <date>2010-02-03
     </date>
     
     <notes>
       <scm:Note>Multiple patterns in servlet/filter mapping
+      </scm:Note>
+      <scm:Note>FileServlet has been moved into the spiralcraft-servlet
+        module.
+      </scm:Note>
+      <scm:Note>RangeHeader has been moved into the spiralcraft-net
+        module.
       </scm:Note>
       <scm:Note>Sync with core 0.4.4
       </scm:Note>
@@ -28,6 +34,10 @@
       <URI>SimpleHttpServiceContext.java
       </URI>
       <URI>WebXMLConfigurator.java
+      </URI>
+      <URI>FileServlet.java
+      </URI>
+      <URI>RangeHeader.java
       </URI>
     </resources>
 
