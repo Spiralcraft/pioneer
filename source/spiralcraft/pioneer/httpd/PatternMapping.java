@@ -52,7 +52,13 @@ public class PatternMapping
   }
   
   public void addURLPattern(String urlPattern)
-  { this.urlPatterns=ArrayUtil.append(urlPatterns,urlPattern);
+  { 
+    if (this.urlPatterns==null)
+    { this.urlPatterns=new String[] {urlPattern};
+    }
+    else
+    { this.urlPatterns=ArrayUtil.append(urlPatterns,urlPattern);
+    }
   }
   
   public void setURLPatterns(String[] urlPatterns)
