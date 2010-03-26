@@ -16,6 +16,9 @@
     
     <dependency org="spiralcraft" name="servlet" rev="[0.4.4,)"/>
 
+    
+    <dependency org="java" name="servlet-api" rev="2.4"/>
+        
     <dependency org="spiralcraft" name="launcher" rev="latest.integration"/>
 
     <exclude artifact="spiralcraft-core-test"/>

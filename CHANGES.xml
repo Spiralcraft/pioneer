@@ -2,6 +2,34 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.7
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2010-03-26
+    </date>
+    
+    <notes>
+      <scm:Note>Debugging messages for "war" dir related resolution.
+      </scm:Note>
+      <scm:Note>Warnings cleanup
+      </scm:Note>
+    </notes>
+    
+    
+    <path>/source/spiralcraft/pioneer/httpd/
+    </path>
+        
+    <resources>
+      <URI>SimpleHttpServiceContext.java
+      </URI>
+    </resources>
+
+  </scm:Change> 
+
+  <scm:Change>
     <revision>0.4.4.1
     </revision>
 
