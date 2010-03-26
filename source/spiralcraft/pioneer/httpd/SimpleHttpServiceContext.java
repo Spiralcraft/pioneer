@@ -2080,6 +2080,12 @@ public class SimpleHttpServiceContext
           }
         }
       }
+      else
+      { 
+        if (debug)
+        { log.debug("Resource "+docRoot+" is not a container");
+        }
+      }
     }
     catch (Exception x)
     { throw new LifecycleException("Error loading web.xml",x);
@@ -2237,6 +2243,11 @@ public class SimpleHttpServiceContext
         { 
           if (!useURLClassLoader)
           {
+            if (debug)
+            {
+              log.log
+                (Level.DEBUG,"Loading WARClassloader from "+warRoot.getURI());
+            }            
             WARClassLoader contextClassLoader=new WARClassLoader(warRoot);
             if (debugWAR)
             { contextClassLoader.setDebug(true);
@@ -2249,6 +2260,16 @@ public class SimpleHttpServiceContext
             ServletURLClassLoader contextClassLoader
               =new ServletURLClassLoader(warRoot);
             this.contextClassLoader=contextClassLoader;
+          }
+        }
+        else
+        {
+          if (debug)
+          {
+            log.log
+              (Level.DEBUG,warRoot.getURI()+" does not exist "
+                +", not loading WAR ClassLoader"
+             );
           }
         }
       }
