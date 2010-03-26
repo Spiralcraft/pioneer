@@ -472,7 +472,6 @@ public class HttpServerRequest
    * @deprecated
    * @deprecated
    */
-  @SuppressWarnings("deprecation")
   @Deprecated
   public boolean isRequestedSessionIdFromUrl()
 	{ return _sessionFromUrl;

@@ -289,7 +289,6 @@ public class HttpServerResponse
     return _headerMap.get(name)!=null;
   }
 
-  @SuppressWarnings("deprecation")
   @Deprecated
   public String encodeRedirectUrl(String url)
   { 
@@ -299,7 +298,6 @@ public class HttpServerResponse
     return url;
   }
   
-  @SuppressWarnings("deprecation")
   @Deprecated
   public String encodeUrl(String url)
   { 
@@ -402,7 +400,6 @@ public class HttpServerResponse
     _reason=_statusMap.get(new Integer(code));
   }
 
-  @SuppressWarnings("deprecation")
   @Deprecated
   public void setStatus(int code,String message)
   {

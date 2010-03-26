@@ -197,7 +197,6 @@ public abstract class AbstractHttpServletRequest
   /**
    *@deprecated
    */
-	@SuppressWarnings("deprecation")
   @Deprecated
   public String getRealPath(String alias)
 	{ return _context.getRealPath(alias);
