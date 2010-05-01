@@ -1449,7 +1449,7 @@ public class SimpleHttpServiceContext
   { return _servletContextName;
   }
 
-    /**
+  /**
    * Returns a directory-like listing of all the paths to resources within
    *  the web application whose longest sub-path matches the supplied path
    *  argument. Paths indicating subdirectory paths end with a '/'. The
