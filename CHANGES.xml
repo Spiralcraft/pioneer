@@ -2,6 +2,32 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.9
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2010-07-???
+    </date>
+    
+    <notes>
+      <scm:Note>Fully implement servlet path mapping according to spec by
+        iteratively searching for the longest path match
+      </scm:Note>
+    </notes>
+    
+    <path>source/spiralcraft/pioneer/httpd/
+    </path>
+    
+    <resources>
+      <URI>SimpleHttpServiceContext.java
+      </URI>
+    </resources>
+
+  </scm:Change> 
+
+  <scm:Change>
     <revision>0.4.8
     </revision>
 
