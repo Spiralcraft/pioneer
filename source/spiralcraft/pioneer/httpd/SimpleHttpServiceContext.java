@@ -1035,7 +1035,6 @@ public class SimpleHttpServiceContext
     // All requests paths 'contained' within this path will be handled
     //   by the Servlet.
     //
-    String servletAlias=null;
     String servletPath=null;
     
     if (debug)
@@ -1047,32 +1046,38 @@ public class SimpleHttpServiceContext
         );
     } 
     
-    if (request.getPathInfo()!=null)
+    String servletName=null;
+    String pathInfo=request.getPathInfo();
+    if (pathInfo!=null)
     {
-      servletAlias
-        =new Path(request.getPathInfo(),'/').firstElement();
-    }
-    
-    if (servletAlias!=null)
-    {
-      if (request.getPathInfo().length()>servletAlias.length())
-      {
-        // There is a path following the servlet name
-        servletPath
-          =request.getPathInfo().substring
-            (0,servletAlias.length()+1);
-      }
-      else
-      { 
-        // The servlet path is simply the path info
-        servletPath=request.getPathInfo();
-      }
-    }
+      Path path=new Path(pathInfo,'/').trim();
+      String pathString=null;
       
-    if (debug)
-    { log.log(Level.DEBUG,"Checking servlet map for '"+servletAlias+"'");
+      while (path.size()>0
+             && (servletName=getServletNameForAlias
+                   ( pathString=path.format('/')
+                   )
+                )==null
+             )
+      { 
+        if (debug)
+        { log.log(Level.DEBUG,"Checked servlet map for '"+pathString+"'");
+        }   
+        path=path.parentPath().trim();
+     
+      }
+      
+      if (servletName!=null)
+      { 
+        if (debug)
+        { log.log(Level.DEBUG,"Found servlet map for '"+pathString+"'");
+        }   
+        
+        servletPath='/'+pathString;
+      }
     }
-    String servletName=getServletNameForAlias(servletAlias);
+          
+
     if (servletName==null)
     { 
       // No servlet mapping for the path component
@@ -1735,6 +1740,9 @@ public class SimpleHttpServiceContext
         String name=mapping.getName();
         if (name.startsWith("/"))
         { name=name.substring(1);
+        }
+        if (name.endsWith("/"))
+        { name=name.substring(0,name.length()-1);
         }
         _prefixServletNameMap.put
           (pattern,name);
