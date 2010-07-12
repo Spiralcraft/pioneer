@@ -11,7 +11,7 @@
       
   <serviceContext>
     <here:JAMWikiContext>
-      <documentRoot>/work/opt/jamwiki
+      <documentRoot>../../../../../../integration-tests/jamwiki-0.6.7-clean/war
       </documentRoot>
 
       <accessLog>
