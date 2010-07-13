@@ -242,9 +242,7 @@ public class HttpServerResponse
     if (_writer!=null)
     { _writer.flush();
     }
-    else
-    { _outputStream.flush();
-    }
+    _outputStream.flush();
   }
 
   public void setBufferSize(int bufferSize)
@@ -371,9 +369,7 @@ public class HttpServerResponse
     if (_writer!=null)
     { _writer.flush();
     }
-    else
-    { _outputStream.flush();
-    }
+    _outputStream.flush();
   }
 
   public void setLocale(Locale locale)
@@ -810,22 +806,23 @@ public class HttpServerResponse
 //     Flushing the -writer- doesn't seem to work very well, so leaving it 
 //      out.
     
-    if(_writer!=null)
+    if (_writer!=null)
     { _writer.flush();
     }
-    else
-    {
     
-      try
-      { _outputStream.flush();
-      }
-      catch (IOException x)
-      { 
-        _log.log(Level.DEBUG
-                ,"Finishing response- flushing stream "+x.toString()
-                );
-      }
+    // XXX We always need to call _outputStream.flush() because
+    //   the writer doesn't always call it
+    
+    try
+    { _outputStream.flush();
     }
+    catch (IOException x)
+    { 
+      _log.log(Level.DEBUG
+              ,"Finishing response- flushing stream "+x.toString()
+              );
+    }
+    
 
 
     if (_shouldClose)
