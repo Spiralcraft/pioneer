@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="WINDOWS-1252"?>
+<service:Daemon 
+  xmlns:service="class:/spiralcraft/service" 
+  xmlns:httpd="class:/spiralcraft/pioneer/httpd" 
+  xmlns:net="class:/spiralcraft/pioneer/net"
+  xmlns:here="./"
+  >
+
+  
+  <services>
+  
+    <here:HttpService>
+
+           
+      <listeners>
+        <net:Listener>
+
+          <port>8080
+          </port>
+
+        </net:Listener>
+      </listeners>
+      
+      <debugProtocol>false
+      </debugProtocol>
+      
+      <debugService>false
+      </debugService>
+      
+      <debugIO>false
+      </debugIO>
+      
+      <debugAPI>false
+      </debugAPI>
+
+      <traceDir>httpd-trace
+      </traceDir>
+    </here:HttpService>
+  </services>
+</service:Daemon>
+    

@@ -10,8 +10,8 @@
   </listeners>
       
   <serviceContext>
-    <here:JAMWikiContext>
-      <documentRoot>../../../../../../integration-tests/jamwiki-0.6.7-clean/war
+    <here:JTracContext>
+      <documentRoot>../../../../../../integration-tests/jtrac-2.1.0-clean/war
       </documentRoot>
 
       <accessLog>
@@ -23,7 +23,7 @@
 
       <debug>false
       </debug>
-    </here:JAMWikiContext>
+    </here:JTracContext>
 
   </serviceContext>
 </httpd:HttpService>
