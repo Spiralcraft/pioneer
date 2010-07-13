@@ -12,15 +12,7 @@
   </debugWAR>
       
   <servletMappings>
-<!-- 
-    <httpd:ServletMapping>
-      <URLPattern>*.jsp
-      </URLPattern>
-          
-      <servletName>jsp
-      </servletName>
-    </httpd:ServletMapping>
--->
+
 
     <httpd:ServletMapping>
       <servletName>file
@@ -33,62 +25,7 @@
   </servletMappings>
       
   <servletHolders>
-<!-- 
-    <httpd:ServletHolder>
-      <servletName>jsp
-      </servletName>
-          
-      <servletClass>org.apache.jasper.servlet.JspServlet
-      </servletClass>
-          
-      <initParameters>
-        <httpd:InitParameter>
-          <name>fork
-          </name>
-              
-          <value>false
-          </value>
-        </httpd:InitParameter>
 
-        <httpd:InitParameter>
-          <name>xPoweredBy
-          </name>
-          
-          <value>false
-          </value>
-        </httpd:InitParameter>
-                
-        <httpd:InitParameter>
-          <name>scratchdir
-          </name>
-              
-          <value>./jspscratch
-          </value>
-        </httpd:InitParameter>
- 
-        <httpd:InitParameter>
-          <name>sendErrToClient
-          </name>
-              
-          <value>true
-          </value>
-        </httpd:InitParameter>
-
- 
-        <httpd:InitParameter>
-          <name>logVerbosityLevel
-          </name>
-              
-          <value>ALL
-          </value>
-        </httpd:InitParameter>
-
-      </initParameters>
-          
-      <loadOnStartup>0
-      </loadOnStartup>
-    </httpd:ServletHolder>
--->        
     <httpd:ServletHolder>
                             
       <servletName>file

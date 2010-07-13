@@ -1,0 +1,20 @@
+<project name="spiralcraft-examples-web-run" default="launch" basedir=".">
+
+
+<!--    vmargs="-agentlib:/apps/eclipse/plugins/org.eclipse.tptp.platform.jvmti.runtime_4.5.1.v200909141324/agent_files/win_ia32/JPIBootLoader=JPIAgent:server=enabled;CGProf:execdetails=true
+      -XX:+UnlockDiagnosticVMOptions -XX:+PrintCompilation" 
+      vmargs="-Dspiralcraft.vfs.context.ContextResourceMap.debugLevel=FINE"
+-->  
+  <target name="launch">
+    <devdaemon 
+      env="httpd.dev"
+      codebase="../.."
+
+    />
+      
+  </target>
+
+
+  <import file="../../build.xml"/>
+</project>
+  
