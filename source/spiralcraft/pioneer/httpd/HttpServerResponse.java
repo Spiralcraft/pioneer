@@ -242,7 +242,9 @@ public class HttpServerResponse
     if (_writer!=null)
     { _writer.flush();
     }
-    _outputStream.flush();
+    else
+    { _outputStream.flush();
+    }
   }
 
   public void setBufferSize(int bufferSize)
@@ -369,7 +371,9 @@ public class HttpServerResponse
     if (_writer!=null)
     { _writer.flush();
     }
-    _outputStream.flush();
+    else
+    { _outputStream.flush();
+    }
   }
 
   public void setLocale(Locale locale)
@@ -802,22 +806,25 @@ public class HttpServerResponse
     { _log.fine("Flushing  outputStream");
     }
 
-    // 
-    // Flushing the -writer- doesn't seem to work very well, so leaving it 
-    //  out.
-    //
-    // if(writer!=null)
-    // { writer.flush();
-    // }
+     
+//     Flushing the -writer- doesn't seem to work very well, so leaving it 
+//      out.
     
-    try
-    { _outputStream.flush();
+    if(_writer!=null)
+    { _writer.flush();
     }
-    catch (IOException x)
-    { 
-      _log.log(Level.DEBUG
-              ,"Finishing response- flushing stream "+x.toString()
-              );
+    else
+    {
+    
+      try
+      { _outputStream.flush();
+      }
+      catch (IOException x)
+      { 
+        _log.log(Level.DEBUG
+                ,"Finishing response- flushing stream "+x.toString()
+                );
+      }
     }
 
 
