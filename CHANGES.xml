@@ -15,6 +15,9 @@
       <scm:Note>Fully implement servlet path mapping according to spec by
         iteratively searching for the longest path match
       </scm:Note>
+      <scm:Note>Flush the Writer, if created, when closing a response instead 
+        of just the OutputStream, as per spec.
+      </scm:Note>      
     </notes>
     
     <path>source/spiralcraft/pioneer/httpd/
@@ -22,6 +25,8 @@
     
     <resources>
       <URI>SimpleHttpServiceContext.java
+      </URI>
+      <URI>HttpServerResponse.java
       </URI>
     </resources>
 
