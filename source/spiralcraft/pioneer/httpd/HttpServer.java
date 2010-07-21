@@ -18,7 +18,7 @@ import spiralcraft.net.ip.AddressSet;
 import spiralcraft.pioneer.net.ConnectionHandlerFactory;
 import spiralcraft.pioneer.net.ConnectionHandler;
 
-import spiralcraft.common.Lifecycle;
+import spiralcraft.app.spi.AbstractComponent;
 import spiralcraft.common.LifecycleException;
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
@@ -44,10 +44,10 @@ import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
 
 public class HttpServer
+  extends AbstractComponent
   implements
     ConnectionHandlerFactory
     ,Meterable
-    ,Lifecycle
 {
   public static final String DEBUG_PROTOCOL
     ="spiralcraft.pioneer.httpd.protocol";
@@ -219,6 +219,7 @@ public class HttpServer
         }
       }
       started=true;
+      super.start();
     }
     finally
     { notifyAll();
@@ -231,6 +232,7 @@ public class HttpServer
     throws LifecycleException
   { 
     stopping=true;
+    super.stop();
     started=false;
     try
     {

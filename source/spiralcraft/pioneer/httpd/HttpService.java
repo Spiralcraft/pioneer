@@ -19,7 +19,6 @@ import spiralcraft.pioneer.net.QueueConnectionHandler;
 import spiralcraft.pioneer.net.Listener;
 
 
-import spiralcraft.registry.RegistryNode;
 import spiralcraft.service.Service;
 import spiralcraft.common.LifecycleException;
 
@@ -43,10 +42,6 @@ public class HttpService
   
   public QueueConnectionHandler getHandlerQueue()
   { return handlerQueue;
-  }
-  
-  public void register(RegistryNode node)
-  { 
   }
   
   @Override
