@@ -269,7 +269,8 @@ public class DispatchServerRequest
   /** 
    *@deprecated
    */
-	@Deprecated
+	@SuppressWarnings("deprecation")
+  @Deprecated
   public boolean isRequestedSessionIdFromUrl()
 	{ return containingRequest.isRequestedSessionIdFromUrl();
 	}
