@@ -2,6 +2,27 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.10.1
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2010-07-24
+    </date>
+    
+    <notes>
+      <scm:Note>Fix spurious debug messages when apps use high level
+        request parameter api
+      </scm:Note>
+    </notes>
+    
+    <path>source/spiralcraft/pioneer/httpd/AbstractHttpServletRequest.java
+    </path>
+
+  </scm:Change> 
+
+  <scm:Change>
     <revision>0.4.10
     </revision>
 
