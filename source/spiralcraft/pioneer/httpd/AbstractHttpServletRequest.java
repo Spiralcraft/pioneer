@@ -478,7 +478,7 @@ public abstract class AbstractHttpServletRequest
                 (getContentLength()
                 ,getInputStream()
                 );
-          if (_log.canLog(Level.DEBUG))
+          if (getHttpServer().getDebugService())
           { _log.log(Level.DEBUG,"Read post: ["+_post.toString()+"]");
           }
         }
