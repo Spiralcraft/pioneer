@@ -8,18 +8,18 @@
   </publications> 
     
   <dependencies>
-    <dependency org="spiralcraft" name="core" rev="[0.4.8,)"/>
+    <dependency org="spiralcraft" name="core" rev="[0.4.10,)"/>
 
-    <dependency org="spiralcraft" name="net" rev="[0.4.8,)"/>
+    <dependency org="spiralcraft" name="net" rev="[0.4.10,)"/>
 
-    <dependency org="spiralcraft" name="textgen" rev="[0.4.8,)"/>
+    <dependency org="spiralcraft" name="textgen" rev="[0.4.10,)"/>
     
-    <dependency org="spiralcraft" name="servlet" rev="[0.4.8,)"/>
+    <dependency org="spiralcraft" name="servlet" rev="[0.4.10,)"/>
 
     
     <dependency org="java" name="servlet-api" rev="2.4"/>
         
-    <dependency org="spiralcraft" name="launcher" rev="latest.integration"/>
+    <dependency org="spiralcraft" name="launcher" rev="[0.4.10,)"/>
 
     <exclude artifact="spiralcraft-core-test"/>
     <exclude artifact="spiralcraft-textgen-test"/>
