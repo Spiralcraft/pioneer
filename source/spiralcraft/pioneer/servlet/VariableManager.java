@@ -53,16 +53,20 @@ public class VariableManager
       if (eqpos>0 && eqpos<pair.length()-1)
       {
         String name=URLCodec.decode(pair.substring(0,eqpos));
-        String[] rawValues=pair.substring(eqpos+1).split(",");
+        
+        // Commas as a value delimiter are non-conformant
+        // String[] rawValues=pair.substring(eqpos+1).split(",");
+        String rawValue=pair.substring(eqpos+1);
         ArrayList<String> valueList=buf.get(name);
         if (valueList==null)
         { 
           valueList=new ArrayList<String>();
           buf.put(name,valueList);
         }
-        for (String rawValue:rawValues)
-        { valueList.add(URLCodec.decode(rawValue));
-        }
+        //for (String rawValue:rawValues)
+        //{ 
+          valueList.add(URLCodec.decode(rawValue));
+        //}
       }
     }
     
@@ -86,7 +90,7 @@ public class VariableManager
 		if (request.getMethod().equals("POST"))
     {
       return VariableManager.fromStream
-        (request.getIntHeader("Content-length")
+        (request.getIntHeader("Content-Length")
         ,request.getInputStream()
         );
     }
