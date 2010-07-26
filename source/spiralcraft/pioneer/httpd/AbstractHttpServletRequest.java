@@ -103,6 +103,7 @@ public abstract class AbstractHttpServletRequest
   protected long _startTime;	
   protected HttpServer _httpServer;
   protected String _characterEncoding;
+  protected ContentTypeHeader _contentType;
   protected RequestSource _source;
 
   protected ClassLog _log
@@ -129,6 +130,8 @@ public abstract class AbstractHttpServletRequest
     _post=null;
     _servletPath="";
     _contextPath="";
+    _contentType=null;
+    _characterEncoding=null;
 	  _attributes.clear();
     _startTime=Clock.instance().approxTimeMillis();
 
@@ -390,7 +393,30 @@ public abstract class AbstractHttpServletRequest
 	}
 	
 	public String getContentType()
-	{ return getHeader("Content-Type");
+	{ 
+    if (_contentType==null)
+    { 
+      String header=getHeader("Content-Type");
+      try
+      {
+        if (header!=null)
+        { parseContentType(header);
+        }
+        else
+        { 
+          //log.fine("No content type header");
+          return null;
+        }
+      }
+      catch (IOException x)
+      { log.log(Level.WARNING,"Error parsing Content-Type: "+header,x);
+      }
+
+    }
+    
+    String ret=_contentType!=null?_contentType.getRawValue():null;
+    // log.fine("getContentType() returning "+ret);
+    return ret;
 	}
 	
   public String getCharacterEncoding()
@@ -401,12 +427,7 @@ public abstract class AbstractHttpServletRequest
       try
       {
         if (header!=null)
-        { 
-          ContentTypeHeader parsed=new ContentTypeHeader("Content-Type",header);
-          String encoding=parsed.getParameter("charset");
-          if (encoding!=null)
-          { _characterEncoding=encoding;
-          }
+        { parseContentType(header);
         }
       }
       catch (IOException x)
@@ -415,6 +436,18 @@ public abstract class AbstractHttpServletRequest
 
     }
     return _characterEncoding;
+  }
+  
+  private void parseContentType(String header)
+    throws IOException
+  {
+    ContentTypeHeader parsed=new ContentTypeHeader("Content-Type",header);
+    String encoding=parsed.getParameter("charset");
+    if (encoding!=null)
+    { _characterEncoding=encoding;
+    }
+    _contentType=parsed;
+    // log.fine("Content-Type full type: "+_contentType.getFullType());
   }
   
   public StringBuffer getRequestURL()
@@ -465,11 +498,13 @@ public abstract class AbstractHttpServletRequest
 
   private synchronized void ensurePost()
   {
+    
     if (_post==null)
     {
       if (getContentType()!=null
-          && getContentType()
+          && _contentType.getFullType()
             .equalsIgnoreCase("application/x-www-form-urlencoded")
+          && getContentLength()>0            
          )
       { 
         try
@@ -484,7 +519,10 @@ public abstract class AbstractHttpServletRequest
         }
         catch (IOException x)
         { 
-          _log.log(Level.INFO,"IOException reading post: "+x.toString());
+          _log.log
+            (Level.INFO,"IOException reading post of length "
+              +getContentLength()+": "+x.toString()
+            );
           _post=NULL_FORM;
         }
       }
