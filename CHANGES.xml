@@ -8,17 +8,31 @@
     <authorId>miketoth
     </authorId>
     
-    <date>2010-07-24
+    <date>2010-07-26
     </date>
     
     <notes>
       <scm:Note>Fix spurious debug messages when apps use high level
         request parameter api
       </scm:Note>
+      <scm:Note>Fix issue where a Content-Type header with parameters
+        (e.g. charset) isn't recognized by the the high level
+        request parameter api.
+      </scm:Note>
+      <scm:Note>Fix issue where x-www-form-urlencoded erroneously decodes
+        commas as value separators.
+      </scm:Note>
     </notes>
     
-    <path>source/spiralcraft/pioneer/httpd/AbstractHttpServletRequest.java
+    <path>source/spiralcraft/pioneer/
     </path>
+    
+    <resources>
+      <URI>httpd/AbstractHttpServletRequest.java  
+      </URI>  
+      <URI>httpd/VariableManager.java  
+      </URI>  
+    </resources>
 
   </scm:Change> 
 
