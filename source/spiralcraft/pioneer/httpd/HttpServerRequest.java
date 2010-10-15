@@ -329,10 +329,10 @@ public class HttpServerRequest
   }
 
   @Override
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public Enumeration<?> getHeaders(String name)
   {
-    List list=(List) _headerMap.get(name);
+    List<?> list=(List<?>) _headerMap.get(name);
     if (list!=null)
     { return new IteratorEnumeration(list.iterator());
     }
@@ -787,7 +787,7 @@ public class HttpServerRequest
  		_headers.add(var);
  	}
 
-  @SuppressWarnings("unchecked") // Not using generics here
+  @SuppressWarnings("rawtypes")
   private void parseCookies()
   {
     // Parse each cookie header, which can contain

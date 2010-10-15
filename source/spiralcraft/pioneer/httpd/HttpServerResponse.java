@@ -30,7 +30,6 @@ import java.io.OutputStream;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import spiralcraft.net.mime.ContentTypeHeader;
 import spiralcraft.pioneer.util.MappedList;
@@ -129,13 +128,11 @@ public class HttpServerResponse
   private String contentType;
   private String characterEncoding;
 
-  @SuppressWarnings("unchecked")
-  private final MappedList _headers=new MappedList(new ArrayList());
-  @SuppressWarnings("unchecked")
+  private final MappedList _headers=new MappedList(new ArrayList<Variable>());
   private final ListMap _headerMap
     =_headers.addMapView
       ("name"
-      ,new HashMap()
+      ,new HashMap<String,Variable>()
       ,new Translator()
         {
           @Override
@@ -715,10 +712,8 @@ public class HttpServerResponse
       _outputStream.write(_reason!=null?_reason:"");
       _outputStream.write(EOL);
 
-      Iterator it=_headers.iterator();
-      while (it.hasNext())
+      for (Variable var : (Iterable<Variable>) _headers)
       {
-        Variable var=(Variable) it.next();
         if (debugProtocol)
         { _log.log(Level.DEBUG,"<<< "+var.name+": "+var.value);
         }
@@ -730,12 +725,9 @@ public class HttpServerResponse
       }
       if (_cookies!=null)
       {
-        it=_cookies.iterator();
-        while (it.hasNext())
+        for (Cookie cookie : _cookies)
         {
 
-          
-          Cookie cookie=(Cookie) it.next();
           if (debugProtocol)
           { _log.log(Level.DEBUG,"<<< Set-Cookie: "+cookie.getName()+"="+cookie.getValue());
           }
