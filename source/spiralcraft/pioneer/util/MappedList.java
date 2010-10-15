@@ -45,7 +45,7 @@ import java.lang.UnsupportedOperationException;
  *   key by removing other values that share the key from the
  *   entire data structure.
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class MappedList
   implements List
 {
@@ -531,20 +531,24 @@ public class MappedList
       return m_lastVal;
     }
 
+    @Override
     public int nextIndex()
     { return m_it.nextIndex();
     }
 
+    @Override
     public int previousIndex()
     { return m_it.previousIndex();
     }
 
+    @Override
     public void add(Object o)
     {
       m_it.add(o);
       addValueToMaps(o);
     }
 
+    @Override
     public void set(Object o)
     {
       m_it.set(o);
@@ -553,6 +557,7 @@ public class MappedList
       m_lastVal=o;
     }
     
+    @Override
     public void remove()
     { 
       m_it.remove();
@@ -632,6 +637,7 @@ public class MappedList
   /**
    * Remove all entries
    */
+  @Override
   public void clear()
   {
     for (int i=0;i<_viewArray.length;i++)
@@ -640,10 +646,12 @@ public class MappedList
     m_list.clear();
   }
 
+  @Override
   public Object get(int index)
   { return m_list.get(index);
   }
 
+  @Override
   public Object set(int index,Object val)
   {
     Object oldval=m_list.get(index);
@@ -668,12 +676,14 @@ public class MappedList
   }
 
 
+  @Override
   public void add(int index,Object val)
   {
     m_list.add(index,val);
     addValueToMaps(val);
   }
 
+  @Override
   public boolean add(Object o)
   {
     if (m_list.add(o))
@@ -686,10 +696,12 @@ public class MappedList
     }
   }
 
+  @Override
   public boolean addAll(int i,Collection c)
   { throw new UnsupportedOperationException();
   }
 
+  @Override
   public boolean addAll(Collection c)
   { 
     boolean changed=false;
@@ -700,10 +712,12 @@ public class MappedList
     return changed;
   }
 
+  @Override
   public boolean contains(Object o)
   { return indexOf(o)>=0;
   }
 
+  @Override
   public boolean containsAll(Collection c)
   {
     Iterator i=c.iterator();
@@ -716,39 +730,48 @@ public class MappedList
     return true;
   }
 
+  @Override
   public int indexOf(Object o)
   { return m_list.indexOf(o);
   }
 
+  @Override
   public boolean isEmpty()
   { return m_list.isEmpty();
   }
 
+  @Override
   public int size()
   { return m_list.size();
   }
 
+  @Override
   public Iterator iterator()
   { return new Iter(m_list.iterator());
   }
 
+  @Override
   public int lastIndexOf(Object o)
   { return m_list.lastIndexOf(o);
   }
 
 
+  @Override
   public List subList(int first,int to)
   { return m_list.subList(first,to);
   }
 
+  @Override
   public ListIterator listIterator()
   { return new ListIter(m_list.listIterator());
   }
 
+  @Override
   public ListIterator listIterator(int i)
   { return new ListIter(m_list.listIterator(i));
   }
 
+  @Override
   public Object remove(int i)
   {
     Object oldval=m_list.remove(i);
@@ -756,6 +779,7 @@ public class MappedList
     return oldval;
   }
 
+  @Override
   public boolean remove(Object o)
   {
     boolean removed=m_list.remove(o);
@@ -765,6 +789,7 @@ public class MappedList
     return removed;
   }
 
+  @Override
   public boolean removeAll(Collection c)
   { 
     Object[] o=c.toArray();
@@ -782,6 +807,7 @@ public class MappedList
   	}
   }
 
+  @Override
   public boolean retainAll(Collection c)
   { throw new UnsupportedOperationException();
   }
@@ -790,6 +816,7 @@ public class MappedList
    * Obtain an array of all the values in the
    *   list.
    */
+  @Override
   public Object[] toArray()
   { return m_list.toArray();
   }
@@ -797,6 +824,7 @@ public class MappedList
   /**
    * Not in official interface docs.
    */
+  @Override
   public Object[] toArray(Object[] a)
   {
     Object[] a2=m_list.toArray();

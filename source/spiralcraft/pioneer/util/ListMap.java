@@ -21,7 +21,7 @@ import java.util.Map;
  *   mapping of multiple values with the same key by mapping
  *   each key to a List of values.
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings("rawtypes")
 public interface ListMap
   extends Map
 {

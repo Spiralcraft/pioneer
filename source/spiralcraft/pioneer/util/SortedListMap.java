@@ -16,7 +16,7 @@ package spiralcraft.pioneer.util;
 
 import java.util.SortedMap;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings("rawtypes")
 public interface SortedListMap
   extends ListMap,SortedMap
 {
