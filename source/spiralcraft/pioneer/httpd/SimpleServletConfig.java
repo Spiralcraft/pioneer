@@ -58,18 +58,22 @@ public class SimpleServletConfig
   { return new SimpleServletConfig(name,_context,_params);
   }
 
+  @Override
   public ServletContext getServletContext()
   { return _context;
   }
 
+  @Override
   public String getServletName()
   { return _servletName;
   }
 
+  @Override
   public String getInitParameter(String name)
   { return _params.getProperty(name);
   }
 
+  @Override
   public Enumeration<?> getInitParameterNames()
   { return _params.keys();
   }

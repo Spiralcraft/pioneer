@@ -63,6 +63,7 @@ public class RotatingLog
   { _pollIntervalMs=pollIntervalMs;
   }
 
+  @Override
   public void run()
   {
     try

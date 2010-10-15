@@ -243,7 +243,8 @@ public class Listener
   /**
    * Start the Listener in a new daemon thread.
    */
-	public void start()
+	@Override
+  public void start()
 	{
     try
     {
@@ -301,6 +302,7 @@ public class Listener
   /**
    * Handle incoming connections
    */
+  @Override
   public void run()
   {
     stopListening();

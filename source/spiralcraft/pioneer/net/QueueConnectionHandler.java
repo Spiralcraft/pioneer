@@ -75,6 +75,7 @@ public class QueueConnectionHandler
     setLowWaterThreadCount(1);
   }
 
+  @Override
   public void installMeter(Meter meter)
   { 
     _meter=meter;
@@ -88,6 +89,7 @@ public class QueueConnectionHandler
     _threadPool.installMeter(_meter.createChildMeter("pool"));
   }
 
+  @Override
   public void nextFrame(FrameEvent event)
   { _queueSizeRegister.setValue(_queue.size());
   }
@@ -158,6 +160,7 @@ public class QueueConnectionHandler
   /**
    * Implements ConnectionHandler.handleConnection()
    */
+  @Override
   public final void handleConnection(Socket sock)
   {
     
@@ -260,6 +263,7 @@ public class QueueConnectionHandler
   class ThreadFactory
     implements ResourceFactory
   {
+    @Override
     public Object createResource()
     {
       ConnectionHandlerThread thread
@@ -270,6 +274,7 @@ public class QueueConnectionHandler
       return thread;
     }
 
+    @Override
     public void discardResource(Object resource)
     {
       ((ConnectionHandlerThread) resource).finish();

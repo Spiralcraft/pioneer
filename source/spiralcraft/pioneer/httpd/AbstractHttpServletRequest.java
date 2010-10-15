@@ -151,12 +151,14 @@ public abstract class AbstractHttpServletRequest
   { _context=context;
   }
 
+  @Override
   public RequestDispatcher getRequestDispatcher(String uri)
   { 
     URI absoluteURI=URI.create(getContextPath()+getServletPath());
     return _context.getRequestDispatcher(absoluteURI.resolve(uri).toString());
   }
 
+  @Override
   public String getContextPath()
   { 
     if (_httpServer.getDebugAPI())
@@ -165,7 +167,8 @@ public abstract class AbstractHttpServletRequest
     return _contextPath;
   }
 
-	public String getPathTranslated()
+	@Override
+  public String getPathTranslated()
 	{
 		if (_pathTranslated==null)
 		{ _pathTranslated=_context.getRealPath(_pathInfo);
@@ -176,7 +179,8 @@ public abstract class AbstractHttpServletRequest
 		return _pathTranslated;
 	}
   
-	public String getPathInfo()
+	@Override
+  public String getPathInfo()
 	{ 
 	  
     if (_httpServer.getDebugAPI())
@@ -186,7 +190,8 @@ public abstract class AbstractHttpServletRequest
 	}
 	
 	
-	public String getQueryString()
+	@Override
+  public String getQueryString()
 	{ return _queryString;
 	}
 
@@ -200,6 +205,7 @@ public abstract class AbstractHttpServletRequest
   /**
    *@deprecated
    */
+  @Override
   @Deprecated
   public String getRealPath(String alias)
 	{ return _context.getRealPath(alias);
@@ -211,7 +217,8 @@ public abstract class AbstractHttpServletRequest
 	 *   mapped to "/**")
 	 * </p>
 	 */
-	public String getServletPath()
+	@Override
+  public String getServletPath()
 	{ 
     if (_httpServer.getDebugAPI())
     { log.fine(_servletPath);
@@ -220,7 +227,8 @@ public abstract class AbstractHttpServletRequest
 	  return _servletPath;
 	} 
 
-	public String getRequestURI()
+	@Override
+  public String getRequestURI()
 	{ 
 	  
     if (_httpServer.getDebugAPI())
@@ -275,7 +283,8 @@ public abstract class AbstractHttpServletRequest
   }
 
   
-	public String getParameter(String name)
+	@Override
+  public String getParameter(String name)
 	{ 
     ensureParameters();
     String ret=_query.getValue(name);
@@ -311,11 +320,13 @@ public abstract class AbstractHttpServletRequest
     
   }
   
-	public Enumeration<String> getParameterNames()
+	@Override
+  public Enumeration<String> getParameterNames()
 	{ return new IteratorEnumeration<String>(getParameterNameList().iterator());
 	}
 	
-	public String[] getParameterValues(String name)
+	@Override
+  public String[] getParameterValues(String name)
 	{
     ensureParameters();
     String[] queryRet=_query.getList(name);
@@ -344,7 +355,8 @@ public abstract class AbstractHttpServletRequest
     return null;
 	}
 
-	public Object getAttribute(String name)
+	@Override
+  public Object getAttribute(String name)
 	{ 
 	  Object ret=_attributes.get(name);
 	  if (_httpServer.getDebugService())
@@ -353,10 +365,12 @@ public abstract class AbstractHttpServletRequest
 	  return ret;
 	}
 
+  @Override
   public Enumeration<String> getAttributeNames()
   { return new IteratorEnumeration<String>(_attributes.keySet().iterator());
   }
 
+  @Override
   public void setAttribute(String name,Object value)
   { 
     if (_httpServer.getDebugService())
@@ -380,6 +394,7 @@ public abstract class AbstractHttpServletRequest
     }
   }
 
+  @Override
   public void removeAttribute(String name)
   { 
     Object oldval=_attributes.remove(name);
@@ -388,11 +403,13 @@ public abstract class AbstractHttpServletRequest
     }
   }
   
-	public int getContentLength()
+	@Override
+  public int getContentLength()
 	{ return getIntHeader("Content-Length");
 	}
 	
-	public String getContentType()
+	@Override
+  public String getContentType()
 	{ 
     if (_contentType==null)
     { 
@@ -419,6 +436,7 @@ public abstract class AbstractHttpServletRequest
     return ret;
 	}
 	
+  @Override
   public String getCharacterEncoding()
   { 
     if (_characterEncoding==null)
@@ -450,6 +468,7 @@ public abstract class AbstractHttpServletRequest
     // log.fine("Content-Type full type: "+_contentType.getFullType());
   }
   
+  @Override
   public StringBuffer getRequestURL()
   {
     StringBuffer buf=new StringBuffer();

@@ -169,6 +169,7 @@ public class HttpServer
     }
   }
 
+  @Override
   public void installMeter(Meter meter)
   {
     _meter=meter;
@@ -246,6 +247,7 @@ public class HttpServer
   }
   
 
+  @Override
   public ConnectionHandler createConnectionHandler()
   { return new HttpConnectionHandler();
   }
@@ -334,6 +336,7 @@ public class HttpServer
       return traceStream;
     }
     
+    @Override
     public void handleConnection(Socket socket)
     {
       if (!ensureRunning())

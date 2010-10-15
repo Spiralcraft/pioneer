@@ -116,7 +116,8 @@ public class HttpServerRequest
 			,new HashMap<String,Variable>()
 			,new Translator()
 				{
-					public Object translate(Object value)
+					@Override
+          public Object translate(Object value)
 					{ return new CaseInsensitiveString(((Variable) value).name);
 					}
 				}
@@ -275,10 +276,12 @@ public class HttpServerRequest
     _headers.clear();
   }
 
+  @Override
   public Principal getUserPrincipal()
   { return _userPrincipal;
   }
 
+  @Override
   public boolean isUserInRole(String role)
   { 
     //
@@ -294,10 +297,12 @@ public class HttpServerRequest
   { return new IteratorEnumeration<String>(_headerMap.keySet().iterator());
   }
 
+  @Override
   public Enumeration<Locale> getLocales()
   { return new IteratorEnumeration<Locale>(_locales.iterator());
   }
 
+  @Override
   public Locale getLocale()
   { 
     // TODO: Use Accept-Langage header to specify locales
@@ -308,10 +313,12 @@ public class HttpServerRequest
   }
 
 
-	public String getAuthType()
+	@Override
+  public String getAuthType()
 	{ return getHeader("Auth-Type");
 	}
 	
+  @Override
   public boolean isSecure()
   { 
     if (debugAPI)
@@ -321,6 +328,7 @@ public class HttpServerRequest
 
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   public Enumeration<?> getHeaders(String name)
   {
@@ -333,7 +341,8 @@ public class HttpServerRequest
     }
   }
 
-	public Cookie[] getCookies()
+	@Override
+  public Cookie[] getCookies()
 	{ 
     if (_cookies==null)
     { parseCookies();
@@ -341,7 +350,8 @@ public class HttpServerRequest
     return _cookies;
 	}
 	
-	public long getDateHeader(String name)
+	@Override
+  public long getDateHeader(String name)
     throws IllegalArgumentException
 	{
 		String value=getHeader(name);
@@ -368,7 +378,8 @@ public class HttpServerRequest
 		}
 	}
 	
-	public String getHeader(String name)
+	@Override
+  public String getHeader(String name)
 	{
     Variable var=(Variable) _headerMap.getFirst(new CaseInsensitiveString(name));
     if (var!=null)
@@ -379,6 +390,7 @@ public class HttpServerRequest
     }
 	}
 	
+  @Override
   @SuppressWarnings("unchecked")
   public Enumeration<?> getHeaderNames()
 	{ 
@@ -392,7 +404,8 @@ public class HttpServerRequest
     return new IteratorEnumeration<String>(names.iterator());
 	}
 	
-	public int getIntHeader(String name)
+	@Override
+  public int getIntHeader(String name)
 	{
     String var=getHeader(name);
 		if (var==null)
@@ -403,23 +416,27 @@ public class HttpServerRequest
 		}
 	}
 	
-	public String getMethod()
+	@Override
+  public String getMethod()
 	{ return _method;
 	}
 	
 	
-	public String getRemoteUser()
+	@Override
+  public String getRemoteUser()
 	{ return _remoteUser;
 	}
 	
-	public String getRequestedSessionId()
+	@Override
+  public String getRequestedSessionId()
 	{ return _requestedSessionId;
 	}
 
 	
 
 	
-	public HttpSession getSession(boolean create)
+	@Override
+  public HttpSession getSession(boolean create)
 	{ 
     if (_session!=null)
     { return _session;
@@ -458,12 +475,14 @@ public class HttpServerRequest
     }
 	}
 	
-	public HttpSession getSession()
+	@Override
+  public HttpSession getSession()
 	{ return getSession(true);
 	}
 
 
-	public boolean isRequestedSessionIdFromCookie()
+	@Override
+  public boolean isRequestedSessionIdFromCookie()
 	{ return _sessionFromCookie;
 	}
 
@@ -472,31 +491,37 @@ public class HttpServerRequest
    * @deprecated
    * @deprecated
    */
+  @Override
   @Deprecated
   public boolean isRequestedSessionIdFromUrl()
 	{ return _sessionFromUrl;
 	}
 
-	public boolean isRequestedSessionIdFromURL()
+	@Override
+  public boolean isRequestedSessionIdFromURL()
 	{ return _sessionFromUrl;
 	}
 
-	public boolean isRequestedSessionIdValid()
+	@Override
+  public boolean isRequestedSessionIdValid()
 	{ return _context.getSessionManager().isSessionIdValid(_requestedSessionId);
 	}
 	
 
 
-	public ServletInputStream getInputStream()
+	@Override
+  public ServletInputStream getInputStream()
 	{ return _apiInputStream;
 	}
 	
 	
-	public String getProtocol()
+	@Override
+  public String getProtocol()
 	{ return _protocol;
 	}
 	
-	public BufferedReader getReader()
+	@Override
+  public BufferedReader getReader()
 	  throws IOException
 	{
 	  
@@ -528,7 +553,8 @@ public class HttpServerRequest
 		return _reader;
 	}	
 	
-	public String getRemoteAddr()
+	@Override
+  public String getRemoteAddr()
 	{ 
     if (_remoteAddr==null)
     { _remoteAddr=_remoteInetAddress.getHostAddress();
@@ -545,7 +571,8 @@ public class HttpServerRequest
     return _rawRemoteAddr;
 	}
 
-	public String getRemoteHost()
+	@Override
+  public String getRemoteHost()
 	{ 
     if (_remoteHost==null)
     { _remoteHost=_remoteInetAddress.getHostName();
@@ -555,11 +582,13 @@ public class HttpServerRequest
 	
 	
 	
-	public String getScheme()
+	@Override
+  public String getScheme()
 	{ return _scheme;
  	}
  	
- 	public String getServerName()
+ 	@Override
+  public String getServerName()
  	{ 
     if (_host==null)
     { parseHost();
@@ -567,7 +596,8 @@ public class HttpServerRequest
     return _host;
  	} 
  	
- 	public int getServerPort()
+ 	@Override
+  public int getServerPort()
  	{ 
     if (_host==null)
     { parseHost();
@@ -575,19 +605,23 @@ public class HttpServerRequest
     return _port;
  	}
  	
- 	public String getLocalName()
+ 	@Override
+  public String getLocalName()
  	{ return _socket.getLocalAddress().getHostName();
  	}
 
- 	public int getLocalPort()
+ 	@Override
+  public int getLocalPort()
  	{ return _socket.getLocalPort();
  	}
  	
- 	public String getLocalAddr()
+ 	@Override
+  public String getLocalAddr()
  	{ return _socket.getLocalAddress().toString();
  	}
  	
- 	public int getRemotePort()
+ 	@Override
+  public int getRemotePort()
  	{ return _socket.getPort();
  	}
  	
@@ -808,6 +842,7 @@ public class HttpServerRequest
 
 
 
+  @Override
   public void setCharacterEncoding(String encoding) 
     throws UnsupportedEncodingException
   {

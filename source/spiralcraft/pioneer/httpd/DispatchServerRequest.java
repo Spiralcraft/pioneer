@@ -133,10 +133,12 @@ public class DispatchServerRequest
     return ret;
 	}
 	
+  @Override
   public Principal getUserPrincipal()
   { return containingRequest.getUserPrincipal();
   }
 
+  @Override
   public boolean isUserInRole(String role)
   { return containingRequest.isUserInRole(role);
   }
@@ -146,19 +148,23 @@ public class DispatchServerRequest
   { return containingRequest.getLocales();
   }
 
+  @Override
   public Locale getLocale()
   { return containingRequest.getLocale();
   }
 
 
-	public String getAuthType()
+	@Override
+  public String getAuthType()
 	{ return containingRequest.getAuthType();
 	}
 	
+  @Override
   public boolean isSecure()
   { return containingRequest.isSecure();
   }
 
+  @Override
   public Enumeration<?> getHeaders(String name)
   { return containingRequest.getHeaders(name);
   }
@@ -216,76 +222,91 @@ public class DispatchServerRequest
     return map;
   }
   
-	public Cookie[] getCookies()
+	@Override
+  public Cookie[] getCookies()
   { return containingRequest.getCookies();
 	}
 	
-	public long getDateHeader(String name)
+	@Override
+  public long getDateHeader(String name)
     throws IllegalArgumentException
 	{ return containingRequest.getDateHeader(name);
 	}
 	
-	public String getHeader(String name)
+	@Override
+  public String getHeader(String name)
 	{ return containingRequest.getHeader(name);
 	}
 	
-	public Enumeration<?> getHeaderNames()
+	@Override
+  public Enumeration<?> getHeaderNames()
 	{ return containingRequest.getHeaderNames();
 	}
 	
-	public int getIntHeader(String name)
+	@Override
+  public int getIntHeader(String name)
 	{ return containingRequest.getIntHeader(name);
   }
 	
-	public String getMethod()
+	@Override
+  public String getMethod()
 	{ return containingRequest.getMethod();
 	}
 	
 	
-	public String getRemoteUser()
+	@Override
+  public String getRemoteUser()
 	{ return containingRequest.getRemoteUser();
 	}
 	
-	public String getRequestedSessionId()
+	@Override
+  public String getRequestedSessionId()
 	{ return containingRequest.getRequestedSessionId();
 	}
 
 	
 
 	
-	public HttpSession getSession(boolean create)
+	@Override
+  public HttpSession getSession(boolean create)
 	{ return containingRequest.getSession(create);
 	}
 	
-	public HttpSession getSession()
+	@Override
+  public HttpSession getSession()
 	{ return containingRequest.getSession();
 	}
 
 
-	public boolean isRequestedSessionIdFromCookie()
+	@Override
+  public boolean isRequestedSessionIdFromCookie()
 	{ return containingRequest.isRequestedSessionIdFromCookie();
 	}
 
   /** 
    *@deprecated
    */
-	@SuppressWarnings("deprecation")
+	@Override
+  @SuppressWarnings("deprecation")
   @Deprecated
   public boolean isRequestedSessionIdFromUrl()
 	{ return containingRequest.isRequestedSessionIdFromUrl();
 	}
 
-	public boolean isRequestedSessionIdFromURL()
+	@Override
+  public boolean isRequestedSessionIdFromURL()
 	{ return containingRequest.isRequestedSessionIdFromURL();
 	}
 
-	public boolean isRequestedSessionIdValid()
+	@Override
+  public boolean isRequestedSessionIdValid()
 	{ return containingRequest.isRequestedSessionIdValid();
 	}
 	
 
 
-	public ServletInputStream getInputStream()
+	@Override
+  public ServletInputStream getInputStream()
     throws IOException
 	{ return containingRequest.getInputStream();
 	}
@@ -308,16 +329,19 @@ public class DispatchServerRequest
 	  }
   }
   
-	public String getProtocol()
+	@Override
+  public String getProtocol()
 	{ return containingRequest.getProtocol();
 	}
 	
-	public BufferedReader getReader()
+	@Override
+  public BufferedReader getReader()
     throws IOException
 	{ return containingRequest.getReader();
 	}	
 	
-	public String getRemoteAddr()
+	@Override
+  public String getRemoteAddr()
 	{ return containingRequest.getRemoteAddr();
 	}
 	
@@ -325,39 +349,48 @@ public class DispatchServerRequest
 //	{ return containingRequest.getRawRemoteAddress();
 //	}
 
-	public String getRemoteHost()
+	@Override
+  public String getRemoteHost()
 	{ return containingRequest.getRemoteHost();
 	}
 	
-	public String getScheme()
+	@Override
+  public String getScheme()
 	{ return containingRequest.getScheme();
  	}
  	
- 	public String getServerName()
+ 	@Override
+  public String getServerName()
  	{ return containingRequest.getServerName();
  	} 
  	
- 	public int getServerPort()
+ 	@Override
+  public int getServerPort()
  	{ return containingRequest.getServerPort();
  	}
 
- 	public int getLocalPort()
+ 	@Override
+  public int getLocalPort()
   { return containingRequest.getLocalPort();
   }
  	  
+  @Override
   public String getLocalName()
   { return containingRequest.getLocalName();
   }
 
+  @Override
   public String getLocalAddr()
   { return containingRequest.getLocalAddr();
   }
   
+  @Override
   public int getRemotePort()
   { return containingRequest.getRemotePort();
   }
   
 
+  @Override
   public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
   { containingRequest.setCharacterEncoding(arg0);    
   }

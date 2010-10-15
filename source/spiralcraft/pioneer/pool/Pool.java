@@ -62,6 +62,7 @@ public class Pool
   private boolean debug;
 
 
+  @Override
   public void installMeter(Meter meter)
   { 
     _meter=meter;
@@ -88,6 +89,7 @@ public class Pool
     _meter.setFrameListener(this);
   }
 
+  @Override
   public void nextFrame(FrameEvent event)
   { 
     _checkedInRegister.setValue(_available.size());
@@ -348,6 +350,7 @@ public class Pool
     { _done=true;
     }
 
+    @Override
     public void run()
     {
 

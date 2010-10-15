@@ -28,10 +28,12 @@ public class CLFAccessLogFormat
   private final static ClockFormat _formatTimeWatcher
     =new ClockFormat(_dateFormat,1000);
   
+  @Override
   public String header()
   { return null;
   }
 
+  @Override
   public String format(HttpServerRequest request,HttpServerResponse response)
   { 
     StringBuffer out=new StringBuffer();

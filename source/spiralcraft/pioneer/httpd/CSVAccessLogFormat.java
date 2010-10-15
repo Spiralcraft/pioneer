@@ -41,6 +41,7 @@ public final class CSVAccessLogFormat
   private final static ClockFormat _formatTimeWatcher
     =new ClockFormat(_dateFormat,1000);
 
+  @Override
   public String header()
   { 
     return "HOST"
@@ -57,6 +58,7 @@ public final class CSVAccessLogFormat
           ;
   }
 
+  @Override
   public final String format(final HttpServerRequest request,final HttpServerResponse response)
   { 
     final StringBuffer out=new StringBuffer(256);

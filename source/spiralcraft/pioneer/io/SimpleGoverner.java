@@ -61,6 +61,7 @@ public class SimpleGoverner
     _bytesPerFrame=Math.max(1,(long) ((_bitsPerSecond/8)*(_frameSizeMs/(float) 1000)));
   }
 
+  @Override
   public synchronized int nextPacket(int desiredSize)
     throws IOException
   { 

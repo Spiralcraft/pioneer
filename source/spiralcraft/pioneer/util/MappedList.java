@@ -64,10 +64,12 @@ public class MappedList
       m_key=key;
     }
 
+    @Override
     public void setUnique(boolean unique)
     { _unique=unique;
     }
 
+    @Override
     public void clear()
     { throw new UnsupportedOperationException();
     }
@@ -78,10 +80,12 @@ public class MappedList
       m_numValues=0;
     }
 
+    @Override
     public boolean containsKey(Object key)
     { return m_map.containsKey(key);
     }
 
+    @Override
     public boolean containsValue(Object value)
     {
       List list
@@ -101,6 +105,7 @@ public class MappedList
     }
 */
 
+    @Override
     public Set entrySet()
     { 
       // XXX Should create a new set which maps to actual
@@ -118,6 +123,7 @@ public class MappedList
     /** 
      *
      */
+    @Override
     public Object get(Object key)
     { 
       List list=(List) m_map.get(key);
@@ -132,6 +138,7 @@ public class MappedList
     /**
      * Return the first value for the given key
      */
+    @Override
     public Object getFirst(Object key)
     {
       final List list=(List) m_map.get(key);
@@ -148,10 +155,12 @@ public class MappedList
     { return m_map.hashCode();
     }
 
+    @Override
     public boolean isEmpty()
     { return m_map.isEmpty();
     }
 
+    @Override
     public Set keySet()
     { return m_map.keySet();
     }
@@ -159,6 +168,7 @@ public class MappedList
     /**
      * put() is not supported
      */
+    @Override
     public Object put(Object key,Object value)
     { throw new UnsupportedOperationException(); 
     }
@@ -166,6 +176,7 @@ public class MappedList
     /**
      * putAll() is not supported
      */
+    @Override
     public void putAll(Map map)
     { throw new UnsupportedOperationException(); 
     }
@@ -173,6 +184,7 @@ public class MappedList
     /**
      * Remove all values with the specified key
      */
+    @Override
     public Object remove(Object key)
     {
       List list=(List) m_map.get(key);
@@ -182,10 +194,12 @@ public class MappedList
       return list;
     }
 
+    @Override
     public int size()
     { return m_map.size();
     }
 
+    @Override
     public Collection values()
     { return m_list;
     }
@@ -265,10 +279,12 @@ public class MappedList
       m_comparator=comp;
     }
 
+    @Override
     public Comparator comparator()
     { return ((SortedMap) m_map).comparator();
     }
 
+    @Override
     public SortedMap subMap(Object first,Object last)
     {
       return new SortedMapView
@@ -278,6 +294,7 @@ public class MappedList
         );
     }
 
+    @Override
     public SortedMap headMap(Object first)
     {
       return new SortedMapView
@@ -288,6 +305,7 @@ public class MappedList
 
     }
 
+    @Override
     public SortedMap tailMap(Object first)
     {
       return new SortedMapView
@@ -298,10 +316,12 @@ public class MappedList
 
     }
 
+    @Override
     public Object firstKey()
     { return ((SortedMap) m_map).firstKey();
     }
 
+    @Override
     public Object lastKey()
     { return ((SortedMap) m_map).lastKey();
     }
@@ -314,46 +334,57 @@ public class MappedList
     class MultiMapCollection
       implements Collection
     {
+      @Override
       public boolean add(Object o)
       { throw new UnsupportedOperationException();
       }
 
+      @Override
       public boolean addAll(Collection c)
       { throw new UnsupportedOperationException();
       }
 
+      @Override
       public void clear()
       { throw new UnsupportedOperationException();
       }
 
+      @Override
       public boolean remove(Object O)
       { throw new UnsupportedOperationException();
       }
 
+      @Override
       public boolean removeAll(Collection c)
       { throw new UnsupportedOperationException();
       }
 
+      @Override
       public boolean retainAll(Collection c)
       { throw new UnsupportedOperationException();
       }
 
+      @Override
       public int size()
       { return numValues();
       }
 
+      @Override
       public boolean isEmpty()
       { return m_map.isEmpty();
       }
 
+      @Override
       public boolean contains(Object o)
       { return containsValue(o);
       }
 
+      @Override
       public Iterator iterator()
       { return new MultiMapIterator(m_map.values().iterator());
       }
 
+      @Override
       public Object toArray()[]
       {
         List l=new LinkedList();
@@ -364,6 +395,7 @@ public class MappedList
         return l.toArray();
       }
 
+      @Override
       public Object toArray(Object[] a)[]
       {
       
@@ -375,6 +407,7 @@ public class MappedList
         return a;
       }
 
+      @Override
       public boolean containsAll(Collection c)
       {
         Iterator it=c.iterator();
@@ -402,6 +435,7 @@ public class MappedList
       m_lists=iter;
     }
 
+    @Override
     public boolean hasNext()
     {
       if (m_values==null)
@@ -412,6 +446,7 @@ public class MappedList
       }
     }
 
+    @Override
     public Object next()
     {
       if (m_values==null)
@@ -424,6 +459,7 @@ public class MappedList
       return ret;
     }
 
+    @Override
     public void remove()
     { throw new UnsupportedOperationException();
     }
@@ -439,16 +475,19 @@ public class MappedList
     { m_iterator=iterator;
     }
 
+    @Override
     public boolean hasNext()
     { return m_iterator.hasNext();
     }
 
+    @Override
     public Object next()
     {
       m_lastVal=m_iterator.next();
       return m_lastVal;
     }
 
+    @Override
     public void remove()
     { 
       m_iterator.remove();
@@ -468,20 +507,24 @@ public class MappedList
     { m_it=iterator;
     }
 
+    @Override
     public boolean hasNext()
     { return m_it.hasNext();
     }
 
+    @Override
     public Object next()
     {
       m_lastVal=m_it.next();
       return m_lastVal;
     }
 
+    @Override
     public boolean hasPrevious()
     { return m_it.hasPrevious();
     }
 
+    @Override
     public Object previous()
     {
       m_lastVal=m_it.previous();

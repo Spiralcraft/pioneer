@@ -148,6 +148,7 @@ public class FilterHolder
   { _loadAtStartup=val;
   }
 
+  @Override
   public void start()
   {
     if (_loadAtStartup)
@@ -155,6 +156,7 @@ public class FilterHolder
     }
   }
 
+  @Override
   public void stop()
   {
     if (_filter!=null)

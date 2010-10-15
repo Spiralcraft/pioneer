@@ -62,6 +62,7 @@ public class SimpleHttpSessionManager
   private Register _newSessionsRegister;
   private boolean _logSessionEvents=true;
 	
+  @Override
   public void installMeter(Meter meter)
   {
     _meter=meter;
@@ -74,7 +75,8 @@ public class SimpleHttpSessionManager
 	/**
 	 * Return a specific session or create a new one.
 	 */
-	public HttpSession getSession(final String id,final boolean create)
+	@Override
+  public HttpSession getSession(final String id,final boolean create)
   {
     Session session=null;
     synchronized (_sessionLock)
@@ -103,10 +105,12 @@ public class SimpleHttpSessionManager
   /**
    * Return a session, create a new one if not found
    */
+  @Override
   public HttpSession getSession(String id)
   { return getSession(id,true);
   }
 
+  @Override
   public Enumeration<?> getIds()
   { return new IteratorEnumeration<String>(_sessions.keySet().iterator());
   }
@@ -114,7 +118,8 @@ public class SimpleHttpSessionManager
 	/**
 	 * Indicate whether the specified session id is valid.
 	 */
-	public boolean isSessionIdValid(String id)
+	@Override
+  public boolean isSessionIdValid(String id)
   { 
     synchronized (_sessionLock)
     { 
@@ -177,6 +182,7 @@ public class SimpleHttpSessionManager
       _new=false;
     }
 
+    @Override
     public void setMaxInactiveInterval(int seconds)
     { _maxInactiveIntervalMs=seconds*1000;
     }
@@ -192,19 +198,23 @@ public class SimpleHttpSessionManager
       return _expired;
     }
 
+    @Override
     public boolean isNew()
     { return _new;
     }
 
+    @Override
     public void removeValue(String name)
     { _values.remove(name);
     }
 
+    @Override
     @Deprecated
     public HttpSessionContext getSessionContext()
     { return SimpleHttpSessionManager.this;
     }
 
+    @Override
     public String[] getValueNames()
     {
       String[] names=new String[_values.size()];
@@ -216,6 +226,7 @@ public class SimpleHttpSessionManager
       return names;
     }
 
+    @Override
     public void invalidate()
     {
       if (_activeSessionsRegister!=null)
@@ -250,45 +261,56 @@ public class SimpleHttpSessionManager
       super.finalize();
     }
 
+    @Override
     public String getId()
     { return _id;
     }
 
+    @Override
     public void putValue(String name, Object value)
     { _values.put(name,value);
     }
     
+    @Override
     public Object getValue(String name)
     { return _values.get(name);
     }
+    @Override
     public int getMaxInactiveInterval()
     { return _maxInactiveIntervalMs/1000;
     }
 
+    @Override
     public long getLastAccessedTime()
     { return _lastAccess;
     }
 
+    @Override
     public long getCreationTime()
     { return _creationTime;
     }
 
+    @Override
     public Object getAttribute(String name)
     { return _attributes.get(name);
     }
 
+    @Override
     public Enumeration<String> getAttributeNames()
     { return new IteratorEnumeration<String>(_attributes.keySet().iterator());
     }
 
+    @Override
     public void setAttribute(String name,Object value)
     { _attributes.put(name,value);
     }
 
+    @Override
     public void removeAttribute(String name)
     { _attributes.remove(name);
     }
 
+    @Override
     public ServletContext getServletContext()
     {
 
@@ -322,6 +344,7 @@ public class SimpleHttpSessionManager
     { _finished=true;
     }
 
+    @Override
     public void run()
     {
       try

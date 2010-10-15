@@ -59,18 +59,22 @@ public class SimpleFilterConfig
   { return new SimpleFilterConfig(name,_context,_params);
   }
 
+  @Override
   public ServletContext getServletContext()
   { return _context;
   }
 
+  @Override
   public String getFilterName()
   { return _filterName;
   }
 
+  @Override
   public String getInitParameter(String name)
   { return _params.getProperty(name);
   }
 
+  @Override
   public Enumeration<?> getInitParameterNames()
   { return _params.keys();
   }

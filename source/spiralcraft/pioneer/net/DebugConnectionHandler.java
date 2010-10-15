@@ -34,6 +34,7 @@ public class DebugConnectionHandler
   implements ConnectionHandler
 {
 
+  @Override
   public void handleConnection(Socket sock)
   {
     try

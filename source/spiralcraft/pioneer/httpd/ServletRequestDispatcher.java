@@ -44,6 +44,7 @@ public class ServletRequestDispatcher
     this.servletName=servletName;
   }
   
+  @Override
   public void include(ServletRequest request,ServletResponse response)
     throws ServletException,IOException
   {
@@ -78,6 +79,7 @@ public class ServletRequestDispatcher
     
   }
 
+  @Override
   public void forward(ServletRequest request,ServletResponse response)
     throws ServletException,IOException
   {

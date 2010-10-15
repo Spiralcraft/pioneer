@@ -138,6 +138,7 @@ public class HttpServerResponse
       ,new HashMap()
       ,new Translator()
         {
+          @Override
           public Object translate(Object value)
           { return ((Variable) value).name;
           }
@@ -180,6 +181,7 @@ public class HttpServerResponse
     _headers.clear();
   }
 
+  @Override
   public void reset()
   {
     if (debugAPI)
@@ -224,6 +226,7 @@ public class HttpServerResponse
      
   }
 
+  @Override
   public int getBufferSize()
   { 
     if (debugAPI)
@@ -232,6 +235,7 @@ public class HttpServerResponse
     return _outputStream.getBufferSize();
   }
 
+  @Override
   public void flushBuffer()
     throws IOException
   { 
@@ -245,6 +249,7 @@ public class HttpServerResponse
     _outputStream.flush();
   }
 
+  @Override
   public void setBufferSize(int bufferSize)
   {
     if (debugAPI)
@@ -253,6 +258,7 @@ public class HttpServerResponse
     _outputStream.setBufferSize(bufferSize);
   }
 
+  @Override
   public boolean isCommitted()
   { 
     if (debugAPI)
@@ -265,6 +271,7 @@ public class HttpServerResponse
   { _outputStream.setGoverner(governer);
   }
 
+  @Override
   public void addCookie(Cookie cookie)
   {
     if (debugAPI)
@@ -281,6 +288,7 @@ public class HttpServerResponse
     _cookies.add(cookie);
   }
 
+  @Override
   public boolean containsHeader(String name)
   {     
     if (debugAPI)
@@ -289,6 +297,7 @@ public class HttpServerResponse
     return _headerMap.get(name)!=null;
   }
 
+  @Override
   @Deprecated
   public String encodeRedirectUrl(String url)
   { 
@@ -298,6 +307,7 @@ public class HttpServerResponse
     return url;
   }
   
+  @Override
   @Deprecated
   public String encodeUrl(String url)
   { 
@@ -307,6 +317,7 @@ public class HttpServerResponse
     return url;
   }
 
+  @Override
   public String encodeRedirectURL(String url)
   { 
     if (debugAPI)
@@ -315,6 +326,7 @@ public class HttpServerResponse
     return url;
   }
   
+  @Override
   public String encodeURL(String url)
   { 
     if (debugAPI)
@@ -323,6 +335,7 @@ public class HttpServerResponse
     return url;
   }
 
+  @Override
   public void sendError(int code,String msg) 
   	throws IOException
   {
@@ -340,6 +353,7 @@ public class HttpServerResponse
     out.flush();
   }
       
+  @Override
   public void sendError(int code) 
     throws IOException
   {
@@ -356,6 +370,7 @@ public class HttpServerResponse
     }
   }
 
+  @Override
   public void sendRedirect(String location)
     throws IOException
   {
@@ -372,6 +387,7 @@ public class HttpServerResponse
     _outputStream.flush();
   }
 
+  @Override
   public void setLocale(Locale locale)
   { 
     if (debugAPI)
@@ -380,6 +396,7 @@ public class HttpServerResponse
     _locale=locale;     
   }
 
+  @Override
   public Locale getLocale()
   { 
     if (_locale==null)
@@ -391,6 +408,7 @@ public class HttpServerResponse
     return _locale;
   }
 
+  @Override
   public void setStatus(int code)
   { 
     if (debugAPI)
@@ -400,6 +418,7 @@ public class HttpServerResponse
     _reason=_statusMap.get(new Integer(code));
   }
 
+  @Override
   @Deprecated
   public void setStatus(int code,String message)
   {
@@ -421,26 +440,31 @@ public class HttpServerResponse
     return _status;
   }
 
+  @Override
   public void setIntHeader(String name, int value)
   {
     _headerMap.remove(name);
     addIntHeader(name,value);
   }
 
+  @Override
   public void setDateHeader(String name, long date)
   {
     _headerMap.remove(name);
     addDateHeader(name,date);
   }
   
+  @Override
   public void addIntHeader(String name, int value)
   { addHeader(name, Integer.toString(value));
   }
 
+  @Override
   public void addDateHeader(String name,long date)
   { addHeader(name, _headerDateFormat.format(new Date(date)));
   }
 
+  @Override
   public void addHeader(String name, String value)
   { 
     if (debugAPI)
@@ -449,6 +473,7 @@ public class HttpServerResponse
     _headers.add(new Variable(name,value));
   }
 
+  @Override
   public void setHeader(String name, String value)
   {
     _headerMap.remove(name);
@@ -465,6 +490,7 @@ public class HttpServerResponse
     return var!=null?var.value:null;
   }
 
+  @Override
   public void setContentType(String value)
   { 
     if (debugAPI)
@@ -497,6 +523,7 @@ public class HttpServerResponse
       );
   }
   
+  @Override
   public String getContentType()
   { 
     if (debugAPI)
@@ -505,6 +532,7 @@ public class HttpServerResponse
     return getHeader(HDR_CONTENT_TYPE);
   }
   
+  @Override
   public void setCharacterEncoding(String value)
   {
     if (debugAPI)
@@ -523,6 +551,7 @@ public class HttpServerResponse
     }
   }
   
+  @Override
   public void setContentLength(int len)
   { 
     if (debugAPI)
@@ -531,6 +560,7 @@ public class HttpServerResponse
     setHeader(HDR_CONTENT_LENGTH,Integer.toString(len));
   }
 
+  @Override
   public ServletOutputStream getOutputStream()
   { 
     if (debugAPI)
@@ -539,6 +569,7 @@ public class HttpServerResponse
     return _outputStream;
   }
 
+  @Override
   public PrintWriter getWriter()
   {
     if (_writer==null)
@@ -550,6 +581,7 @@ public class HttpServerResponse
     return _writer;
   }
 
+  @Override
   public String getCharacterEncoding()
   { 
     if (debugAPI)
@@ -871,6 +903,7 @@ public class HttpServerResponse
   { return _outputStream.getCount();
   }
 
+  @Override
   public void resetBuffer()
   { 
     if (debugAPI)

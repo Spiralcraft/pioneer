@@ -191,6 +191,7 @@ public class SimpleHttpServiceContext
   /**
    * Service the request
    */
+  @Override
   public void service(final AbstractHttpServletRequest request
                       ,final HttpServletResponse response
                       )
@@ -339,6 +340,7 @@ public class SimpleHttpServiceContext
    * Perform any actions or protocol specifics
    *   before handing the request off to a servlet.
    */
+  @Override
   public boolean preFilter
     (AbstractHttpServletRequest request
     ,HttpServletResponse response
@@ -377,6 +379,7 @@ public class SimpleHttpServiceContext
   /**
    * Return an attribute
    */
+  @Override
   public Object getAttribute(String name)
   { 
     if (_attributes!=null)
@@ -398,6 +401,7 @@ public class SimpleHttpServiceContext
     }
   }
 
+  @Override
   public void setContextPath(String contextPath)
   { _contextPath=contextPath;
   }
@@ -405,6 +409,7 @@ public class SimpleHttpServiceContext
   /**
    * Return a list of attribute names
    */
+  @Override
   @SuppressWarnings("unchecked") // Servlet API not generic
   public Enumeration<String> getAttributeNames()
   { 
@@ -419,6 +424,7 @@ public class SimpleHttpServiceContext
   /**
    * Remove an attribute
    */
+  @Override
   public void removeAttribute(String name)
   { 
     if (_attributes!=null)
@@ -436,6 +442,7 @@ public class SimpleHttpServiceContext
   /**
    * Specify the value of an attribute
    */
+  @Override
   public void setAttribute(String name,Object value)
   { 
     
@@ -502,6 +509,7 @@ public class SimpleHttpServiceContext
     }
   }
 
+  @Override
   public void fireRequestAttributeReplaced
     (HttpServletRequest request,String name,Object value)
   {
@@ -515,6 +523,7 @@ public class SimpleHttpServiceContext
     }
   }  
   
+  @Override
   public void fireRequestAttributeAdded
     (HttpServletRequest request,String name,Object value)
   {
@@ -528,6 +537,7 @@ public class SimpleHttpServiceContext
     }
   }  
 
+  @Override
   public void fireRequestAttributeRemoved
     (HttpServletRequest request,String name,Object value)
   {
@@ -568,6 +578,7 @@ public class SimpleHttpServiceContext
   /**
    * Return server info
    */
+  @Override
   public String getServerInfo()
   { return _serverInfo;
   }
@@ -575,6 +586,7 @@ public class SimpleHttpServiceContext
   /**
    * Return a request dispatcher for the specified uri path
    */
+  @Override
   public RequestDispatcher getRequestDispatcher(String uriPath)
   { 
     if (debug)
@@ -590,6 +602,7 @@ public class SimpleHttpServiceContext
   /**
    * Return a request dispatcher for the specified uri
    */
+  @Override
   public RequestDispatcher getNamedDispatcher(String name)
   { 
     if (debug)
@@ -602,6 +615,7 @@ public class SimpleHttpServiceContext
   /**
    * Return the servlet context for the specified uri
    */
+  @Override
   public ServletContext getContext(String uri)
   { 
     throw new UnsupportedOperationException("getContext("+uri+")");
@@ -610,6 +624,7 @@ public class SimpleHttpServiceContext
   /**
    * Return the init parameter names
    */
+  @Override
   public Enumeration<String> getInitParameterNames()
   { return new IteratorEnumeration<String>(_initParameters.keySet().iterator());
   }
@@ -617,6 +632,7 @@ public class SimpleHttpServiceContext
   /**
    * Return an init parameter
    */
+  @Override
   public String getInitParameter(String name)
   { return _initParameters.get(name);
   }
@@ -651,6 +667,7 @@ public class SimpleHttpServiceContext
   /**
    * Log a message
    */
+  @Override
   public void log(String msg)
   { 
     if (log.canLog(Level.INFO))
@@ -662,6 +679,7 @@ public class SimpleHttpServiceContext
    * Log an error
    *@deprecated
    */
+  @Override
   @Deprecated
   public void log(Exception x,String msg)
   { log.log(Level.SEVERE,msg,x);
@@ -670,6 +688,7 @@ public class SimpleHttpServiceContext
   /**
    * Log an error
    */
+  @Override
   public void log(String msg,Throwable x)
   { log.log(Level.SEVERE,msg,x);
   }
@@ -683,6 +702,7 @@ public class SimpleHttpServiceContext
   }
 
 
+  @Override
   public FilterChain getServletFilterChain(String servletName)
     throws ServletException
   {
@@ -709,6 +729,7 @@ public class SimpleHttpServiceContext
    * Deprecated
    * @deprecated
    */  
+  @Override
   @Deprecated
   public Enumeration<Servlet> getServlets()
   { 
@@ -720,6 +741,7 @@ public class SimpleHttpServiceContext
    * Deprecated
    * @deprecated
    */
+  @Override
   @Deprecated
   public Enumeration<String> getServletNames()
   { 
@@ -731,6 +753,7 @@ public class SimpleHttpServiceContext
    * Deprecated
    *@deprecated
    */
+  @Override
   @Deprecated
   public Servlet getServlet(String name)
   { 
@@ -741,6 +764,7 @@ public class SimpleHttpServiceContext
   /**
    * Indicate support for servlet api 2.4
    */
+  @Override
   public int getMajorVersion()
   { return 2;
   }
@@ -748,6 +772,7 @@ public class SimpleHttpServiceContext
   /**
    * Indicate support for servlet api 2.4
    */
+  @Override
   public int getMinorVersion()
   { return 4;
   }
@@ -755,6 +780,7 @@ public class SimpleHttpServiceContext
   /**
    * Return a new URL relative to the base url for this context 
    */
+  @Override
   public URL getResource(String name)
     throws MalformedURLException
   { 
@@ -768,6 +794,7 @@ public class SimpleHttpServiceContext
    * Return a new InputStream for the url relative to the base
    *   url for this context
    */
+  @Override
   public InputStream getResourceAsStream(String name)
   { 
     try
@@ -788,7 +815,8 @@ public class SimpleHttpServiceContext
 	 *   a server path. The specified path parameter is always interpreted as
 	 *   relative to this context
 	 */
-	public String getRealPath(String rawUri)
+	@Override
+  public String getRealPath(String rawUri)
   { 
 	  if (rawUri==null)
 	  { return null;
@@ -828,6 +856,7 @@ public class SimpleHttpServiceContext
   /**
    * Return the session manager
    */
+  @Override
   public HttpSessionManager getSessionManager()
   { 
     if (_sessionManager!=null)
@@ -846,10 +875,12 @@ public class SimpleHttpServiceContext
 	/**
 	 * The effective hostname of the server
 	 */
-	public String getName()
+	@Override
+  public String getName()
   { return _hostName;
   }
 
+  @Override
   public String getMimeType(String file)
   { return mapMimeType(getFileType(file));
   }
@@ -857,7 +888,8 @@ public class SimpleHttpServiceContext
 	/**
 	 * The effective server port
 	 */	
-	public int getPort()
+	@Override
+  public int getPort()
   { return _port;
   }
 
@@ -912,6 +944,7 @@ public class SimpleHttpServiceContext
     }
   }
 
+  @Override
   public SimpleFilterChain chainGlobalFilters
     (AbstractHttpServletRequest request,SimpleFilterChain endChain)
     throws ServletException
@@ -1362,6 +1395,7 @@ public class SimpleHttpServiceContext
   }
 
 
+  @Override
   public String mapMimeType(String filetype)
   { 
     String mimeType=null;
@@ -1379,6 +1413,7 @@ public class SimpleHttpServiceContext
     return mimeType;
   }
 
+  @Override
   public String getServletNameForAlias(String alias)
   {
     String servletName=null;
@@ -1399,6 +1434,7 @@ public class SimpleHttpServiceContext
   /**
    * Maps the specified file extension to a servlet name.
    */
+  @Override
   public String getServletNameForRequestType(String type)
   { 
     
@@ -1450,6 +1486,7 @@ public class SimpleHttpServiceContext
   }
   
   
+  @Override
   public String getServletContextName()
   { return _servletContextName;
   }
@@ -1461,6 +1498,7 @@ public class SimpleHttpServiceContext
    *  returned paths are all relative to the root of the web application and
    *  have a leading '/'. 
    */
+  @Override
   public Set<String> getResourcePaths(String path)
   {
     try
@@ -1503,10 +1541,12 @@ public class SimpleHttpServiceContext
   //
   //////////////////////////////////////////////////////////////////////////
   
+  @Override
   public void setServer(HttpServer server)
   { _server=server;
   }
   
+  @Override
   public HttpServer getServer()
   { return _server;
   }
@@ -1519,6 +1559,7 @@ public class SimpleHttpServiceContext
   { this.debug=debug;
   }
   
+  @Override
   public boolean isDebug()
   { return debug;
   }
@@ -1535,10 +1576,12 @@ public class SimpleHttpServiceContext
   { this.useURLClassLoader=val;
   }
   
+  @Override
   public HttpServiceContext getParentContext()
   { return _parentContext;
   }
   
+  @Override
   public void installMeter(Meter meter)
   {
     _meter=meter;
@@ -1564,6 +1607,7 @@ public class SimpleHttpServiceContext
   }
 
   
+  @Override
   public URI getDocumentRootURI()
   { return _docRootURI;
   }
@@ -1602,6 +1646,7 @@ public class SimpleHttpServiceContext
   
 
 
+  @Override
   public String getContextPath()
   { return _contextPath;
   }
@@ -1609,6 +1654,7 @@ public class SimpleHttpServiceContext
   /**
    * Specify the parent context
    */
+  @Override
   public void setParentContext(HttpServiceContext parentContext)
   { _parentContext=parentContext;
   }
@@ -1823,6 +1869,7 @@ public class SimpleHttpServiceContext
     _accessLog=log;
   }
 
+  @Override
   public AccessLog getAccessLog()
   { return _accessLog;
   }
@@ -1843,10 +1890,12 @@ public class SimpleHttpServiceContext
   { _extensionMimeTypeMapResource=resource;
   }
 
+  @Override
   public void setOutputGoverner(Governer governer)
   { _governer=governer;
   }
 
+  @Override
   public void setMaxStreamBitsPerSecond(int bps)
   { 
     _maxStreamBitsPerSecond=bps;
@@ -1899,6 +1948,7 @@ public class SimpleHttpServiceContext
     _requestListeners.add(listener);
   }
   
+  @Override
   public void setVirtualHostName(String hostName)
   { this.virtualHostName=hostName;
   }
@@ -2164,18 +2214,22 @@ public class SimpleHttpServiceContext
     FilterConfig config=new FilterConfig()
     {
 
+      @Override
       public String getFilterName()
       { return "Controller";
       }
 
+      @Override
       public String getInitParameter(String arg0)
       { return null;
       }
 
+      @Override
       public Enumeration<String> getInitParameterNames()
       { return null;
       }
 
+      @Override
       public ServletContext getServletContext()
       { return SimpleHttpServiceContext.this;
       }
@@ -2303,6 +2357,7 @@ public class SimpleHttpServiceContext
   //
   ////////////////////////////////////////////////////////////////////////
 
+  @Override
   public void stop()
     throws LifecycleException
   { 

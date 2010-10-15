@@ -39,10 +39,12 @@ public final class ECLFAccessLogFormat
   private final static ClockFormat _formatTimeWatcher
     =new ClockFormat(_dateFormat,1000);
 
+  @Override
   public String header()
   { return null;
   }
 
+  @Override
   public final String format(final HttpServerRequest request,final HttpServerResponse response)
   { 
     final StringBuffer out=new StringBuffer(256);

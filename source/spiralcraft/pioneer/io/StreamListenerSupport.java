@@ -21,6 +21,7 @@ public class StreamListenerSupport
   { _listeners.remove(listener);
   }
 
+  @Override
   public void streamClosed(StreamEvent e)
   { 
     Iterator<StreamListener> it=_listeners.iterator();

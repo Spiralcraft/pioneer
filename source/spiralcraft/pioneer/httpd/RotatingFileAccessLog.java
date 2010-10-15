@@ -50,6 +50,7 @@ public class RotatingFileAccessLog
   { this.format=format;
   }
 
+  @Override
   public final void log
     (final HttpServerRequest request
     ,final HttpServerResponse response
