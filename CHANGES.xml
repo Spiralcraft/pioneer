@@ -2,6 +2,23 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.12.2
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2010-10-29
+    </date>
+    
+    <notes>
+      <scm:Note>Mapped mime type video/mp4=.mp4
+      </scm:Note>
+    </notes>
+
+  </scm:Change> 
+
+  <scm:Change>
     <revision>0.4.12
     </revision>
 
