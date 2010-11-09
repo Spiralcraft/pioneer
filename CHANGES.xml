@@ -2,6 +2,42 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.12.3
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2010-11-09
+    </date>
+    
+    <notes>
+      <scm:Note>Route container Focus through to web context to permit context
+        apps ]to access administrative control functionality when enabled via
+        SimpleHttpServiceContext.exposeContainerFocus
+      </scm:Note>
+    </notes>
+
+    <path>source/spiralcraft/httpd/
+    </path>
+    
+    <resources>
+      <URI>HttpServer.java
+      </URI>
+      <URI>HttpService.java
+      </URI>
+      <URI>HttpServiceContext.java
+      </URI>
+      <URI>MultiAliasHttpServiceContext.java
+      </URI>
+      <URI>MultiHostHttpServiceContext.java
+      </URI>
+      <URI>SimpleHttpServiceContext.java
+      </URI>
+    </resources>
+  </scm:Change> 
+
+  <scm:Change>
     <revision>0.4.12.2
     </revision>
 
