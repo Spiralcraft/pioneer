@@ -20,6 +20,8 @@ import spiralcraft.pioneer.net.ConnectionHandler;
 
 import spiralcraft.app.spi.AbstractComponent;
 import spiralcraft.common.LifecycleException;
+import spiralcraft.lang.BindException;
+import spiralcraft.lang.Focus;
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
 
@@ -85,6 +87,8 @@ public class HttpServer
   private boolean debugService;
   private boolean debugIO;
   private boolean debugAPI;
+  
+  protected Focus<?> focus;
  
   public void setServerInfo(String serverInfo)
   { _serverInfo=serverInfo;
@@ -208,6 +212,12 @@ public class HttpServer
         _serviceContext=serviceContext;
       }
       _serviceContext.setServer(this);
+      try
+      { _serviceContext.bind(focus);
+      }
+      catch (BindException x)
+      { throw new LifecycleException("Error binding ServletContext",x);
+      }
       _serviceContext.start();
     
       if (_serverInfo==null)
@@ -252,6 +262,14 @@ public class HttpServer
   { return new HttpConnectionHandler();
   }
 
+
+  @Override
+  protected Focus<?> bindExports(Focus<?> focus)
+  { 
+    log.fine("HttpServer binding to "+focus);
+    this.focus=focus;
+    return focus;
+  }
 
 
   class HttpConnectionHandler

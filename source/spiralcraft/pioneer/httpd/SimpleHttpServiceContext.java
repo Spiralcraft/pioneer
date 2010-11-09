@@ -74,6 +74,8 @@ import spiralcraft.vfs.batch.Search;
 
 import spiralcraft.common.LifecycleException;
 
+import spiralcraft.lang.BindException;
+import spiralcraft.lang.Focus;
 import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
 
@@ -179,6 +181,9 @@ public class SimpleHttpServiceContext
   protected String virtualHostName;  
  
   private boolean _initialized=false;
+  protected Focus<?> focus;
+  
+  private boolean exposeContainerFocus;
 
 
   /////////////////////////////////////////////////////////////////////////
@@ -1953,6 +1958,10 @@ public class SimpleHttpServiceContext
   { this.virtualHostName=hostName;
   }
   
+  public void setExposeContainerFocus(boolean exposeContainerFocus)
+  { this.exposeContainerFocus=exposeContainerFocus;
+  }
+  
   /////////////////////////////////////////////////////////////////////////
   //
   // Startup sequence
@@ -2193,11 +2202,18 @@ public class SimpleHttpServiceContext
         try
         {
           if (holder.getFilter() instanceof Controller)
-          { startedController=true;
+          { 
+            startedController=true;
+            if (exposeContainerFocus)
+            { ((Controller) holder.getFilter()).bind(focus);
+            }
           }
         }
         catch (ServletException x)
         { log.log(Level.WARNING,"Unexpected exception getting filter",x);
+        }
+        catch (BindException x)
+        { log.log(Level.WARNING,"Error binding controller",x);
         }
       }
       
@@ -2236,13 +2252,18 @@ public class SimpleHttpServiceContext
     };
     
     try
-    { controller.init(config);
+    { 
+      controller.init(config);
+      if (exposeContainerFocus)
+      { controller.bind(focus);
+      }
     }
     catch (ServletException x)
-    { 
-      // XXX Do something more secure
-      x.printStackTrace();
+    { log.log(Level.WARNING,"Error starting controller",x);
     }
+    catch (BindException x)
+    { log.log(Level.WARNING,"Error binding controller",x);
+    }       
   }
   
   private void startListeners()
@@ -2430,6 +2451,17 @@ public class SimpleHttpServiceContext
     { _servletStack.pop().stop();
     }
   }
+
+  @Override
+  public Focus<?> bind(
+    Focus<?> focus)
+    throws BindException
+  {
+    this.focus=focus;
+    return focus;
+  }
+  
+
 
 
 }

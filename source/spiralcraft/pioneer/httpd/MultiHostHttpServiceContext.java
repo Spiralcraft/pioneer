@@ -29,6 +29,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 import spiralcraft.common.LifecycleException;
+import spiralcraft.lang.BindException;
 import spiralcraft.log.Level;
 
 import spiralcraft.text.CaseInsensitiveString;
@@ -103,7 +104,14 @@ public class MultiHostHttpServiceContext
   { 
     super.start();    
     for (HttpServiceContext context : _hostList)
-    { context.start();
+    { 
+      try
+      { context.bind(focus);
+      }
+      catch (BindException x)
+      { throw new LifecycleException("Error binding ServletContext",x);
+      }
+      context.start();
     }
 
   }

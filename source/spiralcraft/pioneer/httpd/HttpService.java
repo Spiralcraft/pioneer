@@ -80,8 +80,4 @@ public class HttpService
   }
 
 
-  public Object getSelector()
-  { return null;
-  }
-
 }

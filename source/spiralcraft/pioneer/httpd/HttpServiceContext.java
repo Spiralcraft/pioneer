@@ -31,10 +31,11 @@ import java.net.URI;
 
 import spiralcraft.common.Lifecycle;
 
+import spiralcraft.lang.Contextual;
 import spiralcraft.pioneer.io.Governer;
 
 public interface HttpServiceContext
-  extends ServletContext,Lifecycle
+  extends ServletContext,Lifecycle,Contextual
 {
 
   /**

@@ -26,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 import spiralcraft.common.LifecycleException;
+import spiralcraft.lang.BindException;
 import spiralcraft.log.Level;
 
 import spiralcraft.util.Path;
@@ -119,6 +120,12 @@ public class MultiAliasHttpServiceContext
     for (HttpServiceContext context : _subcontextList)
     { 
       context.setVirtualHostName(virtualHostName);
+      try
+      { context.bind(focus);
+      }
+      catch (BindException x)
+      { throw new LifecycleException("Error binding ServletContext",x);
+      }
       context.start();
     }
   }
