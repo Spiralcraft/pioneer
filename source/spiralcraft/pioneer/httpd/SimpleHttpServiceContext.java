@@ -70,7 +70,9 @@ import spiralcraft.util.Path;
 
 import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
+import spiralcraft.vfs.UnresolvableURIException;
 import spiralcraft.vfs.batch.Search;
+import spiralcraft.vfs.file.FileResource;
 
 import spiralcraft.common.LifecycleException;
 
@@ -1600,6 +1602,25 @@ public class SimpleHttpServiceContext
    */
   public void setSessionManager(HttpSessionManager sessionManager)
   { _sessionManager=sessionManager;
+  }
+  
+  public void setDocumentRootURI(URI uri)
+  {
+    try
+    {
+      FileResource resource=Resolver.getInstance().resolve(uri)
+        .unwrap(FileResource.class);
+      if (resource!=null)
+      { setDocumentRoot(resource.getFile().toURI().getPath());
+      }
+      else
+      { throw new IllegalArgumentException("Not a local directory "+uri);
+      }
+    }
+    catch (UnresolvableURIException e)
+    { throw new IllegalArgumentException(e);
+    }
+    
   }
   
   public void setDocumentRoot(String root)
