@@ -16,6 +16,9 @@
         apps ]to access administrative control functionality when enabled via
         SimpleHttpServiceContext.exposeContainerFocus
       </scm:Note>
+      <scm:Note>Provide VFS based document root via 
+        SimpleHttpServiceContext.setDocumentRootURI()
+      </scm:Note>
     </notes>
 
     <path>source/spiralcraft/httpd/

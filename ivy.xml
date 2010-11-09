@@ -8,7 +8,7 @@
   </publications> 
     
   <dependencies>
-    <dependency org="spiralcraft" name="core" rev="[0.4.12,)"/>
+    <dependency org="spiralcraft" name="core" rev="[0.4.12.3,)"/>
 
     <dependency org="spiralcraft" name="net" rev="[0.4.12,)"/>
 
