@@ -2,6 +2,32 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.12.4
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2011-01-19
+    </date>
+    
+    <notes>
+      <scm:Note>maxSessionInactiveInterval was not taking effect in the
+        multi-host configuration. Always create a root
+        sessionManager where contextPath is empty.
+      </scm:Note>
+    </notes>
+
+    <path>source/spiralcraft/httpd/
+    </path>
+    
+    <resources>
+      <URI>SimpleHttpServiceContext.java
+      </URI>
+    </resources>
+  </scm:Change> 
+
+  <scm:Change>
     <revision>0.4.12.3
     </revision>
 
