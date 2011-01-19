@@ -2031,7 +2031,7 @@ public class SimpleHttpServiceContext
 //     throw new RuntimeException(x.toString());
 //    }
     
-    if (_parentContext==null)
+    if (_parentContext==null || _contextPath.equals(""))
     {
       if (_sessionManager==null)
       {
@@ -2042,15 +2042,27 @@ public class SimpleHttpServiceContext
         }
         sessionManager.init();
         _sessionManager=sessionManager;
+        if (log.canLog(Level.CONFIG))
+        { 
+          log.log
+            (Level.CONFIG
+            ,"Sessions expire in "+_maxSessionInactiveInterval+" seconds"
+            );
+        }
       }
       if (_mimeMap==null)
       { 
-        try
-        { _mimeMap=new ExtensionMimeTypeMap("ExtensionMimeTypeMap.properties");
+        if (_parentContext==null)
+        {
+          // Load default mime map for server root context
+          try
+          { _mimeMap=new ExtensionMimeTypeMap("ExtensionMimeTypeMap.properties");
+          }
+          catch (IOException x)
+          { log.log(Level.WARNING,"Error loading default mime type map: "+x.toString());
+          }
         }
-        catch (IOException x)
-        { log.log(Level.WARNING,"Error loading default mime type map: "+x.toString());
-        }
+        
         try
         {
           if (_extensionMimeTypeMapResource!=null)
@@ -2059,7 +2071,16 @@ public class SimpleHttpServiceContext
             { _mimeMap=new ExtensionMimeTypeMap();
             }
             _mimeMap.addFromResource(_extensionMimeTypeMapResource);
+            if (log.canLog(Level.CONFIG))
+            { 
+              log.log
+                (Level.CONFIG
+                ,"Loaded additional mime types from "
+                  +_extensionMimeTypeMapResource.getURI()
+                );
+            }
           }
+          
         }
         catch (IOException x)
         { log.log(Level.WARNING,"Error loading configured mime type map: "+x.toString());
