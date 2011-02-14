@@ -16,7 +16,6 @@
 package spiralcraft.pioneer.servlet;
 
 
-import spiralcraft.net.http.URLCodec;
 import spiralcraft.text.html.URLDataEncoder;
 
 import spiralcraft.vfs.StreamUtil;
@@ -25,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 
 import java.util.Iterator;
@@ -39,6 +39,8 @@ import java.util.Map;
  */
 public class VariableManager
 {
+  private static final Charset UTF_8=Charset.forName("UTF-8");
+  
 	private HashMap<String,String[]> m_vars=null;
 
 	public static HashMap<String,String[]> decodeURLEncoding(String encodedForm)
@@ -52,10 +54,8 @@ public class VariableManager
       int eqpos=pair.indexOf('=');
       if (eqpos>0 && eqpos<pair.length()-1)
       {
-        String name=URLCodec.decode(pair.substring(0,eqpos));
+        String name=URLDataEncoder.decode(pair.substring(0,eqpos));
         
-        // Commas as a value delimiter are non-conformant
-        // String[] rawValues=pair.substring(eqpos+1).split(",");
         String rawValue=pair.substring(eqpos+1);
         ArrayList<String> valueList=buf.get(name);
         if (valueList==null)
@@ -63,10 +63,7 @@ public class VariableManager
           valueList=new ArrayList<String>();
           buf.put(name,valueList);
         }
-        //for (String rawValue:rawValues)
-        //{ 
-          valueList.add(URLCodec.decode(rawValue));
-        //}
+        valueList.add(URLDataEncoder.decode(rawValue));
       }
     }
     
@@ -89,9 +86,11 @@ public class VariableManager
   {
 		if (request.getMethod().equals("POST"))
     {
+		  String charsetStr=request.getCharacterEncoding();
       return VariableManager.fromStream
         (request.getIntHeader("Content-Length")
         ,request.getInputStream()
+        ,charsetStr!=null?Charset.forName(charsetStr):UTF_8
         );
     }
     else
@@ -116,10 +115,10 @@ public class VariableManager
     }
   }
 
-  public static VariableManager fromStream(int len,InputStream in)
+  public static VariableManager fromStream(int len,InputStream in,Charset encoding)
     throws IOException
   {
-    String post=StreamUtil.readAsciiString(in, len);
+    String post=StreamUtil.readString(in, len,encoding);
     return new VariableManager(decodeURLEncoding(post));
   }
   
