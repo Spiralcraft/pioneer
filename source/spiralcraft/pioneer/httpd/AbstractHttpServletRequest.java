@@ -25,6 +25,7 @@ import java.util.Enumeration;
 import java.io.IOException;
 
 import java.net.URI;
+import java.nio.charset.Charset;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -56,7 +57,8 @@ public abstract class AbstractHttpServletRequest
     =ClassLog.getInstance(AbstractHttpServletRequest.class);
   
   protected static final VariableManager NULL_FORM=new VariableManager();
-
+  private static final Charset UTF_8=Charset.forName("UTF-8");
+  
   protected final DateFormat _rfc1123HeaderDateFormat
     =new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'");
   { _rfc1123HeaderDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -531,6 +533,7 @@ public abstract class AbstractHttpServletRequest
           _post=VariableManager.fromStream
                 (getContentLength()
                 ,getInputStream()
+                ,_characterEncoding!=null?Charset.forName(_characterEncoding):UTF_8
                 );
           if (getHttpServer().getDebugService())
           { _log.log(Level.DEBUG,"Read post: ["+_post.toString()+"]");
