@@ -4,5 +4,6 @@
   
   <defaultCacheSeconds>60
   </defaultCacheSeconds>
-  
+  <debugLevel>FINE
+  </debugLevel>
 </httpd:FileServlet>
