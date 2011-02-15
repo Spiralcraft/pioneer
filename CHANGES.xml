@@ -2,6 +2,52 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.13
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>
+    </date>
+    
+    <details>
+    
+      <scm:Change>
+        <notes>
+          <scm:Note>Responses default to UTF-8 charset if no charset is
+            specified in the content type
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/pioneer/httpd/HttpServerResponse.java
+        </path>
+      </scm:Change>
+
+      <scm:Change>
+        <notes>
+          <scm:Note>Character encoding specified in Content-Type header is
+            respected when reading post data.
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/pioneer/httpd/AbstractHttpServletRequest.java
+        </path>
+      </scm:Change>
+
+      <scm:Change>
+        <notes>
+          <scm:Note>VariableManager now uses the URLDataEncoder from 
+            spiralcraft-core.
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/pioneer/servlet/VariableManager.java
+        </path>
+      </scm:Change>
+
+    </details>
+  
+  </scm:Change>
+
+  <scm:Change>
     <revision>0.4.12.4
     </revision>
 
