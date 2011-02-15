@@ -22,6 +22,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.ServletOutputStream;
 
 import java.net.Socket;
+import java.nio.charset.Charset;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -108,6 +109,7 @@ public class HttpServerResponse
 
   public final static byte[] END_CHUNK="0\r\n\r\n".getBytes();
 
+  private static final Charset UTF_8=Charset.forName("UTF-8");
   
   private HttpServer _server;
   private Socket _socket;
@@ -126,7 +128,7 @@ public class HttpServerResponse
   private boolean debugProtocol;
   private boolean debugAPI;
   private String contentType;
-  private String characterEncoding;
+  private String characterEncoding="UTF-8";
 
   private final MappedList _headers=new MappedList(new ArrayList<Variable>());
   private final ListMap _headerMap
@@ -516,7 +518,7 @@ public class HttpServerResponse
     setHeader
       (HDR_CONTENT_TYPE
       ,contentType
-      +(characterEncoding!=null?";charset="+characterEncoding:"")
+      +(characterEncoding!=null?";charset="+this.characterEncoding:"")
       );
   }
   
@@ -570,7 +572,17 @@ public class HttpServerResponse
   public PrintWriter getWriter()
   {
     if (_writer==null)
-    { _writer=new PrintWriter(new OutputStreamWriter(_outputStream));
+    { 
+      Charset charset
+        =characterEncoding!=null
+        ?Charset.forName(characterEncoding)
+        :null
+        ;
+        
+      if (charset==null)
+      { charset=UTF_8;
+      }
+      _writer=new PrintWriter(new OutputStreamWriter(_outputStream,charset));
     }
     if (debugAPI)
     { _log.fine(""+_writer);
