@@ -43,7 +43,8 @@ public class VariableManager
   
 	private HashMap<String,String[]> m_vars=null;
 
-	public static HashMap<String,String[]> decodeURLEncoding(String encodedForm)
+	public static HashMap<String,String[]> decodeURLEncoding
+	  (String encodedForm,Charset encoding)
 	{
     HashMap<String,ArrayList<String>> buf
       =new HashMap<String,ArrayList<String>>();
@@ -63,7 +64,8 @@ public class VariableManager
           valueList=new ArrayList<String>();
           buf.put(name,valueList);
         }
-        valueList.add(URLDataEncoder.decode(rawValue));
+        valueList.add
+          (URLDataEncoder.decode(rawValue,encoding!=null?encoding:UTF_8));
       }
     }
     
@@ -108,7 +110,7 @@ public class VariableManager
     if (request.getQueryString()!=null)
     { 
       return new VariableManager
-        (decodeURLEncoding(request.getQueryString()));
+        (decodeURLEncoding(request.getQueryString(),UTF_8));
     }
     else
     { return new VariableManager(null);
@@ -118,8 +120,9 @@ public class VariableManager
   public static VariableManager fromStream(int len,InputStream in,Charset encoding)
     throws IOException
   {
-    String post=StreamUtil.readString(in, len,encoding);
-    return new VariableManager(decodeURLEncoding(post));
+    String post=StreamUtil.readAsciiString(in, len);
+    return new VariableManager
+      (decodeURLEncoding(post,encoding!=null?encoding:UTF_8));
   }
   
   /**
