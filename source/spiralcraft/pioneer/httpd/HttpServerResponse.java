@@ -177,6 +177,8 @@ public class HttpServerResponse
     _chunkStream=false;
     _keepaliveSeconds=30;
     _writer=null;
+    contentType=null;
+    characterEncoding="UTF-8";
     _headers.clear();
   }
 
@@ -193,6 +195,8 @@ public class HttpServerResponse
     _status=200;
     _reason=null;
     _sentHeaders=false;
+    contentType=null;
+    characterEncoding="UTF-8";
     _headers.clear();
     
   }
@@ -342,14 +346,7 @@ public class HttpServerResponse
     { _log.fine(code+" "+msg);
     }
 
-    setContentType("text/html");
-    setStatus(code);
-
-    PrintWriter out = getWriter();
-    out.println("<HTML><HEAD><TITLE>"
-                +code+"-"+_reason+"</TITLE><BODY>"+msg
-                +"</BODY></HTML>");
-    out.flush();
+    _request._context.handleError(_request,this,code,msg,null);
   }
       
   @Override
@@ -559,6 +556,10 @@ public class HttpServerResponse
     setHeader(HDR_CONTENT_LENGTH,Integer.toString(len));
   }
 
+  public String getReason()
+  { return _reason;
+  }
+  
   @Override
   public ServletOutputStream getOutputStream()
   { 
@@ -724,6 +725,11 @@ public class HttpServerResponse
       _outputStream.write(_reason!=null?_reason:"");
       _outputStream.write(EOL);
 
+      if (_status>=400)
+      { 
+        setHeader(HDR_CACHE_CONTROL,"max-age=0");
+        setDateHeader(HDR_EXPIRES,0);
+      }
       for (Variable var : (Iterable<Variable>) _headers)
       {
         if (debugProtocol)

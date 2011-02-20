@@ -78,6 +78,7 @@ public abstract class AbstractHttpServletRequest
     FORWARD
     ,INCLUDE
     ,REQUEST
+    ,ERROR
   }
   
 	protected class Variable

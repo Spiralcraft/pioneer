@@ -89,7 +89,7 @@ public class DispatchServerRequest
     
     if (original)
     {
-      String nature=(source==RequestSource.FORWARD?"forward":"include");
+      String nature=(source!=RequestSource.INCLUDE?"forward":"include");
       setAttribute
         ("javax.servlet."+nature+".request_uri"
         ,containingRequest.getRequestURI()

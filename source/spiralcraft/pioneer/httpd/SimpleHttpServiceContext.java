@@ -44,6 +44,7 @@ import javax.servlet.http.HttpSessionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.StringReader;
 
 import java.util.ArrayList;
@@ -127,6 +128,7 @@ public class SimpleHttpServiceContext
   private HashMap<String,String> _prefixServletNameMap=null;
   private ArrayList<FilterMapping> _filterMappings=null;
   private HashMap<String,FilterHolder> _filterMap=null;
+  private ArrayList<ErrorPage> _errorPages=new ArrayList<ErrorPage>();
   private ArrayList<String> _listenerClassNames;
   private ArrayList<ServletContextListener> _listeners;
   private ArrayList<ServletContextAttributeListener> _attributeListeners;
@@ -231,8 +233,9 @@ public class SimpleHttpServiceContext
       // We must to this here to compute other path fields
       request.updateContextPath(getContextPath());
       
+      boolean topLevel=request instanceof HttpServerRequest;
       
-      if (request instanceof HttpServerRequest)
+      if (topLevel)
       {
         
         if (_governer!=null)
@@ -247,82 +250,32 @@ public class SimpleHttpServiceContext
         }
       }
       
-      if (preFilter(request,response))
-      {
         
-        // Push the ClassLoader for this context
-        ClassLoader lastLoader=null;
-        if (contextClassLoader!=null)
-        { 
-          lastLoader=Thread.currentThread().getContextClassLoader();
-          if (lastLoader!=contextClassLoader)
-          { Thread.currentThread().setContextClassLoader(contextClassLoader);
-          }
-          else
-          { lastLoader=null;
-          }
-        }
-        
-        // Ensure we always pop the ClassLoader if set
-        try
-        {
-          
-          FilterChain filterChain=getFilterChainForRequest(request);
-          try
-          {
-            if (filterChain!=null)
-            { 
-              fireRequestInitialized(request);
-              // This is the main act
-              filterChain.doFilter(request,response);
-              fireRequestDestroyed(request);
-            }
-            else
-            {
-              log.log
-                (Level.SEVERE
-                ,"No servlet configured to handle request for http://"
-                  +request.getHeader("Host")
-                  +request.getRequestURI()
-                ); 
-              response.sendError(404);
-            }
-          }
-          catch (ServletException x)
-          {
-            log.log(Level.SEVERE
-                    ,"ServletException handling "
-                      +"http://"+request.getHeader("Host")+request.getRequestURI()
-                      +": "+x.toString()
-                    );
-          }
-          catch (IOException x)
-          { throw x;
-          }
-          catch (Exception x)
-          {
-            log.log(Level.SEVERE
-                    ,"Uncaught Exception handling "
-                      +"http://"+request.getHeader("Host")+request.getRequestURI()
-                      +": "+ThrowableUtil.getStackTrace(x)
-                    );
-            response.sendError(500);
-          }
-        }
-        finally
-        {
-          if (lastLoader!=null)
-          { Thread.currentThread().setContextClassLoader(lastLoader);
-          }
-        }
-        
-      } // if (preFilter(request,response)
-      else
+      // Push the ClassLoader for this context
+      ClassLoader lastLoader=null;
+      if (contextClassLoader!=null)
       { 
-        if (debug)
-        { log.fine("Request "+request.getRequestURL()+" failed pre-filter");
+        lastLoader=Thread.currentThread().getContextClassLoader();
+        if (lastLoader!=contextClassLoader)
+        { Thread.currentThread().setContextClassLoader(contextClassLoader);
+        }
+        else
+        { lastLoader=null;
         }
       }
+        
+      // Ensure we always pop the ClassLoader if set
+      try
+      { 
+        serviceWithErrorHandling(request,response,topLevel);
+      }
+      finally
+      {
+        if (lastLoader!=null)
+        { Thread.currentThread().setContextClassLoader(lastLoader);
+        }
+      }
+        
     }
     catch (ServletException x)
     {
@@ -343,6 +296,189 @@ public class SimpleHttpServiceContext
     }
   }
 
+  protected void serviceWithErrorHandling
+    (final AbstractHttpServletRequest request
+    ,final HttpServletResponse response
+    ,boolean topLevel
+    )
+    throws ServletException,IOException
+  {
+
+    if (preFilter(request,response))
+    {
+      
+      FilterChain filterChain=getFilterChainForRequest(request);
+      try
+      {
+        if (filterChain!=null)
+        { 
+          fireRequestInitialized(request);
+          // This is the main act
+          filterChain.doFilter(request,response);
+          fireRequestDestroyed(request);
+        }
+        else
+        {
+          log.log
+            (Level.SEVERE
+            ,"No servlet configured to handle request for http://"
+              +request.getHeader("Host")
+              +request.getRequestURI()
+            ); 
+          response.sendError(404);
+        }
+      }
+      catch (ServletException x)
+      {
+        log.log(Level.SEVERE
+                ,"ServletException handling "
+                  +"http://"+request.getHeader("Host")+request.getRequestURI()
+                  +": "+x.toString()
+                );
+        if (topLevel)
+        {
+          handleError
+            (request
+            ,(HttpServerResponse) response
+            ,500
+            ,"Internal Server Error"
+            ,x
+            );
+        }
+      }
+      catch (IOException x)
+      { throw x;
+      }
+      catch (Exception x)
+      {
+        log.log(Level.SEVERE
+                ,"Uncaught Exception handling "
+                  +"http://"+request.getHeader("Host")+request.getRequestURI()
+                  +": "+ThrowableUtil.getStackTrace(x)
+                );
+        if (topLevel)
+        {
+          handleError
+            (request
+            ,(HttpServerResponse) response
+            ,500
+            ,"Internal Server Error"
+            ,x
+            );
+        }
+      }
+      
+    } // if (preFilter(request,response)
+    else
+    { 
+      if (debug)
+      { log.fine("Request "+request.getRequestURL()+" failed pre-filter");
+      }
+    }    
+    
+  }
+  
+  @Override
+  public void handleError
+    (AbstractHttpServletRequest request
+    ,HttpServerResponse response
+    ,int code
+    ,String message
+    ,Throwable exception
+    )
+    throws IOException
+  {
+    String errorURI=null;
+    
+    // Go through error pages
+    
+    // Go through codes
+    if (code>0)
+    {
+      for (ErrorPage errorPage: _errorPages)
+      {
+        if (errorPage.getErrorCode()==code)
+        { 
+          errorURI=errorPage.getLocation().toString();
+          break;
+        }
+      }
+    }
+    
+    // Go through exceptions
+    if (errorURI==null && exception!=null)
+    {
+      // Go through codes
+      for (ErrorPage errorPage: _errorPages)
+      {
+        if (errorPage.getExceptionType()!=null
+            && errorPage.getExceptionType()
+              .isAssignableFrom(exception.getClass())
+           )
+        { 
+          errorURI=errorPage.getLocation().toString();
+          break;
+        }
+      }
+      
+      if (errorURI==null 
+          && exception instanceof ServletException
+          && ((ServletException) exception).getRootCause()!=null
+          )
+      {
+        exception=((ServletException) exception).getRootCause();
+        for (ErrorPage errorPage: _errorPages)
+        {
+          if (errorPage.getExceptionType()!=null
+              && errorPage.getExceptionType()
+                .isAssignableFrom(exception.getClass())
+             )
+          { 
+            errorURI=errorPage.getLocation().toString();
+            break;
+          }
+        }
+        
+        
+      }
+      
+      
+    }
+    
+    
+    // dispatch wrapped request, wrapped response
+    if (errorURI!=null)
+    {
+    
+      response.setStatus(code);
+      log.fine("Sending error for status: "+response.getStatus());
+      ServerRequestDispatcher dispatcher
+        =(ServerRequestDispatcher) getRequestDispatcher(errorURI);
+      try
+      {
+        dispatcher.sendError(request,response,code,message,exception);
+        return;
+      }
+      catch (ServletException x)
+      { 
+        if (exception!=null)
+        { log.log(Level.WARNING,"Unhandled exception",x);
+        }
+        log.log(Level.WARNING,"Error handling error",x);
+      }
+    }
+
+    response.setContentType("text/html");
+    response.setStatus(code);
+
+    PrintWriter out = response.getWriter();
+    out.println("<html><head><title>"
+                +code+"-"+response.getReason()+"</title><body>"+message
+                +"</body></html>");
+    out.flush();
+    
+  }
+  
   /**
    * Perform any actions or protocol specifics
    *   before handing the request off to a servlet.
@@ -1654,6 +1790,10 @@ public class SimpleHttpServiceContext
     _welcomeFileList.add(welcomeFile);
   }
   
+  public void addErrorPage(ErrorPage errorPage)
+  { _errorPages.add(errorPage);
+  }
+    
   /**
    * Supply the authenticator component which will authenticate
    *   requests.
@@ -1704,6 +1844,14 @@ public class SimpleHttpServiceContext
     }
   }
   
+  public void setErrorPages(ErrorPage[] errorPages)
+  { 
+    _errorPages=new ArrayList<ErrorPage>();
+    for (ErrorPage errorPage:errorPages)
+    { addErrorPage(errorPage);
+    }
+  }
+  
   /**
    * Specify the servlet map, which maps names to
    *   SerlvetHolders.
@@ -1746,7 +1894,7 @@ public class SimpleHttpServiceContext
   }
   
   public void addFilterMapping(String name,String urlPattern)
-  { addFilterMapping(new FilterMapping(urlPattern,name,true,false,false));
+  { addFilterMapping(new FilterMapping(urlPattern,name,true,false,false,false));
   }
   
   public void addServlet(ServletHolder servletHolder)

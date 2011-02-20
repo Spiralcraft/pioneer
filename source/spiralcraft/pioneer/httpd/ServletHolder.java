@@ -44,6 +44,8 @@ public class ServletHolder
   private static final ClassLog log
     =ClassLog.getInstance(ServletHolder.class);
     
+  public static final String SERVLET_NAME_ATTRIBUTE="spiralcraft.servlet_name";
+    
   private Servlet _servlet;
   private String _servletClass;
   private ServletException _servletException;
@@ -262,6 +264,9 @@ public class ServletHolder
       log.fine(((HttpServletRequest) request).getRequestURI()+" -> "
          +getServlet());
     }    
+
+    String last=(String) request.getAttribute(SERVLET_NAME_ATTRIBUTE);
+    request.setAttribute("SERVLET_NAME_ATTRIBUTE",_servletName);
     try
     { getServlet().service(request,response);
     }
@@ -287,6 +292,9 @@ public class ServletHolder
           );
       }
       throw x;
+    }
+    finally
+    { request.setAttribute("SERVLET_NAME_ATTRIBUTE",last);
     }
   }
 

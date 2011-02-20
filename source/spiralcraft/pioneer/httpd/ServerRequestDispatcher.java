@@ -101,4 +101,61 @@ public class ServerRequestDispatcher
     response.getOutputStream().flush();
     
   }
+  
+  public void sendError
+    (ServletRequest request
+    ,HttpServerResponse response
+    ,int status
+    ,String message
+    ,Throwable exception
+    )
+    throws ServletException,IOException
+  {
+  
+    if (context.isDebug())
+    {
+      log.fine
+        ("Forwarding error to uri "+uri+" in "
+        +((HttpServletRequest) request).getRequestURL()
+        );
+      
+    }
+  
+    DispatchServerRequest dispatchRequest
+      =new DispatchServerRequest
+      ((HttpServletRequest) request
+      ,uri
+      ,RequestSource.ERROR
+      ,context.getServer()
+      );
+    
+    DispatchServerResponse dispatchResponse
+      =new DispatchServerResponse
+      ((HttpServletResponse) response
+      ,context.getServer()
+      );
+
+    dispatchRequest.setAttribute
+      ("javax.servlet.error.status_code",status);
+    if (exception!=null)
+    {
+      dispatchRequest.setAttribute
+        ("javax.servlet.error.exception_type",exception.getClass());
+    }
+    dispatchRequest.setAttribute
+      ("javax.servlet.error.message",message);
+    dispatchRequest.setAttribute
+      ("javax.servlet.error.exception",exception);
+    dispatchRequest.setAttribute
+      ("javax.servlet.error.request_uri"
+      ,((HttpServletRequest) request).getRequestURI()
+      );
+    dispatchRequest.setAttribute
+      ("javax.servlet.error.servlet_name"
+      ,request.getAttribute(ServletHolder.SERVLET_NAME_ATTRIBUTE)
+      );
+
+    context.service(dispatchRequest,dispatchResponse);
+
+  }
 }

@@ -178,4 +178,23 @@ public interface HttpServiceContext
   public void setInitParameter(String name,String value);
   
   public URI getDocumentRootURI();
+  
+  /**
+   * <p>Dispatch the request to an error handler
+   * </p>
+   * 
+   * @param request
+   * @param response
+   * @param code
+   * @param message
+   * @param exception
+   */
+  public void handleError
+    (AbstractHttpServletRequest request
+    ,HttpServerResponse response
+    ,int code
+    ,String message
+    ,Throwable exception
+    )
+  throws IOException;
 }

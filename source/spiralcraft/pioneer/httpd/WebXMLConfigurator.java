@@ -1,6 +1,7 @@
 package spiralcraft.pioneer.httpd;
 
 import java.io.IOException;
+import java.net.URI;
 
 import org.xml.sax.SAXException;
 
@@ -116,6 +117,75 @@ public class WebXMLConfigurator
 
   }
   
+  class ErrorPageReader
+    extends ElementReader<ErrorPage>
+  {
+    {
+      elementName="error-page";
+      
+      map("error-code"
+        ,new CharactersReader()
+        {
+          @Override
+          public void close(Element element)
+          { 
+            super.close(element);
+            ErrorPageReader.this.get().setErrorCode(Integer.parseInt(get()));
+          }
+        }
+        );
+      
+      map("location"
+        ,new CharactersReader()
+        {
+          @Override
+          public void close(Element element)
+          { 
+            super.close(element);
+            ErrorPageReader.this.get().setLocation(URI.create(get()));
+          }
+        }
+        );
+
+      map("exception-type"
+        ,new CharactersReader()
+        {
+          @SuppressWarnings("unchecked")
+          @Override
+          public void close(Element element)
+          { 
+            super.close(element);
+            try
+            {
+              ErrorPageReader.this.get().setExceptionType
+                ((Class<Throwable>) Thread.currentThread()
+                  .getContextClassLoader().loadClass(get())
+                );
+            }
+            catch (ClassNotFoundException x)
+            { throw new RuntimeException(x);
+            }
+          }
+        }
+        );
+    
+    }
+    
+    @Override
+    public void open(Element element)
+    { set(new ErrorPage());
+    }
+
+    @Override
+    public void close(Element element)
+      throws SAXException
+    { 
+      super.close(element);
+      context.addErrorPage(get());
+    }  
+    
+  }
+    
   class FilterReader
     extends ElementReader<FilterHolder>
   {
@@ -295,6 +365,38 @@ public class WebXMLConfigurator
   class FilterMappingReader
     extends PatternMappingReader<FilterMapping>
   {
+    {
+      map("dispatcher"
+        ,new CharactersReader()
+        {
+          @Override
+          public void close(Element element)
+          { 
+            super.close(element);
+            String condition=get();
+            FilterMapping fm=FilterMappingReader.this.get();
+            fm.dispatcherSpecified();
+            if (condition.equals("REQUEST"))
+            { fm.setOnRequest(true);
+            }
+            else if (condition.equals("INCLUDE"))
+            { fm.setOnInclude(true);
+            }
+            else if (condition.equals("FORWARD"))
+            { fm.setOnForward(true);
+            }
+            else if (condition.equals("ERROR"))
+            { fm.setOnError(true);
+            }
+            else
+            { throw new IllegalArgumentException
+                ("Unrecognized token '"+condition+"' for dispatcher element");
+            }
+          }          
+        }
+        );
+    }
+    
     public FilterMappingReader()
     { 
       super("filter-name");

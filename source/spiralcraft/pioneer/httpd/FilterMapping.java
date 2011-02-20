@@ -23,7 +23,9 @@ public class FilterMapping
   private boolean onRequest=true;
   private boolean onInclude=false;
   private boolean onForward=false;
+  private boolean onError=false;
   private boolean global=false;
+  private boolean dispatcherSpecified=false;
   
  
   public FilterMapping
@@ -32,12 +34,14 @@ public class FilterMapping
     ,boolean onRequest
     ,boolean onInclude
     ,boolean onForward
+    ,boolean onError
     )
   { 
     super(name,urlPattern);
     this.onRequest=onRequest;
     this.onInclude=onInclude;
     this.onForward=onForward;
+    this.onError=onError;
   }
   
   public FilterMapping()
@@ -56,8 +60,29 @@ public class FilterMapping
   { return onForward;
   }
   
+  public boolean isOnError()
+  { return onError;
+  }
+  
   public boolean isGlobal()
   { return global;
+  }
+  
+  /**
+   * Go to manual configuration, clearing defaults
+   * 
+   * @return
+   */
+  public void dispatcherSpecified()
+  { 
+    if (!dispatcherSpecified)
+    { 
+      dispatcherSpecified=true;
+      onRequest=false;
+      onInclude=false;
+      onForward=false;
+      onError=false;
+    }
   }
   
   public void setOnRequest(boolean onRequest)
@@ -70,6 +95,10 @@ public class FilterMapping
 
   public void setOnInclude(boolean onInclude)
   { this.onInclude=onInclude;
+  }
+
+  public void setOnError(boolean onError)
+  { this.onError=onError;
   }
   
   public void setFilterName(String name)
@@ -95,6 +124,8 @@ public class FilterMapping
       return onInclude;
     case FORWARD:
       return onForward;
+    case ERROR:
+      return onError;
     default:
       return false;
     }
