@@ -2,7 +2,7 @@
 
 
   <property name="module" value="pioneer"/>
-  <property name="buildVersion" value="0.4.13-rc1"/>
+  <property name="buildVersion" value="0.4.13-rc2"/>
 
   <path id="classpath">
     <pathelement location="lib/spiralcraft-core.jar"/>
@@ -18,8 +18,6 @@
   />        
 
   <import file="../../build/build-spiralcraft-common.xml"/>
-	
-        
 
 </project>
 

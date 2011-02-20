@@ -45,6 +45,16 @@
         </httpd:ServletHolder>
                         
       </servletHolders>
+      
+      <errorPages>
+        <httpd:ErrorPage>
+          <errorCode>404
+          </errorCode>
+          <location>/404.html
+          </location>
+        </httpd:ErrorPage>
+      </errorPages>
+      
     </httpd:SimpleHttpServiceContext>
   </serviceContext>
 </httpd:HttpService>

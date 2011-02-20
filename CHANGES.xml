@@ -12,6 +12,39 @@
     </date>
     
     <details>
+      <scm:Change>
+        <notes>
+          <scm:Note>Implemented error-page error handling mechanism in 
+            Servlet 2.4 spec.
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        <resources>
+          <URI>AbstractHttpServletRequest.java
+          </URI>
+          <URI>DispatchServerRequest.java
+          </URI>
+          <URI>ErrorPage.java
+          </URI>
+          <URI>FilterMapping.java
+          </URI>
+          <URI>HttpServerResponse.java
+          </URI>
+          <URI>HttpServiceContext.java
+          </URI>
+          <URI>ServerRequestDispatcher.java
+          </URI>
+          <URI>ServletHolder.java
+          </URI>
+          <URI>ServletRequestDispatcher.java
+          </URI>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+          <URI>WebXMLConfigurator.java
+          </URI>
+        </resources>
+      </scm:Change>
     
       <scm:Change>
         <notes>
