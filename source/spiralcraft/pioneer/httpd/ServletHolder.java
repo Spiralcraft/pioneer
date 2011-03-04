@@ -55,12 +55,17 @@ public class ServletHolder
   private String _servletName;
   private URI dataURI;
   private boolean _loaded;
-
+  private boolean debug;
+  
   /**
    * Create a new Bean configured ServletHolder
    */
   public ServletHolder()
   {
+  }
+  
+  public void setDebug(boolean debug)
+  { this.debug=debug;
   }
   
   public void setDataURI(URI dataURI)
@@ -106,7 +111,15 @@ public class ServletHolder
   }
 
   public void setServiceContext(HttpServiceContext context)
-  { _serviceContext=context;
+  { 
+    if (debug)
+    { 
+      log.debug
+        ("Servlet "+_servletName
+         +" attached to context in "+context.getContextPath()
+        );
+    }
+    _serviceContext=context;
   }
 
   public void setServletClass(String className)
