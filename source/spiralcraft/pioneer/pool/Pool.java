@@ -342,7 +342,7 @@ public class Pool
   {
     private boolean _done=false;
     private boolean _running=false;
-    private int _numTimes=0;
+//    private int _numTimes=0;
     private Object _keeperMonitor=new Object();
     private int _scheduledCount=0;
 
@@ -367,7 +367,7 @@ public class Pool
         _running=true;
       }
 
-      _numTimes++;
+//      _numTimes++;
       try
       {
         if (_overdueSeconds>0)

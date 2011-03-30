@@ -47,7 +47,7 @@ public class SimpleGoverner
   private int _frameSizeMs=250;
   private long _bytesPerFrame;
 
-  private long _totalBytes;
+//  private long _totalBytes;
   
   public void setRateBitsPerSecond(long bitsPerSecond)
   { 
@@ -101,7 +101,7 @@ public class SimpleGoverner
 
     int nextPacketSize=(int) Math.min(desiredSize,_bytesPerFrame-_frameBytesSoFar);
     _frameBytesSoFar+=nextPacketSize;
-    _totalBytes+=nextPacketSize;
+//    _totalBytes+=nextPacketSize;
     return nextPacketSize;
   }
 
