@@ -266,7 +266,9 @@ public class HttpServer
   @Override
   protected Focus<?> bindExports(Focus<?> focus)
   { 
-    log.fine("HttpServer binding to "+focus);
+    if (logLevel.isDebug())
+    { log.debug("HttpServer binding to "+focus);
+    }
     this.focus=focus;
     return focus;
   }

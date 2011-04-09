@@ -2242,7 +2242,7 @@ public class SimpleHttpServiceContext
         log.log
           (Level.INFO
           ,getClass().getName()
-            +" serving "+_docRootDir.getPath()+" is attributes root"
+            +" serving "+_docRootDir.getPath()
           );
         _attributes=new Hashtable<String,Object>();
       }
