@@ -2,6 +2,36 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.14
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>
+    </date>
+    
+    <details>
+      <revision>-dev1
+      </revision>
+      <scm:Change>
+        <notes>
+          <scm:Note>Remove extraneous log messages
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        <resources>
+          <URI>HttpServer.java
+          </URI>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+        </resources>
+      </scm:Change>
+    </details>
+  </scm:Change>
+
+  <scm:Change>
     <revision>0.4.13
     </revision>
 
