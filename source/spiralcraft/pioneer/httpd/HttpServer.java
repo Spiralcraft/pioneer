@@ -18,9 +18,9 @@ import spiralcraft.net.ip.AddressSet;
 import spiralcraft.pioneer.net.ConnectionHandlerFactory;
 import spiralcraft.pioneer.net.ConnectionHandler;
 
-import spiralcraft.app.spi.AbstractComponent;
+import spiralcraft.app.kit.AbstractComponent;
+import spiralcraft.common.ContextualException;
 import spiralcraft.common.LifecycleException;
-import spiralcraft.lang.BindException;
 import spiralcraft.lang.Focus;
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
@@ -215,7 +215,7 @@ public class HttpServer
       try
       { _serviceContext.bind(focus);
       }
-      catch (BindException x)
+      catch (ContextualException x)
       { throw new LifecycleException("Error binding ServletContext",x);
       }
       _serviceContext.start();
