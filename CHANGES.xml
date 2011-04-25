@@ -12,9 +12,33 @@
     </date>
     
     <details>
-      <revision>-dev1
-      </revision>
       <scm:Change>
+      
+        <revision>-dev2
+        </revision>
+        <notes>
+          <scm:Note>spiralcraft.lang.Contextual.bind() now throws
+            wider ContextualException instead of BindException
+          </scm:Note>
+          <scm:Note>spiralcraft.app.spi refactored to spiralcraft.app.kit
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        <resources>
+          <URI>HttpServer.java
+          </URI>
+          <URI>MultiAliasHttpServiceContext.java
+          </URI>
+          <URI>MultiHoseHttpServiceContext.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev1
+        </revision>
         <notes>
           <scm:Note>Remove extraneous log messages
           </scm:Note>
