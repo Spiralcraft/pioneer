@@ -2,6 +2,40 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.13.1
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2011-06-03
+    </date>
+    
+    <details>
+      <scm:Change>
+        <notes>
+          <scm:Note>Fixed issue that interfered with request parsing when the 
+            request URL path was exactly 242 characters long.
+          </scm:Note>
+          <scm:Note>Added logging code to ServerInputStream to track
+            issue down
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        <resources>
+          <URI>HttpServer.java
+          </URI>
+          <URI>HttpServerRequest.java
+          </URI>
+          <URI>ServerInputStream.java
+          </URI>
+        </resources>
+      </scm:Change>
+    </details>
+  </scm:Change>
+  
+  <scm:Change>
     <revision>0.4.13
     </revision>
 
