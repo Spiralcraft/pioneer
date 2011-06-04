@@ -12,6 +12,31 @@
     </date>
     
     <details>
+    
+      <scm:Change>
+        <revision>-dev3
+        </revision>
+        
+        <notes>
+          <scm:Note>Fixed issue that interfered with request parsing when the 
+            request URL path was exactly 242 characters long.
+          </scm:Note>
+          <scm:Note>Added logging code to ServerInputStream to track
+            issue down
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        <resources>
+          <URI>HttpServer.java
+          </URI>
+          <URI>HttpServerRequest.java
+          </URI>
+          <URI>ServerInputStream.java
+          </URI>
+        </resources>
+      </scm:Change>
+          
       <scm:Change>
       
         <revision>-dev2
