@@ -69,60 +69,60 @@ import spiralcraft.util.IteratorEnumeration;
  */
 public class HttpServerRequest
   extends AbstractHttpServletRequest
-	implements HttpServletRequest
+  implements HttpServletRequest
 {
   private static final ClassLog log
     =ClassLog.getInstance(HttpServerRequest.class);
 
-	
-	private HttpServerResponse _response;
+  
+  private HttpServerResponse _response;
   private HttpSession _session;
-	private Cookie[] _cookies;
-	private LinkedList<Cookie> _cookieList=new LinkedList<Cookie>();
-	
+  private Cookie[] _cookies;
+  private LinkedList<Cookie> _cookieList=new LinkedList<Cookie>();
+  
   private String _requestLine;
-	private String _method;
-	private String _remoteUser;
-	private String _requestedSessionId;
+  private String _method;
+  private String _remoteUser;
+  private String _requestedSessionId;
   private String _requestURL;
-	private boolean _sessionFromCookie;
-	private boolean _sessionFromUrl;
+  private boolean _sessionFromCookie;
+  private boolean _sessionFromUrl;
 
-	private String _protocol;
-	private String _remoteAddr;
+  private String _protocol;
+  private String _remoteAddr;
   private byte[] _rawRemoteAddr;
   private String _remoteHost;
   private InetAddress _remoteInetAddress;
   
   private String _host;
   private int _port;
-	private String _scheme="http";
-	private boolean _secure;
-	
-	private final ServerInputStream _inputStream=new ServerInputStream();
-	private ServletInputStream _apiInputStream;
+  private String _scheme="http";
+  private boolean _secure;
+  
+  private final ServerInputStream _inputStream;
+  private ServletInputStream _apiInputStream;
 
-	private BufferedReader _reader;
+  private BufferedReader _reader;
   private Socket _socket;
-	private List<Locale> _locales=new LinkedList<Locale>();
+  private List<Locale> _locales=new LinkedList<Locale>();
 
 
   private Principal _userPrincipal;
-	
-	private MappedList _headers=new MappedList(new LinkedList<Variable>());
-	private ListMap _headerMap
-		=_headers.addMapView
-			("name"
-			,new HashMap<String,Variable>()
-			,new Translator()
-				{
-					@Override
+  
+  private MappedList _headers=new MappedList(new LinkedList<Variable>());
+  private ListMap _headerMap
+    =_headers.addMapView
+      ("name"
+      ,new HashMap<String,Variable>()
+      ,new Translator()
+        {
+          @Override
           public Object translate(Object value)
-					{ return new CaseInsensitiveString(((Variable) value).name);
-					}
-				}
-			);
-			
+          { return new CaseInsensitiveString(((Variable) value).name);
+          }
+        }
+      );
+      
   
   private boolean _started;
   private boolean _headersRead;
@@ -133,13 +133,11 @@ public class HttpServerRequest
   { _source=RequestSource.REQUEST;
   }
   
-	public HttpServerRequest()
-  {
+  public HttpServerRequest(HttpServer server)
+  { 
+    _inputStream=new ServerInputStream(server);
+    this.setHttpServer(server);
   }
-
-
-
-
 
   public void setTraceStream(OutputStream traceStream)
   { _inputStream.setTraceStream(traceStream);
@@ -153,7 +151,7 @@ public class HttpServerRequest
    */
   public void start(Socket sock)
     throws IOException
-	{
+  {
     super.start();
     debugProtocol=_httpServer.getDebugProtocol();
     debugAPI=_httpServer.getDebugAPI();
@@ -162,13 +160,13 @@ public class HttpServerRequest
     _socket=sock;
     _secure=_socket instanceof SSLSocket;    
     _remoteInetAddress=sock.getInetAddress();
-		_inputStream.start(sock.getInputStream());
+    _inputStream.start(sock.getInputStream());
     
 
     _session=null;
     _cookies=null;
     _cookieList.clear();
-	
+  
     _requestLine=null;
     _method=null;
     _remoteUser=null;
@@ -185,10 +183,10 @@ public class HttpServerRequest
     _port=0;
     _scheme="http";
     _reader=null;
-	
+  
 
     _headersRead=false;
-	  _headers.clear();
+    _headers.clear();
     
     
     
@@ -216,7 +214,7 @@ public class HttpServerRequest
     else
     { throw new InterruptedIOException();
     }
-	}
+  }
 
   public boolean wasStarted()
   { return _started;
@@ -313,11 +311,11 @@ public class HttpServerRequest
   }
 
 
-	@Override
+  @Override
   public String getAuthType()
-	{ return getHeader("Auth-Type");
-	}
-	
+  { return getHeader("Auth-Type");
+  }
+  
   @Override
   public boolean isSecure()
   { 
@@ -341,25 +339,25 @@ public class HttpServerRequest
     }
   }
 
-	@Override
+  @Override
   public Cookie[] getCookies()
-	{ 
+  { 
     if (_cookies==null)
     { parseCookies();
     }
     return _cookies;
-	}
-	
-	@Override
+  }
+  
+  @Override
   public long getDateHeader(String name)
     throws IllegalArgumentException
-	{
-		String value=getHeader(name);
-		if (value==null)
-		{ return 0;
-		}
-		else
-		{ 
+  {
+    String value=getHeader(name);
+    if (value==null)
+    { return 0;
+    }
+    else
+    { 
       try
       { return _rfc1123HeaderDateFormat.parse(value).getTime();
       }
@@ -375,12 +373,12 @@ public class HttpServerRequest
         { }
       }
       throw new IllegalArgumentException("Unrecognized date format '"+value+"'");
-		}
-	}
-	
-	@Override
+    }
+  }
+  
+  @Override
   public String getHeader(String name)
-	{
+  {
     Variable var=(Variable) _headerMap.getFirst(new CaseInsensitiveString(name));
     if (var!=null)
     { return var.value;
@@ -388,56 +386,56 @@ public class HttpServerRequest
     else
     { return null;
     }
-	}
-	
+  }
+  
   @Override
   @SuppressWarnings("unchecked")
   public Enumeration<?> getHeaderNames()
-	{ 
-	  ArrayList<String> names=new ArrayList<String>(_headerMap.size());
-	  for (CaseInsensitiveString name 
-	        : (Set<CaseInsensitiveString>) _headerMap.keySet()
-	      )
-	  { names.add(name.toString());
-	  }
-	  
+  { 
+    ArrayList<String> names=new ArrayList<String>(_headerMap.size());
+    for (CaseInsensitiveString name 
+          : (Set<CaseInsensitiveString>) _headerMap.keySet()
+        )
+    { names.add(name.toString());
+    }
+    
     return new IteratorEnumeration<String>(names.iterator());
-	}
-	
-	@Override
+  }
+  
+  @Override
   public int getIntHeader(String name)
-	{
+  {
     String var=getHeader(name);
-		if (var==null)
-		{ return -1;
-		}
-		else
-		{ return Integer.parseInt(var); 
-		}
-	}
-	
-	@Override
+    if (var==null)
+    { return -1;
+    }
+    else
+    { return Integer.parseInt(var); 
+    }
+  }
+  
+  @Override
   public String getMethod()
-	{ return _method;
-	}
-	
-	
-	@Override
+  { return _method;
+  }
+  
+  
+  @Override
   public String getRemoteUser()
-	{ return _remoteUser;
-	}
-	
-	@Override
+  { return _remoteUser;
+  }
+  
+  @Override
   public String getRequestedSessionId()
-	{ return _requestedSessionId;
-	}
+  { return _requestedSessionId;
+  }
 
-	
+  
 
-	
-	@Override
+  
+  @Override
   public HttpSession getSession(boolean create)
-	{ 
+  { 
     if (_session!=null)
     { return _session;
     }
@@ -473,18 +471,18 @@ public class HttpServerRequest
       }
       return _session;
     }
-	}
-	
-	@Override
+  }
+  
+  @Override
   public HttpSession getSession()
-	{ return getSession(true);
-	}
+  { return getSession(true);
+  }
 
 
-	@Override
+  @Override
   public boolean isRequestedSessionIdFromCookie()
-	{ return _sessionFromCookie;
-	}
+  { return _sessionFromCookie;
+  }
 
   /** 
    *@deprecated
@@ -494,40 +492,40 @@ public class HttpServerRequest
   @Override
   @Deprecated
   public boolean isRequestedSessionIdFromUrl()
-	{ return _sessionFromUrl;
-	}
+  { return _sessionFromUrl;
+  }
 
-	@Override
+  @Override
   public boolean isRequestedSessionIdFromURL()
-	{ return _sessionFromUrl;
-	}
+  { return _sessionFromUrl;
+  }
 
-	@Override
+  @Override
   public boolean isRequestedSessionIdValid()
-	{ return _context.getSessionManager().isSessionIdValid(_requestedSessionId);
-	}
-	
+  { return _context.getSessionManager().isSessionIdValid(_requestedSessionId);
+  }
+  
 
 
-	@Override
+  @Override
   public ServletInputStream getInputStream()
-	{ return _apiInputStream;
-	}
-	
-	
-	@Override
+  { return _apiInputStream;
+  }
+  
+  
+  @Override
   public String getProtocol()
-	{ return _protocol;
-	}
-	
-	@Override
+  { return _protocol;
+  }
+  
+  @Override
   public BufferedReader getReader()
-	  throws IOException
-	{
-	  
-		if (_reader==null)
-		{ 
-		  String charset=getCharacterEncoding();
+    throws IOException
+  {
+    
+    if (_reader==null)
+    { 
+      String charset=getCharacterEncoding();
       if (charset!=null)
       { 
         if (debugAPI)
@@ -548,83 +546,83 @@ public class HttpServerRequest
         _reader
           =new BufferedReader(new InputStreamReader(_apiInputStream));
       }
-		}
-		
-		return _reader;
-	}	
-	
-	@Override
+    }
+    
+    return _reader;
+  }  
+  
+  @Override
   public String getRemoteAddr()
-	{ 
+  { 
     if (_remoteAddr==null)
     { _remoteAddr=_remoteInetAddress.getHostAddress();
     }
     return _remoteAddr;
-	}
-	
-	@Override
+  }
+  
+  @Override
   public byte[] getRawRemoteAddress()
-	{ 
+  { 
     if (_rawRemoteAddr==null)
     { _rawRemoteAddr=_remoteInetAddress.getAddress();
     }
     return _rawRemoteAddr;
-	}
+  }
 
-	@Override
+  @Override
   public String getRemoteHost()
-	{ 
+  { 
     if (_remoteHost==null)
     { _remoteHost=_remoteInetAddress.getHostName();
     }
     return _remoteHost;
-	}
-	
-	
-	
-	@Override
+  }
+  
+  
+  
+  @Override
   public String getScheme()
-	{ return _scheme;
- 	}
- 	
- 	@Override
+  { return _scheme;
+   }
+   
+   @Override
   public String getServerName()
- 	{ 
+   { 
     if (_host==null)
     { parseHost();
     }
     return _host;
- 	} 
- 	
- 	@Override
+   } 
+   
+   @Override
   public int getServerPort()
- 	{ 
+   { 
     if (_host==null)
     { parseHost();
     }
     return _port;
- 	}
- 	
- 	@Override
+   }
+   
+   @Override
   public String getLocalName()
- 	{ return _socket.getLocalAddress().getHostName();
- 	}
+   { return _socket.getLocalAddress().getHostName();
+   }
 
- 	@Override
+   @Override
   public int getLocalPort()
- 	{ return _socket.getLocalPort();
- 	}
- 	
- 	@Override
+   { return _socket.getLocalPort();
+   }
+   
+   @Override
   public String getLocalAddr()
- 	{ return _socket.getLocalAddress().toString();
- 	}
- 	
- 	@Override
+   { return _socket.getLocalAddress().toString();
+   }
+   
+   @Override
   public int getRemotePort()
- 	{ return _socket.getPort();
- 	}
- 	
+   { return _socket.getPort();
+   }
+   
   private void parseHost()
   { 
     String fullHost=getHeader("Host");
@@ -673,26 +671,26 @@ public class HttpServerRequest
    * 
    * @throws IOException
    */
- 	void readHeaders()
- 		throws IOException
- 	{
- 	  
+   void readHeaders()
+     throws IOException
+   {
+     
     if (_headersRead)
     { return;
     }
     _headersRead=true;
- 		String line=null;
- 		while(true)
- 		{
- 			line=_inputStream.readAsciiLine();
- 			if (line==null || line.length()==0)
- 			{ break;
- 			}
- 			else
- 			{ parseHeader(line);
- 			}
- 		}
- 		parseCookies();
+     String line=null;
+     while(true)
+     {
+       line=_inputStream.readAsciiLine();
+       if (line==null || line.length()==0)
+       { break;
+       }
+       else
+       { parseHeader(line);
+       }
+     }
+     parseCookies();
     _inputStream.resetCount();
     int contentLength=getContentLength();
     if (contentLength>0)
@@ -705,17 +703,17 @@ public class HttpServerRequest
     }
     
     determineRemoteAddress();
- 	}
+   }
 
- 	/**
- 	 * <p>Determine the remote IP address if there is server-side proxying
- 	 *   involved
- 	 * </p>
- 	 * @throws IOException
- 	 */
- 	private void determineRemoteAddress()
- 	  throws IOException
- 	{
+   /**
+    * <p>Determine the remote IP address if there is server-side proxying
+    *   involved
+    * </p>
+    * @throws IOException
+    */
+   private void determineRemoteAddress()
+     throws IOException
+   {
     if (_httpServer.isProxy(_socket.getInetAddress().getAddress()))
     { 
       String headerName=_httpServer.getRemoteAddressHeaderName();
@@ -736,13 +734,13 @@ public class HttpServerRequest
         }
       }
     }
- 	}
- 	
- 	private void parseRequest()
- 	{
- 		StringTokenizer tk=new StringTokenizer(_requestLine," ");
- 		_method=tk.nextToken();
- 		_requestURL=tk.nextToken();
+   }
+   
+   private void parseRequest()
+   {
+     StringTokenizer tk=new StringTokenizer(_requestLine," ");
+     _method=tk.nextToken();
+     _requestURL=tk.nextToken();
     if (_requestURL.length()>8 && _requestURL.substring(0,7).equalsIgnoreCase("http://"))
     { 
 
@@ -771,21 +769,21 @@ public class HttpServerRequest
       _requestURI=_requestURL;
       _queryString=null;
     }
- 	}
-	
-	
- 	private void parseHeader(String header)
- 	{
+   }
+  
+  
+   private void parseHeader(String header)
+   {
     
- 		Variable var=new Variable();
- 		int colonPos=header.indexOf(":");
- 		var.name=header.substring(0,colonPos);
- 		var.value=header.substring(colonPos+1).trim();
+     Variable var=new Variable();
+     int colonPos=header.indexOf(":");
+     var.name=header.substring(0,colonPos);
+     var.value=header.substring(colonPos+1).trim();
     if (debugProtocol)
     { _log.log(Level.DEBUG,">>> "+var.name+": "+var.value); 
     }
- 		_headers.add(var);
- 	}
+     _headers.add(var);
+   }
 
   @SuppressWarnings("rawtypes")
   private void parseCookies()
@@ -828,7 +826,7 @@ public class HttpServerRequest
       it=_cookieList.iterator();
       int i=0;
       while (it.hasNext())
-      {	
+      {  
         Cookie cookie=(Cookie) it.next();
         _cookies[i++]=cookie;
       }
@@ -852,7 +850,7 @@ public class HttpServerRequest
     }
     _characterEncoding=encoding;
   }
- 	
+   
   
   
 }

@@ -124,6 +124,10 @@ public class HttpServer
   { debugIO=val;
   }
 
+  public boolean getDebugIO()
+  { return debugIO;
+  }
+
   public void setTraceDir(URI uri)
     throws IOException
   { 
@@ -276,9 +280,8 @@ public class HttpServer
     implements ConnectionHandler
   {
 
-    private final HttpServerRequest _request=new HttpServerRequest();
-    { _request.setHttpServer(HttpServer.this);
-    }
+    private final HttpServerRequest _request
+      =new HttpServerRequest(HttpServer.this);
 
     private final HttpServerResponse _response=new HttpServerResponse(_request,_initialBufferCapacity);
     { 

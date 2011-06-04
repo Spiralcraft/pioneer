@@ -22,6 +22,7 @@ import java.io.OutputStream;
 
 import spiralcraft.vfs.StreamUtil;
 import spiralcraft.io.NullOutputStream;
+import spiralcraft.log.ClassLog;
 
 import javax.servlet.ServletInputStream;
 
@@ -29,17 +30,25 @@ import javax.servlet.ServletInputStream;
  * Implementation of the abstract ServerInputStream
  */
 public final class ServerInputStream
-	extends ServletInputStream
+  extends ServletInputStream
 {
-	private InputStream _in;
+  private static final ClassLog log
+    =ClassLog.getInstance(ServerInputStream.class);
+//  private final HttpServer server;
+  
+  private InputStream _in;
 
   private byte[] _byteBuffer=new byte[256];
   private char[] _charBuffer=new char[256];
   private int _count=0; 
   private OutputStream _trace;
- 	
-	public ServerInputStream()
-	{ }
+  private final boolean debugIO;
+   
+  public ServerInputStream(HttpServer server)
+  { 
+//  this.server=server;
+    this.debugIO=server.getDebugIO();
+  }
 
   public void setTraceStream(OutputStream traceStream)
   { _trace=traceStream;
@@ -68,10 +77,10 @@ public final class ServerInputStream
   { StreamUtil.copyRaw(_in,new NullOutputStream(),16384,bytes);
   }
 
-	@Override
+  @Override
   public final int read()
-		throws IOException
-	{
+    throws IOException
+  {
     final int val=_in.read();
     if (val>-1)
     { 
@@ -84,7 +93,7 @@ public final class ServerInputStream
 
     }
     return val;
-	}
+  }
 
   @Override
   public final int read(byte[] b,int start,int len)
@@ -156,10 +165,27 @@ public final class ServerInputStream
 
       if (_charBuffer[count-1]=='\n')
       { 
+    	  if (debugIO)
+    	  { log.fine("Found LF");
+      	}
+    	  
         // Deal with possibility of just a \n as a line term 
         //  from slack clients.
         final int trim=(count==1||_charBuffer[count-2]!='\r')?1:2;
 
+        if (debugIO)
+        {
+          if (trim==1)
+          { 
+            if (count==1)
+            { log.fine("Buffer only contains an LF");
+            }
+            else
+            { log.fine("Char before LF = '"+(int) _charBuffer[count-2]+"'");
+            }
+          }
+        }
+        
         if (ret==null)
         { ret=new String(_charBuffer,0,count-trim);
         }
@@ -170,13 +196,28 @@ public final class ServerInputStream
       }
       else
       {
+        final int trim=_charBuffer[count-1]=='\r'?1:0;
+        
+        if (debugIO)
+        {
+          if (trim==1)
+          { log.fine("Buffer ends in CR");
+          }
+        }
+        
         if (ret==null)
-        { ret=new String(_charBuffer,0,count);
+        { ret=new String(_charBuffer,0,count-trim);
         }
         else
-        { ret=ret.concat(new String(_charBuffer,0,count));
+        { ret=ret.concat(new String(_charBuffer,0,count-trim));
+        }
+        if (debugIO)
+        { log.fine("Read partial line: "+ret);
         }
       }
+    }
+    if (debugIO)
+    { log.fine("Read complete line: "+ret);
     }
     return ret;
   }
