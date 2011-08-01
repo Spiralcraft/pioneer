@@ -2,6 +2,43 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.15
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>
+    </date>
+    
+    <details>
+    
+      <scm:Change>
+        <revision>-dev1
+        </revision>
+        
+        <notes>
+          <scm:Note>HttpServiceContext has new properties
+            sessionCookieName, sessionParameterName, cookiesArePortSpecific
+            to manage conflicts between different service contexts and servers
+            using the same hostname, e.g. localhost.
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        <resources>
+          <URI>HttpServerRequest.java
+          </URI>
+          <URI>HttpServiceContext.java
+          </URI>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+        </resources>
+      </scm:Change>
+    </details>
+  </scm:Change>
+
+  <scm:Change>
     <revision>0.4.14
     </revision>
 
