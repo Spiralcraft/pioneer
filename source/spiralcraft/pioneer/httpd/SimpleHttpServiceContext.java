@@ -188,6 +188,10 @@ public class SimpleHttpServiceContext
   protected Focus<?> focus;
   
   private boolean exposeContainerFocus;
+  
+  private String sessionCookieName;
+  private String sessionParameterName;
+  private Boolean cookiesArePortSpecific;
 
 
   /////////////////////////////////////////////////////////////////////////
@@ -1634,6 +1638,52 @@ public class SimpleHttpServiceContext
   { return _servletContextName;
   }
 
+  @Override
+  public String getSessionCookieName()
+  {
+    if (sessionCookieName!=null)
+    { return sessionCookieName;
+    }
+    else if (_parentContext!=null)
+    { return _parentContext.getSessionCookieName();
+    }
+    else
+    { return "JSESSIONID";
+    }
+  }
+  
+  @Override
+  public String getSessionParameterName()
+  {
+    if (sessionParameterName!=null)
+    { return sessionParameterName;
+    }
+    else if (sessionCookieName!=null)
+    { return sessionCookieName;
+    }
+    else if (_parentContext!=null)
+    { return _parentContext.getSessionParameterName();
+    }
+    else
+    { return "jsessionid";
+    }
+    
+  }
+  
+  @Override
+  public boolean getCookiesArePortSpecific()
+  { 
+    if (cookiesArePortSpecific!=null)
+    { return cookiesArePortSpecific;
+    }
+    else if (_parentContext!=null)
+    { return _parentContext.getCookiesArePortSpecific();
+    } 
+    else
+    { return false;
+    }
+  }
+  
   /**
    * Returns a directory-like listing of all the paths to resources within
    *  the web application whose longest sub-path matches the supplied path
@@ -1730,6 +1780,18 @@ public class SimpleHttpServiceContext
     _meter=meter;
     _requestsRegister=_meter.createRegister(SimpleHttpServiceContext.class,"requests");
     
+  }
+  
+  public void setSessionParameterName(String sessionParameterName)
+  { this.sessionParameterName=sessionParameterName;
+  }
+
+  public void setSessionCookieName(String sessionCookieName)
+  { this.sessionCookieName=sessionCookieName;
+  }
+  
+  public void setCookiesArePortSpecific(boolean cookiesArePortSpecific)
+  { this.cookiesArePortSpecific=cookiesArePortSpecific;
   }
   
   /**

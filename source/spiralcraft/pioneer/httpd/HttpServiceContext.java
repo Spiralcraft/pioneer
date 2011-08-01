@@ -179,6 +179,13 @@ public interface HttpServiceContext
   
   public URI getDocumentRootURI();
   
+  public String getSessionCookieName();
+  
+  public String getSessionParameterName();
+  
+  public boolean getCookiesArePortSpecific();
+  
+  
   /**
    * <p>Dispatch the request to an error handler
    * </p>

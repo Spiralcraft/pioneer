@@ -440,11 +440,23 @@ public class HttpServerRequest
     { return _session;
     }
     
-    ensureQuery();
-    String urlSessionId=_query.getValue("ssid");
-    if (urlSessionId!=null)
-    { _session=_context.getSessionManager().getSession(urlSessionId,false);
+    String sessionParameter=";"+_context.getSessionParameterName()+"=";
+    String urlSessionId=null;
+    
+    int paramIndex=_requestURI.indexOf(sessionParameter);
+    if (paramIndex>0)
+    {
+      int nextParam=_requestURI.indexOf(";",paramIndex+1);
+      if (nextParam<0)
+      { nextParam=_requestURI.length();
+      }
+      urlSessionId
+        =_requestURI.substring(paramIndex+sessionParameter.length(),nextParam);
+      _session=_context.getSessionManager().getSession(urlSessionId,false);
+      
     }
+    
+    
     if (_session!=null)
     { 
       _requestedSessionId=urlSessionId;
@@ -454,17 +466,28 @@ public class HttpServerRequest
     }
     else    
     {
+      parseCookies();
       // Use session cookie, or create a new session
       _session
         =_context.getSessionManager().getSession(_requestedSessionId,create);
       if (_session!=null && _session.isNew())
       { 
-        Cookie sessionCookie=new Cookie("spiralSessionId",_session.getId());
+        Cookie sessionCookie
+          =new Cookie(_context.getSessionCookieName(),_session.getId());
         sessionCookie.setPath("/");
-        String cookieDomain=getServerName();
-        if (cookieDomain.indexOf('.')<0)
-        { cookieDomain=cookieDomain.concat(".local");
+        
+        
+        String cookieDomain=null;
+        if (_context.getCookiesArePortSpecific())
+        { 
+          // TODO: Use context sessionDomain if defined
+          cookieDomain=getServerName()+":"+getServerPort(); 
         }
+        
+        if (cookieDomain!=null)
+        { sessionCookie.setDomain(cookieDomain);
+        }
+        
         sessionCookie.setMaxAge(-1);
         sessionCookie.setVersion(1);
         _response.addCookie(sessionCookie);
@@ -690,7 +713,6 @@ public class HttpServerRequest
        { parseHeader(line);
        }
      }
-     parseCookies();
     _inputStream.resetCount();
     int contentLength=getContentLength();
     if (contentLength>0)
@@ -788,11 +810,18 @@ public class HttpServerRequest
   @SuppressWarnings("rawtypes")
   private void parseCookies()
   {
+    if (_cookies!=null)
+    { return;
+    }
+    
+    
     // Parse each cookie header, which can contain
     //   multiple cookies.
     List cookies=(List) _headerMap.get(new CaseInsensitiveString("Cookie"));
     if (cookies!=null)
     {
+      String sessionCookieName=_context.getSessionCookieName();
+
       Iterator it=cookies.iterator();
       while (it.hasNext())
       { 
@@ -808,7 +837,7 @@ public class HttpServerRequest
             { _log.log(Level.DEBUG,"Got cookie: ["+cookie.getName()+","+cookie.getValue()+"]");
             }
             _cookieList.add(cookie);
-            if (cookie.getName().equalsIgnoreCase("spiralSessionId"))
+            if (cookie.getName().equalsIgnoreCase(sessionCookieName))
             {
               _sessionFromCookie=true;
               _requestedSessionId=cookie.getValue();
