@@ -1,5 +1,5 @@
 //
-// Copyright (c) 1998,2008 Michael Toth
+// Copyright (c) 1998,2011 Michael Toth
 // Spiralcraft Inc., All Rights Reserved
 //
 // This package is part of the Spiralcraft project and is licensed under
@@ -119,50 +119,50 @@ public interface HttpServiceContext
    * Get the name of the servlet that handles requests
    *  for files ending in the specified extension.
    */
-  public String getServletNameForRequestType(String type);
+  String getServletNameForRequestType(String type);
 
   /**
    * Get the name of the servlet that handles requests
    *  for a named segment of the request path.
    */
-  public String getServletNameForAlias(String alias);
+  String getServletNameForAlias(String alias);
 
   /**
    * Specify the context used to resolve servlet names
    *   and attributes not found in this context.
    */
-  public void setParentContext(HttpServiceContext context);
+  void setParentContext(HttpServiceContext context);
 
   /**
    * Specify the Governer which will limit the outbound 
    *   throughput this ServletContext and its subcontexts.
    */
-  public void setOutputGoverner(Governer governer);
+  void setOutputGoverner(Governer governer);
 
   /**
    * Specify the maximum throughput per individual 
    *   data stream.
    */
-  public void setMaxStreamBitsPerSecond(int bps);
+  void setMaxStreamBitsPerSecond(int bps);
 
   /**
    * Map a mime type to a file extension
    */
-  public String mapMimeType(String extension);
+  String mapMimeType(String extension);
   
   /**
    * Indicate whether debugging has been turned on
    * 
    * @return the debugging state
    */
-  public boolean isDebug();
+  boolean isDebug();
   
   /**
    * Perform any required actions before handling the request in a normal fashion.
    *
    *@return true if the request should proceed normally, false otherwise.
    */
-  public boolean preFilter
+  boolean preFilter
     (AbstractHttpServletRequest request
     ,HttpServletResponse response)
     throws IOException,ServletException;
@@ -175,15 +175,19 @@ public interface HttpServiceContext
    * @param name
    * @param value
    */
-  public void setInitParameter(String name,String value);
+  void setInitParameter(String name,String value);
   
-  public URI getDocumentRootURI();
+  URI getDocumentRootURI();
   
-  public String getSessionCookieName();
+  String getSessionCookieName();
   
-  public String getSessionParameterName();
+  String getSecureSessionCookieName();
   
-  public boolean getCookiesArePortSpecific();
+  String getSessionParameterName();
+  
+  Integer getSecurePort();
+  
+  boolean getCookiesArePortSpecific();
   
   
   /**
@@ -196,7 +200,7 @@ public interface HttpServiceContext
    * @param message
    * @param exception
    */
-  public void handleError
+  void handleError
     (AbstractHttpServletRequest request
     ,HttpServerResponse response
     ,int code
