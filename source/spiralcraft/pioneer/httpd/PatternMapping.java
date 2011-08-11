@@ -22,6 +22,30 @@ import spiralcraft.util.ArrayUtil;
  */
 public class PatternMapping
 {
+  public static boolean matchesPattern(String urlPattern,String uri)
+  {
+    boolean matches=false;
+    if (urlPattern.equals("/*"))
+    { matches=true;
+    }
+    else if (urlPattern.startsWith("*") && 
+              uri.endsWith(urlPattern.substring(1))
+              )
+    { matches=true;
+    }
+    else if (urlPattern.endsWith("/*") 
+              && uri.startsWith(urlPattern.substring(0,urlPattern.length()-3))
+            )
+    { matches=true;
+    }
+    else if (uri.startsWith(urlPattern))
+    { matches=true;
+    }
+    
+    return matches;
+    
+  }  
+  
   protected final ClassLog log=ClassLog.getInstance(getClass());
   private String name;
   private String[] urlPatterns;
@@ -45,6 +69,10 @@ public class PatternMapping
   
   public String getName()
   { return name;
+  }
+  
+  public void setDebug(boolean debug)
+  { this.debug=debug;
   }
   
   public void setURLPattern(String urlPattern)
@@ -74,36 +102,22 @@ public class PatternMapping
     for (String pattern:urlPatterns)
     {
       if (matchesPattern(pattern,uri))
-      { return true;
+      { 
+        if (debug)
+        { log.fine("MATCH: "+pattern+" : "+uri);
+        }
+        return true;
       }
+      else 
+      {
+        if (debug)
+        { log.fine("NO MATCH: "+pattern+" : "+uri);
+        }
+      }
+
     }
     return false;
   }
     
-  public boolean matchesPattern(String urlPattern,String uri)
-  {
-    boolean matches=false;
-    if (urlPattern.equals("/*"))
-    { matches=true;
-    }
-    else if (urlPattern.startsWith("*") && 
-              uri.endsWith(urlPattern.substring(1))
-              )
-    { matches=true;
-    }
-    else if (urlPattern.endsWith("/*") 
-              && uri.startsWith(urlPattern.substring(0,urlPattern.length()-3))
-            )
-    { matches=true;
-    }
-    else if (uri.startsWith(urlPattern))
-    { matches=true;
-    }
-    
-    if (debug)
-    { log.fine((matches?"MATCH":"NO-MATCH")+": "+urlPattern+" : "+uri);
-    }
-    return matches;
-    
-  }  
+
 }
