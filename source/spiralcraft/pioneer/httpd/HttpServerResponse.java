@@ -12,9 +12,7 @@
 // Unless otherwise agreed to in writing, this software is distributed on an
 // "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
 //
-/**
- * Implementation of HttpServletResponse
- */
+
 package spiralcraft.pioneer.httpd;
 
 import javax.servlet.http.HttpServletResponse;
@@ -57,6 +55,9 @@ import spiralcraft.log.ClassLog;
 
 import spiralcraft.pioneer.io.Governer;
 
+/**
+ * Implementation of HttpServletResponse
+ */
 public class HttpServerResponse
   implements HttpServletResponse
 {
