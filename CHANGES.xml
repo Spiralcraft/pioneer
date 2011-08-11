@@ -14,6 +14,48 @@
     <details>
     
       <scm:Change>
+        <revision>-dev3
+        </revision>
+        
+        <notes>
+          <scm:Note>Implement HTTPS switchover functionality
+          </scm:Note>
+          <scm:Note>Implement J2EE security constraint feature
+          </scm:Note>
+          <scm:Note>AbstractHttpServletRequest.securePort property
+          </scm:Note>          
+          <scm:Note>Implement secure sessions using secure session cookie
+            and HttpServiceContext.secureSessionCookieName
+          </scm:Note>
+          <scm:Note>HttpServiceContext.securePort property to configure SSL
+            switchover
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        
+        <resources>
+          <URI>AbstractHttpServerRequest.java
+          </URI>
+          <URI>DispatchServerRequest.java
+          </URI>
+          <URI>HttpServiceContext.java
+          </URI>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+          <URI>PatternMapping.java
+          </URI>
+          <URI>SecurityConstraint.java
+          </URI>
+          <URI>UserDataConstraint.java
+          </URI>
+          <URI>WebResourceCollection.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev2
         </revision>
         
