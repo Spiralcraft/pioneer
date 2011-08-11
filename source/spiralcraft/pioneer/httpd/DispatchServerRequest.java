@@ -330,6 +330,19 @@ public class DispatchServerRequest
   }
   
 	@Override
+	public int getSecurePort()
+	{
+    if (containingRequest instanceof AbstractHttpServletRequest)
+    { return ((AbstractHttpServletRequest) containingRequest)
+        .getSecurePort();
+    }
+    else
+    { return 443;
+    }
+	  
+	}
+	
+	@Override
   public String getProtocol()
 	{ return containingRequest.getProtocol();
 	}

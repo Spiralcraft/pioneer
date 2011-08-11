@@ -489,6 +489,21 @@ public abstract class AbstractHttpServletRequest
     return buf;
   }  
   
+  /**
+   * Return the port to redirect to for an https connection
+   * 
+   * @return
+   */
+  public int getSecurePort()
+  { 
+    return 
+      isSecure()
+      ?getServerPort()
+      :_context.getSecurePort()!=null
+      ?_context.getSecurePort()
+      :this.getServerPort()-80+443;
+  }
+  
   
 	protected void calcPathInfo()
 	{ 
