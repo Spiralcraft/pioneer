@@ -29,15 +29,12 @@ import javax.servlet.ServletRequestAttributeEvent;
 import javax.servlet.ServletRequestAttributeListener;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
-//import javax.servlet.ServletRequest;
-//import javax.servlet.ServletResponse;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-//import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpSessionAttributeListener;
 import javax.servlet.http.HttpSessionListener;
 
@@ -190,8 +187,12 @@ public class SimpleHttpServiceContext
   private boolean exposeContainerFocus;
   
   private String sessionCookieName;
+  private String secureSessionCookieName;
   private String sessionParameterName;
   private Boolean cookiesArePortSpecific;
+  private Integer securePort;
+  
+  private SecurityConstraint[] securityConstraints;
 
 
   /////////////////////////////////////////////////////////////////////////
@@ -518,6 +519,39 @@ public class SimpleHttpServiceContext
     { return false;
     }
     
+    return checkSecurityConstraints(request,response);
+  }
+  
+  private boolean checkSecurityConstraints
+    (AbstractHttpServletRequest request
+    ,HttpServletResponse response
+    )
+    throws IOException,ServletException
+  { 
+    if (securityConstraints!=null)
+    {
+      for (SecurityConstraint constraint: securityConstraints)
+      { 
+        if (constraint.matches(request.getMethod(),request.getRequestURI()))
+        {
+          if (constraint.getRequireSecureChannel() && !request.isSecure())
+          { 
+            URI requestURI
+              =URI.create("https://"
+                      +request.getServerName()
+                      +(request.getSecurePort()!=443
+                        ?":"+request.getSecurePort()
+                        :""
+                      )
+                      +request.getRequestURI()
+                      +"?"+request.getQueryString()
+                      );
+            response.sendRedirect(requestURI.toString());
+
+          }
+        }
+      }
+    }
     return true;
   }
 
@@ -1653,6 +1687,20 @@ public class SimpleHttpServiceContext
   }
   
   @Override
+  public String getSecureSessionCookieName()
+  {
+    if (secureSessionCookieName!=null)
+    { return secureSessionCookieName;
+    }
+    else if (_parentContext!=null)
+    { return _parentContext.getSecureSessionCookieName();
+    }
+    else
+    { return "JSESSIONTAGSSL";
+    }
+  }
+  
+  @Override
   public String getSessionParameterName()
   {
     if (sessionParameterName!=null)
@@ -1681,6 +1729,20 @@ public class SimpleHttpServiceContext
     } 
     else
     { return false;
+    }
+  }
+  
+  @Override
+  public Integer getSecurePort()
+  {
+    if (securePort!=null)
+    { return securePort;
+    }
+    else if (_parentContext!=null)
+    { return _parentContext.getSecurePort();
+    }
+    else
+    { return null;
     }
   }
   
@@ -1790,8 +1852,16 @@ public class SimpleHttpServiceContext
   { this.sessionCookieName=sessionCookieName;
   }
   
+  public void setSecureSessionCookieName(String sessionCookieName)
+  { this.secureSessionCookieName=sessionCookieName;
+  }
+  
   public void setCookiesArePortSpecific(boolean cookiesArePortSpecific)
   { this.cookiesArePortSpecific=cookiesArePortSpecific;
+  }
+  
+  public void setSecurePort(int securePort)
+  { this.securePort=securePort;
   }
   
   /**
@@ -2033,6 +2103,9 @@ public class SimpleHttpServiceContext
   
   }
   
+  public void setSecurityConstraints(SecurityConstraint[] securityConstraints)
+  { this.securityConstraints=securityConstraints;
+  }
   
   /**
    * Specify how request URLs map to Servlets 
