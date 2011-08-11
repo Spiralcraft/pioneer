@@ -74,6 +74,8 @@ public class HttpServerRequest
   private static final ClassLog log
     =ClassLog.getInstance(HttpServerRequest.class);
 
+  private static final String SECURE_SESSION_TAG_ATTRIBUTE_NAME
+    ="spiralcraft.httpd.secureSessionTag";
   
   private HttpServerResponse _response;
   private HttpSession _session;
@@ -84,6 +86,7 @@ public class HttpServerRequest
   private String _method;
   private String _remoteUser;
   private String _requestedSessionId;
+  private String _secureSessionTag;
   private String _requestURL;
   private boolean _sessionFromCookie;
   private boolean _sessionFromUrl;
@@ -431,11 +434,73 @@ public class HttpServerRequest
   }
 
   
+  /**
+   * Make sure the current session is in sync with the secure session cookie
+   */
+  private boolean validateSecureSession()
+  {
+    if (!_secure)
+    { return true;
+    }
+    
+    if (_session!=null)
+    {
+      String establishedSessionTag
+        =toString(_session.getAttribute(SECURE_SESSION_TAG_ATTRIBUTE_NAME));
+      
+      if (establishedSessionTag!=null) 
+      { 
+        // A secure session has already been established
+        if (!establishedSessionTag.equals(_secureSessionTag))
+        {
+          // Possible session hijack attempt
+          _response.setStatus
+            (HttpServerResponse.SC_FORBIDDEN);
+          log.warning
+            ("Detected session conflict for session #"
+            +_session.getId()
+            +" existing tag "+establishedSessionTag+" != cookie "
+            +_secureSessionTag
+            );
+          
+          _session.invalidate();
+          _session=null;
+          return false;
+        }
+        else
+        { 
+          // Request cookie validates against existing session
+          return true;
+        }
+      }
+      else
+      {
+        // Establish a new secure session
+        _secureSessionTag=RandomSessionId.nextId();
+        _session.setAttribute
+          (SECURE_SESSION_TAG_ATTRIBUTE_NAME,_secureSessionTag);
+        addSessionCookie
+          (_context.getSecureSessionCookieName(),_secureSessionTag,true);
+        return true;
+      }
+    }
+    else
+    { 
+      // No session to validate
+      return true;
+    }
+    
+  }
+  
+  private static String toString(Object val)
+  { return val!=null?val.toString():null;
+  }
 
   
   @Override
   public HttpSession getSession(boolean create)
   { 
+    
     if (_session!=null)
     { return _session;
     }
@@ -462,6 +527,7 @@ public class HttpServerRequest
       _requestedSessionId=urlSessionId;
       _sessionFromCookie=false;
       _sessionFromUrl=true;
+      validateSecureSession();
       return _session;
     }
     else    
@@ -471,30 +537,37 @@ public class HttpServerRequest
       _session
         =_context.getSessionManager().getSession(_requestedSessionId,create);
       if (_session!=null && _session.isNew())
-      { 
-        Cookie sessionCookie
-          =new Cookie(_context.getSessionCookieName(),_session.getId());
-        sessionCookie.setPath("/");
-        
-        
-        String cookieDomain=null;
-        if (_context.getCookiesArePortSpecific())
-        { 
-          // TODO: Use context sessionDomain if defined
-          cookieDomain=getServerName()+":"+getServerPort(); 
-        }
-        
-        if (cookieDomain!=null)
-        { sessionCookie.setDomain(cookieDomain);
-        }
-        
-        sessionCookie.setMaxAge(-1);
-        sessionCookie.setVersion(1);
-        _response.addCookie(sessionCookie);
+      { addSessionCookie(_context.getSessionCookieName(),_session.getId(),false);
       }
+      validateSecureSession();
       return _session;
     }
   }
+  
+  private void addSessionCookie(String name,String value,boolean secure)
+  {
+    Cookie sessionCookie
+      =new Cookie(name,value);
+    sessionCookie.setPath("/");
+  
+  
+    String cookieDomain=null;
+    if (_context.getCookiesArePortSpecific())
+    { 
+      // TODO: Use context sessionDomain if defined
+      cookieDomain=getServerName()+":"+getServerPort(); 
+    }
+  
+    if (cookieDomain!=null)
+    { sessionCookie.setDomain(cookieDomain);
+    }
+  
+    sessionCookie.setMaxAge(-1);
+    sessionCookie.setVersion(1);
+    sessionCookie.setSecure(secure);
+    _response.addCookie(sessionCookie);
+  }
+  
   
   @Override
   public HttpSession getSession()
@@ -733,9 +806,9 @@ public class HttpServerRequest
     * </p>
     * @throws IOException
     */
-   private void determineRemoteAddress()
-     throws IOException
-   {
+  private void determineRemoteAddress()
+    throws IOException
+  {
     if (_httpServer.isProxy(_socket.getInetAddress().getAddress()))
     { 
       String headerName=_httpServer.getRemoteAddressHeaderName();
@@ -756,16 +829,15 @@ public class HttpServerRequest
         }
       }
     }
-   }
+  }
    
-   private void parseRequest()
-   {
-     StringTokenizer tk=new StringTokenizer(_requestLine," ");
-     _method=tk.nextToken();
-     _requestURL=tk.nextToken();
+  private void parseRequest()
+  {
+    StringTokenizer tk=new StringTokenizer(_requestLine," ");
+    _method=tk.nextToken();
+    _requestURL=tk.nextToken();
     if (_requestURL.length()>8 && _requestURL.substring(0,7).equalsIgnoreCase("http://"))
     { 
-
       int slashPos=_requestURL.indexOf('/',7);
       Variable var=new Variable();
       var.name="Host";
@@ -791,21 +863,21 @@ public class HttpServerRequest
       _requestURI=_requestURL;
       _queryString=null;
     }
-   }
+  }
   
   
-   private void parseHeader(String header)
-   {
-    
-     Variable var=new Variable();
-     int colonPos=header.indexOf(":");
-     var.name=header.substring(0,colonPos);
-     var.value=header.substring(colonPos+1).trim();
+  private void parseHeader(String header)
+  {
+   
+    Variable var=new Variable();
+    int colonPos=header.indexOf(":");
+    var.name=header.substring(0,colonPos);
+    var.value=header.substring(colonPos+1).trim();
     if (debugProtocol)
     { _log.log(Level.DEBUG,">>> "+var.name+": "+var.value); 
     }
-     _headers.add(var);
-   }
+    _headers.add(var);
+  }
 
   @SuppressWarnings("rawtypes")
   private void parseCookies()
@@ -821,6 +893,7 @@ public class HttpServerRequest
     if (cookies!=null)
     {
       String sessionCookieName=_context.getSessionCookieName();
+      String secureSessionCookieName=_context.getSecureSessionCookieName();
 
       Iterator it=cookies.iterator();
       while (it.hasNext())
@@ -841,6 +914,9 @@ public class HttpServerRequest
             {
               _sessionFromCookie=true;
               _requestedSessionId=cookie.getValue();
+            }              
+            else if (cookie.getName().equalsIgnoreCase(secureSessionCookieName))
+            { _secureSessionTag=cookie.getValue();
             }              
           }
         }
