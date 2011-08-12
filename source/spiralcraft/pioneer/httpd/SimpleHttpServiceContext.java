@@ -544,7 +544,10 @@ public class SimpleHttpServiceContext
                         :""
                       )
                       +request.getRequestURI()
-                      +"?"+request.getQueryString()
+                      +( (request.getQueryString()!=null)
+                          ?"?"+request.getQueryString()
+                          :""
+                       )
                       );
             response.sendRedirect(requestURI.toString());
 
