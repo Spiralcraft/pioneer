@@ -187,6 +187,8 @@ public interface HttpServiceContext
   
   Integer getSecurePort();
   
+  Integer getStandardPort();
+  
   boolean getCookiesArePortSpecific();
   
   

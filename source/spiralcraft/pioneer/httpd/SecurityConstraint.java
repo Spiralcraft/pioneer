@@ -38,6 +38,36 @@ public class SecurityConstraint
   { return resourceCollection.matches(httpMethod,path);
   }
   
+  public void setPreferStandardChannel(boolean prefersStandardChannel)
+  { 
+    if (prefersStandardChannel)
+    {
+      userDataConstraint=new UserDataConstraint();
+      userDataConstraint.setTransportGuarantee
+        (UserDataConstraint.TransportGuarantee.NONE);
+    }
+    else
+    {
+      if (getPreferStandardChannel())
+      { userDataConstraint=null;
+      }
+    }
+     
+  }
+    
+  public boolean getPreferStandardChannel()
+  { 
+    if (userDataConstraint!=null)
+    {
+      if (userDataConstraint.getTransportGuarantee()!=null)
+      { 
+        return UserDataConstraint.TransportGuarantee.NONE
+          .equals(userDataConstraint.getTransportGuarantee());
+      }
+    }
+    return false;
+  }
+  
   public void setRequireSecureChannel(boolean requiresSecureChannel)
   { 
     if (requiresSecureChannel)

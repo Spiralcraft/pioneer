@@ -504,6 +504,21 @@ public abstract class AbstractHttpServletRequest
       :this.getServerPort()-80+443;
   }
   
+  /**
+   * Return the port to redirect to for an http connection
+   * 
+   * @return
+   */
+  public int getStandardPort()
+  { 
+    return 
+      !isSecure()
+      ?getServerPort()
+      :_context.getStandardPort()!=null
+      ?_context.getStandardPort()
+      :this.getServerPort()-443+80;
+  }  
+  
   
 	protected void calcPathInfo()
 	{ 

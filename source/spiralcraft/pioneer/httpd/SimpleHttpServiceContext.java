@@ -191,6 +191,7 @@ public class SimpleHttpServiceContext
   private String sessionParameterName;
   private Boolean cookiesArePortSpecific;
   private Integer securePort;
+  private Integer standardPort;
   
   private SecurityConstraint[] securityConstraints;
 
@@ -551,6 +552,24 @@ public class SimpleHttpServiceContext
                       );
             response.sendRedirect(requestURI.toString());
 
+          }
+          else if (constraint.getPreferStandardChannel() && request.isSecure())
+          {
+            URI requestURI
+              =URI.create("http://"
+                    +request.getServerName()
+                    +(request.getStandardPort()!=80
+                      ?":"+request.getStandardPort()
+                      :""
+                    )
+                    +request.getRequestURI()
+                    +( (request.getQueryString()!=null)
+                        ?"?"+request.getQueryString()
+                        :""
+                     )
+                    );
+            response.sendRedirect(requestURI.toString());
+            
           }
         }
       }
@@ -1749,6 +1768,20 @@ public class SimpleHttpServiceContext
     }
   }
   
+  @Override
+  public Integer getStandardPort()
+  {
+    if (standardPort!=null)
+    { return standardPort;
+    }
+    else if (_parentContext!=null)
+    { return _parentContext.getStandardPort();
+    }
+    else
+    { return null;
+    }
+  }
+  
   /**
    * Returns a directory-like listing of all the paths to resources within
    *  the web application whose longest sub-path matches the supplied path
@@ -1865,6 +1898,10 @@ public class SimpleHttpServiceContext
   
   public void setSecurePort(int securePort)
   { this.securePort=securePort;
+  }
+  
+  public void setStandardPort(int standardPort)
+  { this.standardPort=standardPort;
   }
   
   /**
