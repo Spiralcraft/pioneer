@@ -14,6 +14,35 @@
     <details>
     
       <scm:Change>
+        <revision>-dev2
+        </revision>
+        
+        <notes>
+          <scm:Note>Implement HTTP switchover functionality to handle
+            scenarios where reversion to http is preferred when a
+            transport guarantee of NONE is explicitly specified.
+          </scm:Note>
+          <scm:Note>AbstractHttpServletRequest and HttpServiceContext
+            have standardPort properties to manage deployment variations.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        
+        <resources>
+          <URI>AbstractHttpServletRequest.java
+          </URI>
+          <URI>HttpServiceContext.java
+          </URI>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+          <URI>SecurityConstraint.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev1
         </revision>
         
