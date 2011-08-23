@@ -736,7 +736,7 @@ public class HttpServerRequest
     else
     {
       _host=fullHost;
-      _port=80;
+      _port=_secure?443:80;
     }
   }
 
