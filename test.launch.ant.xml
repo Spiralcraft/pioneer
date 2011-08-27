@@ -6,6 +6,12 @@
     <devdaemon dir="test" env="httpd.dev" codebase=".."/>
       
   </target>
+
+  <target name="launch-gui" description="Launch in gui console">
+    
+    <devgui dir="test" env="httpd.dev" codebase=".." launchArgs="--gui"/>
+        
+  </target>
   
   <target name="launch-jamwiki">
     <devdaemon dir="test-ext/jamwiki" env="httpd.dev" libdir="../../lib"/>
