@@ -14,6 +14,21 @@
     <details>
     
       <scm:Change>
+        <revision>-dev4
+        </revision>
+        
+        <notes>
+          <scm:Note>Remove version number from jar classpath dependency on 
+            servlet-api
+          </scm:Note>
+        </notes>
+        
+        <path>build.xml
+        </path>
+        
+      </scm:Change>
+      
+      <scm:Change>
         <revision>-dev3
         </revision>
         
