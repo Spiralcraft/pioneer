@@ -8,7 +8,7 @@
     <pathelement location="lib/spiralcraft-core.jar"/>
     <pathelement location="lib/spiralcraft-net.jar"/>
     <pathelement location="lib/spiralcraft-servlet.jar"/>
-    <pathelement location="lib/servlet-api-2.4.jar"/>
+    <pathelement location="lib/servlet-api.jar"/>
   </path>
 
   <property name="classpath" refid="classpath"/>
