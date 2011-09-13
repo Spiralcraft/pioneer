@@ -18,6 +18,20 @@
         </revision>
         
         <notes>
+          <scm:Note>Show info message when WEB-INF directory does not exist
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/SimpleHttpServiceContext.java
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev4
+        </revision>
+        
+        <notes>
           <scm:Note>Remove version number from jar classpath dependency on 
             servlet-api
           </scm:Note>
