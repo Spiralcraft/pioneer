@@ -2712,13 +2712,10 @@ public class SimpleHttpServiceContext
         }
         else
         {
-          if (debug)
-          {
-            log.log
-              (Level.DEBUG,warRoot.getURI()+" does not exist "
-                +", not loading WAR ClassLoader"
-             );
-          }
+          log.log
+            (Level.INFO,warRoot.getURI()+" does not exist "
+              +", not loading WAR ClassLoader"
+           );
         }
       }
       else
