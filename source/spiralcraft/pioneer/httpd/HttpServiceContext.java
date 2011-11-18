@@ -90,15 +90,6 @@ public interface HttpServiceContext
   void fireRequestAttributeRemoved
     (HttpServletRequest request,String name,Object value);
 
-  /**
-   * The hostname of the server
-   */
-  String getName();
-
-  /**
-   * The server port
-   */ 
-  int getPort();
 
   /**
    * Get the FilterChain with the specified name. Used
@@ -188,6 +179,8 @@ public interface HttpServiceContext
   Integer getSecurePort();
   
   Integer getStandardPort();
+  
+  String getHostName();
   
   boolean getCookiesArePortSpecific();
   

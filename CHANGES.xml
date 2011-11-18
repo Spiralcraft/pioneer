@@ -2,6 +2,42 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.16
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>XXXX-XX-XX
+    </date>
+    
+    <details>
+    
+      <scm:Change>
+        <revision>-dev1
+        </revision>
+        
+        <notes>
+          <scm:Note>Associate a PublicLocator with the standard Servlet context
+            for use by apps.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        
+        <resources>
+          <URL>HttpServiceContext.java
+          </URL>
+          <URL>SimpleHttpServiceContext.java
+          </URL>
+        </resources>
+        
+      </scm:Change>
+    </details>
+  </scm:Change>
+
+  <scm:Change>
     <revision>0.4.15.1
     </revision>
 

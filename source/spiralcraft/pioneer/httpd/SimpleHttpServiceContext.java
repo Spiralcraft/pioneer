@@ -96,6 +96,7 @@ import spiralcraft.pioneer.telemetry.Meterable;
 
 import spiralcraft.net.ip.AddressSet;
 
+import spiralcraft.servlet.PublicLocator;
 import spiralcraft.servlet.autofilter.Controller;
 
 
@@ -115,7 +116,6 @@ public class SimpleHttpServiceContext
   
   private HttpSessionManager _sessionManager;
   private String _hostName;
-  private int _port;
   private String _contextPath="";
   private String _defaultServletName=null; // Serves the specified URI (servletPath)
   private String _rootServletName=null; // Serves the whole context (gets pathInfo)
@@ -1075,26 +1075,13 @@ public class SimpleHttpServiceContext
     }
   }
 
-	/**
-	 * The effective hostname of the server
-	 */
-	@Override
-  public String getName()
-  { return _hostName;
-  }
+
 
   @Override
   public String getMimeType(String file)
   { return mapMimeType(getFileType(file));
   }
 
-	/**
-	 * The effective server port
-	 */	
-	@Override
-  public int getPort()
-  { return _port;
-  }
 
 
   /**
@@ -1783,6 +1770,26 @@ public class SimpleHttpServiceContext
   }
   
   /**
+   * The effective hostname of the server
+   */
+  @Override
+  public String getHostName()
+  { 
+    if (_hostName!=null)
+    { return _hostName;
+    }
+    else if (virtualHostName!=null)
+    { return virtualHostName;
+    }
+    else if (_parentContext!=null)
+    { return _parentContext.getHostName();
+    }
+    else
+    { return null;
+    }
+  }
+  
+  /**
    * Returns a directory-like listing of all the paths to resources within
    *  the web application whose longest sub-path matches the supplied path
    *  argument. Paths indicating subdirectory paths end with a '/'. The
@@ -2432,6 +2439,9 @@ public class SimpleHttpServiceContext
     }
 
     loadWAR();
+    
+    new PublicLocator(getHostName(),getStandardPort(),getSecurePort(),getContextPath())
+      .set(this);
     
     // Push the ClassLoader for this context
     ClassLoader lastLoader=null;
