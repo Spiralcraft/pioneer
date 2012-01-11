@@ -18,6 +18,29 @@
         </revision>
         
         <notes>
+          <scm:Note>Error pages now have access to original Response object
+            so they can set content type, and will only be invoked if the
+            client request accepts text/html.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        
+        <resources>
+          <URL>ServerRequestDispatcher.java
+          </URL>
+          <URL>SimpleHttpServiceContext.java
+          </URL>
+        </resources>
+        
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev1
+        </revision>
+        
+        <notes>
           <scm:Note>Associate a PublicLocator with the standard Servlet context
             for use by apps.
           </scm:Note>
