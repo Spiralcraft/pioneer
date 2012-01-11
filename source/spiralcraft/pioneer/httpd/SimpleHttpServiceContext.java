@@ -99,6 +99,7 @@ import spiralcraft.net.ip.AddressSet;
 import spiralcraft.servlet.PublicLocator;
 import spiralcraft.servlet.autofilter.Controller;
 
+import spiralcraft.net.http.AcceptHeader;
 
 public class SimpleHttpServiceContext
   implements HttpServiceContext
@@ -398,6 +399,20 @@ public class SimpleHttpServiceContext
     
     // Go through error pages
     
+    try
+    { 
+      AcceptHeader acceptHeader
+        =AcceptHeader.fromString(request.getHeader("Accept"));
+      if (acceptHeader!=null && !acceptHeader.accepts("text","html"))
+      { 
+        response.setStatus(code);
+        response.flushBuffer();
+      }
+    }
+    catch (Exception x)
+    { log.log(Level.WARNING,"Error parsing accepts header",x);
+    }
+    
     // Go through codes
     if (code>0)
     {
@@ -457,7 +472,10 @@ public class SimpleHttpServiceContext
     {
     
       response.setStatus(code);
-      log.fine("Sending error for status: "+response.getStatus());
+      if (debug)
+      { log.fine("Sending error for status: "+response.getStatus());
+      }
+      
       ServerRequestDispatcher dispatcher
         =(ServerRequestDispatcher) getRequestDispatcher(errorURI);
       try

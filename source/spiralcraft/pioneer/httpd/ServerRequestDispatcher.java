@@ -129,11 +129,11 @@ public class ServerRequestDispatcher
       ,context.getServer()
       );
     
-    DispatchServerResponse dispatchResponse
-      =new DispatchServerResponse
-      ((HttpServletResponse) response
-      ,context.getServer()
-      );
+//    DispatchServerResponse dispatchResponse
+//      =new DispatchServerResponse
+//      ((HttpServletResponse) response
+//      ,context.getServer()
+//      );
 
     dispatchRequest.setAttribute
       ("javax.servlet.error.status_code",status);
@@ -155,7 +155,8 @@ public class ServerRequestDispatcher
       ,request.getAttribute(ServletHolder.SERVLET_NAME_ATTRIBUTE)
       );
 
-    context.service(dispatchRequest,dispatchResponse);
+    response.setStatus(status);
+    context.service(dispatchRequest,response);
 
   }
 }
