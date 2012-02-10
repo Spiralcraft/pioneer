@@ -33,6 +33,7 @@ import spiralcraft.data.persist.AbstractXmlObject;
 
 import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
+import spiralcraft.servlet.kit.StandardServletConfig;
 import spiralcraft.vfs.Resolver;
 
 /**
@@ -243,7 +244,7 @@ public class ServletHolder
       if (_serviceContext.isDebug())
       { log.fine("Initializing servlet "+_servletName+" with "+_initParams);
       }
-      servlet.init(new SimpleServletConfig(_servletName,_serviceContext,_initParams));  
+      servlet.init(new StandardServletConfig(_servletName,_serviceContext,_initParams));  
       _servlet=servlet;
     }
     catch (ServletException x)
