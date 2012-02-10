@@ -14,6 +14,28 @@
     <details>
     
       <scm:Change>
+        <revision>-dev3
+        </revision>
+        
+        <notes>
+          <scm:Note>SimpleServletConfig has moved to the spiralcraft-servlet
+            module
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/
+        </path>
+        
+        <resources>
+          <URL>ServletHolder.java
+          </URL>
+          <URL>SimpleServletConfig.java
+          </URL>
+        </resources>
+        
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev1
         </revision>
         
