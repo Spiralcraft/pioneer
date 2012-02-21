@@ -29,6 +29,7 @@ import spiralcraft.data.persist.AbstractXmlObject;
 
 import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
+import spiralcraft.servlet.kit.StandardFilterConfig;
 import spiralcraft.vfs.Resolver;
 
 /**
@@ -129,8 +130,11 @@ public class FilterHolder
     _initParams.put(name,value);
   }
   
-  public void setInitParameters(Properties params)
-  { _initParams=params;
+  public void setInitParameters(InitParameter[] parameters)
+  {
+    for (InitParameter param:parameters)
+    { setInitParameter(param.getName(),param.getValue());
+    }
   }
   
   public void setInitParametersAsText(String initParametersText)
@@ -210,7 +214,7 @@ public class FilterHolder
       if (_serviceContext.isDebug())
       { log.fine("Initializing filter "+_filterName+" with "+_initParams);
       }
-      filter.init(new SimpleFilterConfig(_filterName,_serviceContext,_initParams));  
+      filter.init(new StandardFilterConfig(_filterName,_serviceContext,_initParams));  
       _filter=filter;
     }
     catch (ServletException x)
