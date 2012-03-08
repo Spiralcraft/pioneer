@@ -2,7 +2,7 @@
 
 
   <property name="module" value="pioneer"/>
-  <property name="buildVersion" value="0.4.16-dev4"/>
+  <property name="buildVersion" value="0.4.16"/>
 
   <path id="classpath">
     <pathelement location="lib/spiralcraft-core.jar"/>

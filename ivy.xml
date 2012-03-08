@@ -10,7 +10,7 @@
   <dependencies>
     <dependency org="spiralcraft" name="distrib-common" rev="[0.4.16-dev1,0.5-dev["/>
     
-    <dependency org="spiralcraft" name="servlet" rev="[0.4.15,0.5-dev["/>
+    <dependency org="spiralcraft" name="servlet" rev="[0.4.16-dev1,0.5-dev["/>
     
     <dependency org="java" name="servlet-api" rev="2.4"/>
         
