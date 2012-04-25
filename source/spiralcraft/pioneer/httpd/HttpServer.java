@@ -440,16 +440,16 @@ public class HttpServer
                 if (_meter!=null)
                 { _uncaughtServletExceptionsRegister.incrementValue();
                 }
-                _response.sendError(500,"Internal Server Error");
                 _log.log(Level.SEVERE,"Servlet Exception: "+x.getMessage());
+                _response.sendError(500,"Internal Server Error");
               }
               catch (RuntimeException x)
               {
                 if (_meter!=null)
                 { _uncaughtRuntimeExceptionsRegister.incrementValue();
                 }
+                _log.log(Level.SEVERE,"Runtime Exception: "+ThrowableUtil.getStackTrace(x));                
                 _response.sendError(500,"Internal Server Error");
-                _log.log(Level.SEVERE,"Runtime Exception: "+ThrowableUtil.getStackTrace(x));
               }
               _request.finish();
               _response.finish();
