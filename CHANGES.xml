@@ -2,6 +2,49 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.17
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>
+    </date>
+    
+    <details>
+    
+      <scm:Change>
+        <revision>-dev1
+        </revision>
+        
+        <notes>
+          <scm:Note>Log uncaught exceptions before sending the error status
+            to the client
+          </scm:Note>
+        </notes>
+        
+        <path>/source/spiralcraft/pioneer/httpd/HttpServer.java
+        </path>
+            
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev1
+        </revision>
+        
+        <notes>
+          <scm:Note>Handle changed Path.parentPath() contract
+          </scm:Note>
+        </notes>
+        
+        <path>/source/spiralcraft/pioneer/httpd/SimpleHttpServiceContext.java
+        </path>
+            
+      </scm:Change>
+    </details>
+  </scm:Change>
+
+  <scm:Change>
     <revision>0.4.16
     </revision>
 
