@@ -1304,7 +1304,8 @@ public class SimpleHttpServiceContext
         if (debug)
         { log.log(Level.DEBUG,"Checked servlet map for '"+pathString+"'");
         }   
-        path=path.parentPath().trim();
+        path=path.parentPath();
+        path=path!=null?path.trim():Path.EMPTY_PATH;
      
       }
       
