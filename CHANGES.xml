@@ -14,6 +14,22 @@
     <details>
     
       <scm:Change>
+        <revision>-dev2
+        </revision>
+        
+        <notes>
+          <scm:Note>Fix issue where ServletContext.getResourcePaths(path)
+            implementation generated bad results when path was missing a
+            trailing slash.
+          </scm:Note>
+        </notes>
+        
+        <path>/source/spiralcraft/pioneer/httpd/SimpleHttpServiceContext.java
+        </path>
+            
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev1
         </revision>
         
