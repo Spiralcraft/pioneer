@@ -11,7 +11,7 @@
       
   <serviceContext>
     <here:JAMWikiContext>
-      <documentRoot>../../../../../../integration-tests/jamwiki-0.6.7-clean/war
+      <documentRoot>../../../../../../integration-tests/jamwiki-1.1.6-clean/war
       </documentRoot>
 
       <accessLog>
@@ -21,10 +21,13 @@
         </httpd:RotatingFileAccessLog>
       </accessLog>
 
-      <debug>false
+      <debug>true
       </debug>
+      <debugWAR>true
+      </debugWAR>
     </here:JAMWikiContext>
 
   </serviceContext>
+
 </httpd:HttpService>
     
