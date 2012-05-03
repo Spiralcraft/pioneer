@@ -65,6 +65,7 @@ import java.net.MalformedURLException;
 
 import spiralcraft.util.IteratorEnumeration;
 import spiralcraft.util.Path;
+import spiralcraft.util.URIUtil;
 
 import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
@@ -1008,7 +1009,12 @@ public class SimpleHttpServiceContext
     if (!name.startsWith("/"))
     { throw new MalformedURLException(name+" does not start with '/'");
     }
-    return _docRootDir.toURI().resolve(name.substring(1)).toURL();
+    URL ret=_docRootDir.toURI().resolve(name.substring(1)).toURL();
+    if (_server.getDebugAPI())
+    { log.fine("getResource("+name+") returned "+ret);
+    }
+    return ret;
+    
   }
 
   /**
@@ -1065,12 +1071,16 @@ public class SimpleHttpServiceContext
       { realPath=realPath+File.separator;
       }
       if (_server.getDebugAPI())
-      { log.fine(realPath);
+      { log.fine("getRealPath("+rawUri+") returned "+realPath);
       }
       return realPath;
     }
     else
-    { return null;
+    { 
+      if (_server.getDebugAPI())
+      { log.fine("getRealPath("+rawUri+") is not bounded and returned null");
+      }
+      return null;
     }
   }
 
@@ -1821,9 +1831,17 @@ public class SimpleHttpServiceContext
     try
     {
       if (!path.startsWith("/"))
-      { return null;
+      { 
+        if (_server.getDebugAPI())
+        { log.fine("getResourcePaths("+path+"): path does not start with '/'");
+        }
+        return null;
       }
+      
       path=path.substring(1);
+      if (!path.endsWith("/"))
+      { path=path+"/";
+      }
       Resource dirResource
         =Resolver.getInstance().resolve(_docRootDir.toURI().resolve(path));
       
@@ -1832,7 +1850,7 @@ public class SimpleHttpServiceContext
       if (dirResource.exists() && dirResource.asContainer()!=null)
       {
         Search search=new Search();
-        URI rootURI=dirResource.getURI();
+        URI rootURI=URIUtil.ensureTrailingSlash(dirResource.getURI());
         search.setRootURI(rootURI);
         List<Resource> results=search.list();
 
@@ -1844,10 +1862,17 @@ public class SimpleHttpServiceContext
 //          log.fine(path+" : "+result);
         }
       }
+      if (_server.getDebugAPI())
+      { log.fine("getResourcePaths("+path+") returned "+set);
+      }
       return set;
     }
     catch (IOException x)
-    { return null;
+    {
+      if (_server.getDebugAPI())
+      { log.log(Level.FINE,"IOException in getResourcePaths("+path+")",x);
+      }
+      return null;
     }
 
   }
