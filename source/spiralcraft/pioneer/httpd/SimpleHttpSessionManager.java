@@ -61,6 +61,7 @@ public class SimpleHttpSessionManager
   private Register _deadSessionsRegister;
   private Register _newSessionsRegister;
   private boolean _logSessionEvents=true;
+  private ServletContext _servletContext;
 	
   @Override
   public void installMeter(Meter meter)
@@ -148,6 +149,11 @@ public class SimpleHttpSessionManager
   { _maxInactiveInterval=secs;
   }
 
+  @Override
+  public void setServletContext(ServletContext context)
+  { this._servletContext=context;
+  }
+  
   public class Session
     implements HttpSession
   {
@@ -312,11 +318,7 @@ public class SimpleHttpSessionManager
 
     @Override
     public ServletContext getServletContext()
-    {
-
-      // TODO Auto-generated method stub
-      log.log(Level.SEVERE, "SimpleHttpSession.getServletContext() not implemented");
-      return null;
+    { return _servletContext;
     }
 
     private String _id;

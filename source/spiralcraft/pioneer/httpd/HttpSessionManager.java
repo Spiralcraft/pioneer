@@ -17,6 +17,7 @@
  */
 package spiralcraft.pioneer.httpd;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
 public interface HttpSessionManager
@@ -31,5 +32,11 @@ public interface HttpSessionManager
 	 */
 	public boolean isSessionIdValid(String id);
 
+	/**
+	 * Specify the ServletContext that will be returned by 
+	 *   HttpSession.getServletContext()
+	 * @param context
+	 */
+	public void setServletContext(ServletContext context);
 
 }
