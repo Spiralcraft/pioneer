@@ -14,6 +14,38 @@
     <details>
     
       <scm:Change>
+        <revision>-dev3
+        </revision>
+        
+        <notes>
+          <scm:Note>Implement HttpSession.getServletContext()
+          </scm:Note>
+          <scm:Note>Add "libraries" property in the HttpServiceContext to 
+            add libraries to the class path that are not part of the container
+            and are not part of the web application.
+          </scm:Note>
+          <scm:Note>getResourceAsStream() no longer throws an IOException
+            as a RuntimeException and now returns null according to spec.
+          </scm:Note>
+        </notes>
+        
+        <path>/source/spiralcraft/pioneer/httpd
+        </path>
+        
+        <resources>
+          <URI>HttpSessionManager.java
+          </URI>
+          <URI>SimpleHttpSessionManager.java
+          </URI>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+          <URI>ServletURLClassLoader.java
+          </URI>
+        </resources>
+            
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev2
         </revision>
         

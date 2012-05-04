@@ -11,8 +11,11 @@
       
   <serviceContext>
     <here:JAMWikiContext>
-      <documentRoot>../../../../../../integration-tests/jamwiki-1.1.6-clean/war
+      <documentRoot>../../../../../../integration-tests/jamwiki-1.2-clean/war
       </documentRoot>
+      
+      <libraries>../../../../../../integration-tests/jamwiki-1.2-clean/ext-libs
+      </libraries>
 
       <accessLog>
         <httpd:RotatingFileAccessLog>
@@ -21,9 +24,9 @@
         </httpd:RotatingFileAccessLog>
       </accessLog>
 
-      <debug>true
+      <debug>false
       </debug>
-      <debugWAR>true
+      <debugWAR>false
       </debugWAR>
     </here:JAMWikiContext>
 
