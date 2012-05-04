@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import spiralcraft.vfs.Resource;
 
 /**
- * <P>ClassLoader implementation to load classes as per standard J2EE webapp
+ * <p>ClassLoader implementation to load classes as per standard J2EE webapp
  *   deployment
- * </P>
+ * </p>
  * 
  * @author mike
  */
@@ -18,7 +18,7 @@ public class ServletURLClassLoader
   extends URLClassLoader
 {
   
-  private static URL[] urlsFromResource(Resource warRoot)
+  private static URL[] urlsFromResource(Resource warRoot,Resource[] libResources)
     throws IOException
   {
     ArrayList<URL> list=new ArrayList<URL>();
@@ -28,6 +28,20 @@ public class ServletURLClassLoader
     }
     
     Resource libResource=warRoot.asContainer().getChild("lib");
+    addJars(libResource,list);
+    
+    if (libResources!=null)
+    { 
+      for (Resource resource : libResources)
+      { addJars(resource,list);
+      }
+    }
+    return list.toArray(new URL[list.size()]);
+  }
+
+  private static void addJars(Resource libResource,ArrayList<URL> list)
+    throws IOException
+  {
     if (libResource.exists())
     {
       for (Resource res: libResource.asContainer().listContents())
@@ -37,13 +51,13 @@ public class ServletURLClassLoader
         }
       }
     }
-    return list.toArray(new URL[list.size()]);
+    
   }
-
-  public ServletURLClassLoader(Resource warRoot) 
+  
+  public ServletURLClassLoader(Resource warRoot,Resource[] libResources) 
     throws IOException
   { 
-    super(urlsFromResource(warRoot)
+    super(urlsFromResource(warRoot,libResources)
       ,Thread.currentThread().getContextClassLoader()
       );
   }
