@@ -73,6 +73,7 @@ import spiralcraft.vfs.UnresolvableURIException;
 import spiralcraft.vfs.batch.Search;
 import spiralcraft.vfs.file.FileResource;
 
+import spiralcraft.classloader.Archive;
 import spiralcraft.common.LifecycleException;
 
 import spiralcraft.lang.BindException;
@@ -196,6 +197,8 @@ public class SimpleHttpServiceContext
   private Integer standardPort;
   
   private SecurityConstraint[] securityConstraints;
+  
+  private Resource[] libraryResources;
 
 
   /////////////////////////////////////////////////////////////////////////
@@ -628,6 +631,10 @@ public class SimpleHttpServiceContext
   { _contextPath=contextPath;
   }
   
+  public void setLibraries(Resource[] libraries)
+  { this.libraryResources=libraries;
+  }
+  
   /**
    * Return a list of attribute names
    */
@@ -1031,8 +1038,11 @@ public class SimpleHttpServiceContext
       { return resource.openConnection().getInputStream();
       }
     }
-    catch (Exception x)
-    { throw new IllegalArgumentException(x);
+    catch (IOException x)
+    {
+      if (_server.getDebugAPI())
+      { log.log(Level.FINE,"getResourceAsStream("+name+") IOException",x);
+      }
     }
     return null;
   }
@@ -1960,7 +1970,9 @@ public class SimpleHttpServiceContext
    *   for this context and its children
    */
   public void setSessionManager(HttpSessionManager sessionManager)
-  { _sessionManager=sessionManager;
+  {
+    _sessionManager=sessionManager;
+    _sessionManager.setServletContext(this);
   }
   
   public void setDocumentRootURI(URI uri)
@@ -2410,6 +2422,7 @@ public class SimpleHttpServiceContext
       if (_sessionManager==null)
       {
         SimpleHttpSessionManager sessionManager=new SimpleHttpSessionManager();
+        sessionManager.setServletContext(this);
         sessionManager.setMaxInactiveInterval(_maxSessionInactiveInterval);
         if (_meter!=null)
         { sessionManager.installMeter(_meter.createChildMeter("sessions"));
@@ -2751,6 +2764,28 @@ public class SimpleHttpServiceContext
                 (Level.DEBUG,"Loading WARClassloader from "+warRoot.getURI());
             }            
             WARClassLoader contextClassLoader=new WARClassLoader(warRoot);
+            if (libraryResources!=null)
+            {
+              for (Resource resource: libraryResources)
+              { 
+                Archive[] archives;
+                
+                try
+                { 
+                  archives=Archive.fromLibrary(resource);
+                  if (archives.length==0)
+                  { log("Library is empty: "+resource.getURI());
+                  }
+                  for (Archive archive: archives)
+                  { contextClassLoader.addPrecedentArchive(archive);                  
+                  }
+                }
+                catch (IOException x)
+                { log("Failed to load archive "+resource.getURI(),x);
+                }
+              }
+            }
+            
             if (debugWAR)
             { contextClassLoader.setDebug(true);
             }
@@ -2760,7 +2795,7 @@ public class SimpleHttpServiceContext
           else
           {
             ServletURLClassLoader contextClassLoader
-              =new ServletURLClassLoader(warRoot);
+              =new ServletURLClassLoader(warRoot,libraryResources);
             this.contextClassLoader=contextClassLoader;
           }
         }
