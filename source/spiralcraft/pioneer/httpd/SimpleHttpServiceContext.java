@@ -114,8 +114,8 @@ public class SimpleHttpServiceContext
   //private static final String DEBUG_GROUP
   //  =SimpleHttpServiceContext.class.getName();
 
-  private File _docRootDir=new File(System.getProperty("user.dir"));
-  private URI _docRootURI=_docRootDir.toURI();
+  private File _docRootDir;
+  private URI _docRootURI;
   
   private HttpSessionManager _sessionManager;
   private String _hostName;
@@ -900,7 +900,8 @@ public class SimpleHttpServiceContext
   public void log(String msg)
   { 
     if (log.canLog(Level.INFO))
-    { log.log(Level.INFO,msg);
+    { 
+      log.log(Level.INFO,msg,null,1);
     }
   }
 
@@ -1016,7 +1017,14 @@ public class SimpleHttpServiceContext
     if (!name.startsWith("/"))
     { throw new MalformedURLException(name+" does not start with '/'");
     }
-    URL ret=_docRootDir.toURI().resolve(name.substring(1)).toURL();
+    URL ret=null;
+    if (_docRootURI!=null)
+    { 
+      // XXX: We need to make sure the VFS package is registered as
+      //   a URLStreamHandlerFactory for this case to work
+      ret=_docRootURI.resolve(name.substring(1)).toURL();
+    }
+    
     if (_server.getDebugAPI())
     { log.fine("getResource("+name+") returned "+ret);
     }
@@ -1055,6 +1063,17 @@ public class SimpleHttpServiceContext
 	@Override
   public String getRealPath(String rawUri)
   { 
+	  if (_docRootDir==null)
+	  { 
+      if (_server.getDebugAPI())
+      { 
+        log.fine("getRealPath("+rawUri+") returned null- "
+                 +"no document root dir configured"
+            );
+      }
+	    return null;
+	  }
+	  
 	  if (rawUri==null)
 	  { return null;
 	  }
@@ -1370,11 +1389,27 @@ public class SimpleHttpServiceContext
     { realPath=getRealPath("/");
     }
     
-    if (realPath==null)
-    { 
-      log.info("Could not map "+request.getPathInfo()+" to a real path");
-      return null;
+    if (realPath!=null)
+    { return getServletChainForRealPath(request,realPath);
     }
+    else
+    { return getServletChainForVirtualPath(request,request.getPathInfo());
+    }
+  }
+  
+  /**
+   * Find the filter/servlet chain when we have a filesystem path. Performs
+   *   directory redirect behavior and directory welcome file completion
+   * 
+   * @param request
+   * @param realPath
+   * @return
+   * @throws ServletException
+   */
+  protected FilterChain getServletChainForRealPath
+    (AbstractHttpServletRequest request,String realPath)
+    throws ServletException
+  {
     
     // Try to complete a directory reference by locating a welcome file
     //   in the file system
@@ -1428,18 +1463,8 @@ public class SimpleHttpServiceContext
     }
     
     String fileType=getFileType(realPath);
-
-//    // 2009-02-28 mike : Moved directory redirect to the file servlet    
-//    if (fileType==null)
-//    {
-//      if (!request.getRequestURI().endsWith("/") && isDirectory(realPath))
-//      { 
-//        // Force a redirect to directory
-//        return _directoryRedirectFilterChain;
-//      }
-//    }
     
-    servletName=getServletNameForRequestType(fileType);
+    String servletName=getServletNameForRequestType(fileType);
     if (servletName!=null)
     { 
       FilterChain filterChain=getServletFilterChain(servletName);
@@ -1461,7 +1486,8 @@ public class SimpleHttpServiceContext
       if (debug)
       { 
         log.log(Level.DEBUG,"Using servlet '"+servletName+"' for servletPath "
-                  +request.getServletPath()+", file "+getRealPath(request.getServletPath())
+                  +request.getServletPath()+", file "
+                  +getRealPath(request.getServletPath())
                   );
       }
         
@@ -1478,6 +1504,69 @@ public class SimpleHttpServiceContext
     
   }
 
+  
+  /**
+   * Find the filter/servlet chain when we have no associated filesystem
+   *   path
+   * 
+   * @param request
+   * @param realPath
+   * @return
+   * @throws ServletException
+   */
+  protected FilterChain getServletChainForVirtualPath
+    (AbstractHttpServletRequest request,String pathInfo)
+    throws ServletException
+  {
+    
+
+
+    if (debug)
+    { log.log(Level.DEBUG,"Locating interpreter for virtual path "+pathInfo);
+    }
+    
+    String fileType=getFileType(pathInfo);
+    
+    String servletName=getServletNameForRequestType(fileType);
+    if (servletName!=null)
+    { 
+      FilterChain filterChain=getServletFilterChain(servletName);
+      
+      if (filterChain==null)
+      { throw new ServletException("Servlet '"+servletName+"' not found.");
+      }
+
+      
+      // This will either be a path or may be empty if the intrinsic default
+      //   servlet is returned. In any case, we're using the rules for 
+      //   an extension mapping which says the pathInfo is null and the
+      //   servlet path is used.
+      if (debug)
+      { log.log(Level.DEBUG,"Updating servletPath to "+pathInfo);
+      }
+      request.updateServletPath(request.getPathInfo());
+      
+      if (debug)
+      { 
+        log.log(Level.DEBUG,"Using servlet '"+servletName+"' for servletPath "
+                  +request.getServletPath()
+                  );
+      }
+        
+      return filterChain;
+       
+    }
+    else
+    { 
+      if (debug)
+      { log.log(Level.DEBUG,"Unable to map servlet to suffix '"+fileType+"'");
+      }
+      return null;
+    }
+    
+  }
+  
+  
   /**
    *  Called when a servlet is mapped to a URI segment using a specific
    *    servlet path
@@ -1853,7 +1942,8 @@ public class SimpleHttpServiceContext
       { path=path+"/";
       }
       Resource dirResource
-        =Resolver.getInstance().resolve(_docRootDir.toURI().resolve(path));
+        =Resolver.getInstance().resolve
+          (_docRootURI.resolve(path));
       
       
       LinkedHashSet<String> set=new LinkedHashSet<String>();
@@ -1985,7 +2075,13 @@ public class SimpleHttpServiceContext
       { setDocumentRoot(resource.getFile().toURI().getPath());
       }
       else
-      { throw new IllegalArgumentException("Not a local directory "+uri);
+      { 
+        _docRootDir=null;
+        _docRootURI
+          =URIUtil.ensureTrailingSlash
+            (Resolver.getInstance().resolve(uri).getURI()
+            );
+        setAttribute("spiralcraft.context.root.uri",_docRootURI);
       }
     }
     catch (UnresolvableURIException e)
@@ -2001,6 +2097,7 @@ public class SimpleHttpServiceContext
     { root=root+"/";
     }
     _docRootURI=new File(root).toURI();
+    setAttribute("spiralcraft.context.root.uri",_docRootURI);
   }
 
   
@@ -2390,23 +2487,46 @@ public class SimpleHttpServiceContext
     { _server=_parentContext.getServer();
     }
     
-    if (!_docRootDir.isAbsolute())
-    { 
-      if (_parentContext!=null)
-      {
-        setDocumentRoot
-          (_parentContext.getDocumentRootURI()
-            .resolve(getDocumentRootURI())
-            .getPath()
-          );
+    if (_docRootDir!=null)
+    {
+      if (!_docRootDir.isAbsolute())
+      { 
+        if (_parentContext!=null)
+        {
+          setDocumentRoot
+            (_parentContext.getDocumentRootURI()
+              .resolve(getDocumentRootURI())
+              .getPath()
+            );
+        }
+        else
+        { setDocumentRoot(_docRootDir.toURI().getPath());
+        }
       }
-      else
-      { setDocumentRoot(_docRootDir.toURI().getPath());
+    }
+    else if (_docRootURI!=null)
+    {
+      if (!_docRootURI.isAbsolute())
+      {
+        if (_parentContext!=null)
+        {
+          setDocumentRootURI
+            (_parentContext.getDocumentRootURI()
+              .resolve(getDocumentRootURI())
+            );
+        }
+        else
+        { 
+          throw new LifecycleException
+            ("Root context cannot have a relative document root URI: "
+            +_docRootURI
+            );
+        }
       }
     }
     
     log.info
-      (getLogPrefix()+": Starting. root="+_docRootDir);
+      (getLogPrefix()+": Starting. root="+_docRootURI);
 
 //    try
 //    { _baseUrl=new URL("http",_hostName,_port,"/");
@@ -2481,7 +2601,7 @@ public class SimpleHttpServiceContext
         log.log
           (Level.INFO
           ,getClass().getName()
-            +" serving "+_docRootDir.getPath()
+            +" serving "+_docRootURI.getPath()
           );
         _attributes=new Hashtable<String,Object>();
       }
@@ -2567,7 +2687,7 @@ public class SimpleHttpServiceContext
   {   
     try
     {
-      Resource docRoot=Resolver.getInstance().resolve(_docRootDir.toURI());
+      Resource docRoot=Resolver.getInstance().resolve(_docRootURI);
       if (docRoot.asContainer()!=null)
       {
         Resource warRoot=docRoot.asContainer().getChild("WEB-INF");
@@ -2750,7 +2870,7 @@ public class SimpleHttpServiceContext
   {
     try
     {
-      Resource docRoot=Resolver.getInstance().resolve(_docRootDir.toURI());
+      Resource docRoot=Resolver.getInstance().resolve(_docRootURI);
       if (docRoot.asContainer()!=null)
       {
         Resource warRoot=docRoot.asContainer().getChild("WEB-INF");
@@ -2810,7 +2930,9 @@ public class SimpleHttpServiceContext
       else
       { 
         log.log
-          (Level.SEVERE,"Document root "+_docRootDir+" is not a valid directory"
+          (Level.SEVERE,"Document root "
+              +_docRootURI
+              +" is not a valid directory"
               +", not loading WAR ClassLoader"
            );
       }
