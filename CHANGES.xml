@@ -18,6 +18,27 @@
         </revision>
         
         <notes>
+          <scm:Note>Enhancements for running a web context in embedded mode 
+            (e.g. directly from a .jar or the classloader )
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd
+        </path>
+        
+        <resources>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+          <URI>WARClassLoader.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev3
+        </revision>
+        
+        <notes>
           <scm:Note>Implement HttpSession.getServletContext()
           </scm:Note>
           <scm:Note>Add "libraries" property in the HttpServiceContext to 
