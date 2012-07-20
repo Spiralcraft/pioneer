@@ -2753,11 +2753,16 @@ public class SimpleHttpServiceContext
         holder.start();
         try
         {
-          if (holder.getFilter() instanceof Controller)
+          if (holder.getFilter()
+              .getClass().getName()
+              .equals("spiralcraft.servlet.autofilter.Controller")
+              )
           { 
             startedController=true;
             if (exposeContainerFocus)
-            { ((Controller) holder.getFilter()).bind(focus);
+            { 
+              
+              ((Controller) holder.getFilter()).bind(focus);
             }
           }
         }
