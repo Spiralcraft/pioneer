@@ -14,6 +14,26 @@
     <details>
     
       <scm:Change>
+        <revision>-dev4
+        </revision>
+        
+        <notes>
+          <scm:Note>Make sure that only one Controller filter is loaded even
+            when the webapp's spiralcraft-servlet package is isolated in its
+            own classloader. 
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/SimpleHttpServiceContext.java
+        </path>
+        
+        <resources>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev3
         </revision>
         
