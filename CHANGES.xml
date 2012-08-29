@@ -18,6 +18,45 @@
         </revision>
         
         <notes>
+          <scm:Note>Mapped .3gp and .m4v mime types
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/ExtensionMimeTypeMap.properties
+        </path>
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev4
+        </revision>
+        
+        <notes>
+          <scm:Note>Factored out io package into core
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer
+        </path>
+        
+        <resources>
+          <URI>io/StreamEvent.java
+          </URI>
+          <URI>io/StreamListener.java
+          </URI>
+          <URI>io/StreamListenerSupport.java
+          </URI>
+          <URI>io/StreamPump.java
+          </URI>
+          <URI>net/DebugConnectionHandler.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev4
+        </revision>
+        
+        <notes>
           <scm:Note>Make sure that only one Controller filter is loaded even
             when the webapp's spiralcraft-servlet package is isolated in its
             own classloader. 
