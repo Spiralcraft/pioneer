@@ -24,6 +24,9 @@ public class WARClassLoader
     throws IOException
   { 
     super(Thread.currentThread().getContextClassLoader());
+    if (warRoot.asContainer()==null)
+    { throw new IOException("Not a container: "+warRoot.getURI());
+    }
     Resource classesResource=warRoot.asContainer().getChild("classes");
     if (classesResource.exists())
     { addPrecedentArchive(new ResourceArchive(classesResource));
