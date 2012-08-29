@@ -21,10 +21,10 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.OutputStreamWriter;
 
+import spiralcraft.io.StreamPump;
 import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
 
-import spiralcraft.pioneer.io.StreamPump;
 import spiralcraft.pioneer.io.HexDumpOutputStream;
 
 /**
