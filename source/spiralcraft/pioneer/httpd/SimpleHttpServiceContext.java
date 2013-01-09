@@ -75,6 +75,8 @@ import spiralcraft.vfs.file.FileResource;
 
 import spiralcraft.classloader.Archive;
 import spiralcraft.common.LifecycleException;
+import spiralcraft.common.declare.Declarable;
+import spiralcraft.common.declare.DeclarationInfo;
 
 import spiralcraft.lang.BindException;
 import spiralcraft.lang.Focus;
@@ -106,6 +108,7 @@ import spiralcraft.net.http.AcceptHeader;
 public class SimpleHttpServiceContext
   implements HttpServiceContext
             ,Meterable
+            ,Declarable
 {
   protected static final ClassLog log
     =ClassLog.getInstance(SimpleHttpServiceContext.class);
@@ -200,6 +203,7 @@ public class SimpleHttpServiceContext
   
   private Resource[] libraryResources;
 
+  private DeclarationInfo declarationInfo;
 
   /////////////////////////////////////////////////////////////////////////
   //
@@ -1927,6 +1931,10 @@ public class SimpleHttpServiceContext
   @Override
   public Set<String> getResourcePaths(String path)
   {
+    if (_docRootURI==null)
+    { return new LinkedHashSet<String>();
+    }
+    
     try
     {
       if (!path.startsWith("/"))
@@ -1941,6 +1949,7 @@ public class SimpleHttpServiceContext
       if (!path.endsWith("/"))
       { path=path+"/";
       }
+      
       Resource dirResource
         =Resolver.getInstance().resolve
           (_docRootURI.resolve(path));
@@ -2601,7 +2610,7 @@ public class SimpleHttpServiceContext
         log.log
           (Level.INFO
           ,getClass().getName()
-            +" serving "+_docRootURI.getPath()
+            +" serving "+_docRootURI
           );
         _attributes=new Hashtable<String,Object>();
       }
@@ -2615,7 +2624,10 @@ public class SimpleHttpServiceContext
           +_prefixServletNameMap.toString());
     }
 
-    loadWAR();
+    if (_docRootURI!=null)
+    { 
+      loadWAR();
+    }
     
     new PublicLocator(getHostName(),getStandardPort(),getSecurePort(),getContextPath())
       .set(this);
@@ -2685,6 +2697,10 @@ public class SimpleHttpServiceContext
   private void loadWebXML()
     throws LifecycleException
   {   
+    if (_docRootURI==null)
+    { return;
+    }
+    
     try
     {
       Resource docRoot=Resolver.getInstance().resolve(_docRootURI);
@@ -3037,6 +3053,17 @@ public class SimpleHttpServiceContext
   {
     this.focus=focus;
     return focus;
+  }
+
+  @Override
+  public void setDeclarationInfo(
+    DeclarationInfo declarationInfo)
+  { this.declarationInfo=declarationInfo;
+  }
+
+  @Override
+  public DeclarationInfo getDeclarationInfo()
+  { return declarationInfo;
   }
   
 
