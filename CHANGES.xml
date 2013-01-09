@@ -14,6 +14,20 @@
     <details>
     
       <scm:Change>
+        <revision>-dev5
+        </revision>
+        
+        <notes>
+          <scm:Note>Make sure that ServiceContext works when a docRootURI is not
+            declared.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/SimpleHttpServiceContext
+        </path>
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev4
         </revision>
         
