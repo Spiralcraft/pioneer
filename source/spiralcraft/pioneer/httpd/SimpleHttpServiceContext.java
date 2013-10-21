@@ -74,6 +74,7 @@ import spiralcraft.vfs.batch.Search;
 import spiralcraft.vfs.file.FileResource;
 
 import spiralcraft.classloader.Archive;
+import spiralcraft.common.ContextualException;
 import spiralcraft.common.LifecycleException;
 import spiralcraft.common.declare.Declarable;
 import spiralcraft.common.declare.DeclarationInfo;
@@ -561,23 +562,27 @@ public class SimpleHttpServiceContext
       { 
         if (constraint.matches(request.getMethod(),request.getRequestURI()))
         {
-          if (constraint.getRequireSecureChannel() && !request.isSecure())
+          if (constraint.getRequireSecureChannel())
           { 
-            URI requestURI
-              =URI.create("https://"
-                      +request.getServerName()
-                      +(request.getSecurePort()!=443
-                        ?":"+request.getSecurePort()
-                        :""
-                      )
-                      +request.getRequestURI()
-                      +( (request.getQueryString()!=null)
-                          ?"?"+request.getQueryString()
+            if (!request.isSecure())
+            {
+              URI requestURI
+                =URI.create("https://"
+                        +request.getServerName()
+                        +(request.getSecurePort()!=443
+                          ?":"+request.getSecurePort()
                           :""
-                       )
-                      );
-            response.sendRedirect(requestURI.toString());
-
+                        )
+                        +request.getRequestURI()
+                        +( (request.getQueryString()!=null)
+                            ?"?"+request.getQueryString()
+                            :""
+                         )
+                        );
+              response.sendRedirect(requestURI.toString());
+            }
+            break; // First matching constraint that requires secure channel
+                   // takes precedent
           }
           else if (constraint.getPreferStandardChannel() && request.isSecure())
           {
@@ -2785,7 +2790,7 @@ public class SimpleHttpServiceContext
         catch (ServletException x)
         { log.log(Level.WARNING,"Unexpected exception getting filter",x);
         }
-        catch (BindException x)
+        catch (ContextualException x)
         { log.log(Level.WARNING,"Error binding controller",x);
         }
       }
@@ -2834,7 +2839,7 @@ public class SimpleHttpServiceContext
     catch (ServletException x)
     { log.log(Level.WARNING,"Error starting controller",x);
     }
-    catch (BindException x)
+    catch (ContextualException x)
     { log.log(Level.WARNING,"Error binding controller",x);
     }       
   }
