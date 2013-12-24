@@ -635,8 +635,11 @@ public class HttpServerResponse
         if (_request.isSecure())
         {
           String userAgent=_request.getHeader(HDR_USER_AGENT);
-          if (userAgent.indexOf("MSIE")>-1)
-          { keepAliveOverride=true;
+          if (userAgent!=null)
+          {
+            if (userAgent.indexOf("MSIE")>-1)
+            { keepAliveOverride=true;
+            }
           }
         }
 
