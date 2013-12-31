@@ -2,7 +2,7 @@
 
 
   <property name="module" value="pioneer"/>
-  <property name="buildVersion" value="0.4.17-dev6"/>
+  <property name="buildVersion" value="0.4.17-dev7"/>
   <property name="build.status" value="milestone"/>
 
   <path id="classpath">
