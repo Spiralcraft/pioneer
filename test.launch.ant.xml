@@ -18,6 +18,6 @@
       
   </target>
 
-  <import file="../../build/build-spiralcraft-common.xml"/>  
+  <import file="../../build/build-common.xml"/>  
 </project>
   

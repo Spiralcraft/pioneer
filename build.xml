@@ -1,6 +1,6 @@
 <project name="spiralcraft-pioneer" default="build" basedir=".">
 
-
+  <property name="organization" value="spiralcraft"/>
   <property name="module" value="pioneer"/>
   <property name="buildVersion" value="0.4.17-dev7"/>
   <property name="build.status" value="milestone"/>
@@ -13,14 +13,15 @@
   </path>
 
   <property name="classpath" refid="classpath"/>
-  
   <property name="manifest.class.path" 
     value="spiralcraft-core.jar spiralcraft-net.jar spiralcraft-servlet.jar servlet-api.jar"
   />        
 
   <property name="logs.dir" location="test/logs"/>
   
-  <import file="../../build/build-spiralcraft-common.xml"/>
+  <property name="depends.dir" location="../../repo"/>
+  <property file="../../build.local/build.properties"/>
+  <import file="../../build/build-common.xml"/>
 
 </project>
 
