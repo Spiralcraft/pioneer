@@ -17,6 +17,19 @@
           </port>
 
         </net:Listener>
+        <net:Listener>
+    
+          <port>8443
+          </port>
+          
+          <serverSocketFactory>
+            <net:SecureServerSocketFactory>
+            
+            
+            </net:SecureServerSocketFactory>
+          </serverSocketFactory>
+    
+        </net:Listener>        
       </listeners>
       
       <handlerQueue.initialThreadCount>10
