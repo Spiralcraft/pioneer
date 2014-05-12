@@ -14,6 +14,21 @@
     <details>
     
       <scm:Change>
+        <revision>-dev8
+        </revision>
+        
+        <notes>
+          <scm:Note>Add a configurable time window for the expiration of
+            unused (not joined by client) sessions to reduce their impact
+            on memory consumption. The default is 1 minute.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/SimpleHttpSessionManager.java
+        </path>
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev7
         </revision>
         
