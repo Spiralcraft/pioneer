@@ -56,6 +56,7 @@ public class SimpleHttpSessionManager
     =ClassLog.getInstance(SimpleHttpSessionManager.class);
   
   private int _maxInactiveInterval=600;
+  private int _maxSecondsToJoin=60;
   private Meter _meter;
   private Register _activeSessionsRegister;
   private Register _deadSessionsRegister;
@@ -63,6 +64,12 @@ public class SimpleHttpSessionManager
   private boolean _logSessionEvents=true;
   private ServletContext _servletContext;
 	
+  private HashMap<String,Session> _sessions
+    =new HashMap<String,Session>();
+  private Object _sessionLock=new Object();
+  private ReaperThread _reaper=new ReaperThread();
+  private int _reapIntervalSeconds=30;
+  
   @Override
   public void installMeter(Meter meter)
   {
@@ -144,6 +151,9 @@ public class SimpleHttpSessionManager
     _sessions.clear();
   }
 
+  public void setMaxSecondsToJoin(int secs)
+  { _maxSecondsToJoin=secs;
+  }
 
   public void setMaxInactiveInterval(int secs)
   { _maxInactiveInterval=secs;
@@ -157,6 +167,18 @@ public class SimpleHttpSessionManager
   public class Session
     implements HttpSession
   {
+    private String _id;
+    private volatile boolean _new=true;
+    private volatile boolean _expired=false;
+    private long _lastAccess;
+    private long _creationTime=Clock.instance().approxTimeMillis();
+    private int _maxInactiveIntervalMs=_maxInactiveInterval*1000;
+    private int _maxMsToJoin=_maxSecondsToJoin*1000;
+    private Map<String,Object> _values
+      =Collections.synchronizedMap(new HashMap<String,Object>());
+    private Map<String,Object> _attributes
+      =Collections.synchronizedMap(new HashMap<String,Object>());
+    
     public Session()
     {
       if (_newSessionsRegister!=null)
@@ -178,11 +200,11 @@ public class SimpleHttpSessionManager
       _sessions.put(_id,this);
     }
 
-    public void touch()
+    private void touch()
     { _lastAccess=Clock.instance().approxTimeMillis();
     }
     
-    public void markNotNew()
+    private synchronized void markNotNew()
     { 
       touch();
       _new=false;
@@ -193,11 +215,16 @@ public class SimpleHttpSessionManager
     { _maxInactiveIntervalMs=seconds*1000;
     }
 
-    public boolean isExpired()
+    public synchronized boolean isExpired()
     {
+      final long now=Clock.instance().approxTimeMillis();
       if (_expired 
-          || Clock.instance().approxTimeMillis()-_lastAccess
+          || now-_lastAccess
               >_maxInactiveIntervalMs
+          || (_new 
+              && now-_creationTime
+                >_maxMsToJoin
+             )
           )
       { _expired=true;
       }
@@ -205,7 +232,7 @@ public class SimpleHttpSessionManager
     }
 
     @Override
-    public boolean isNew()
+    public synchronized boolean isNew()
     { return _new;
     }
 
@@ -252,7 +279,9 @@ public class SimpleHttpSessionManager
       {
         log.log
           (Level.INFO
-          ,"HttpSession #"+_id+" expired"
+          ,_new
+            ?"HttpSession #"+_id+" expired while new"
+            :"HttpSession #"+_id+" expired"
           );
       }
     }
@@ -321,17 +350,6 @@ public class SimpleHttpSessionManager
     { return _servletContext;
     }
 
-    private String _id;
-    private boolean _new=true;
-    private boolean _expired=false;
-    private long _lastAccess;
-    private long _creationTime=Clock.instance().approxTimeMillis();
-    private int _maxInactiveIntervalMs=_maxInactiveInterval*1000;
-    private Map<String,Object> _values
-      =Collections.synchronizedMap(new HashMap<String,Object>());
-    private Map<String,Object> _attributes
-      =Collections.synchronizedMap(new HashMap<String,Object>());
-    
   }
 
   class ReaperThread
@@ -400,9 +418,4 @@ public class SimpleHttpSessionManager
 
   }
 
-  private HashMap<String,Session> _sessions
-    =new HashMap<String,Session>();
-  private Object _sessionLock=new Object();
-  private ReaperThread _reaper=new ReaperThread();
-  private int _reapIntervalSeconds=30;
 }
