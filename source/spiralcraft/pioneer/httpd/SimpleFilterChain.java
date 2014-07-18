@@ -24,9 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 
 
 import java.io.IOException;
-import java.io.PrintStream;
-
-import spiralcraft.exec.ExecutionContext;
 import spiralcraft.log.ClassLog;
 
 /**
@@ -90,18 +87,7 @@ public class SimpleFilterChain
       { log.fine(((HttpServletRequest) request).getRequestURI()+" -> "+filter);
       }
     
-      try
-      { filter.doFilter(request,response,next);
-      }
-      catch (ServletException x)
-      { 
-        PrintStream err=ExecutionContext.getInstance().err();
-        x.printStackTrace(err);
-        if (x.getRootCause()!=null)
-        { x.getRootCause().printStackTrace(err);
-        }
-        throw x;
-      }
+      filter.doFilter(request,response,next);
     }
     else
     { next.doFilter(request,response);
