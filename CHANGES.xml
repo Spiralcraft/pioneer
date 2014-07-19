@@ -14,6 +14,42 @@
     <details>
     
       <scm:Change>
+        <revision>-dev9
+        </revision>
+        
+        <notes>
+          <scm:Note>Make sure that error forwarding happens asynchronously
+            so we don't recursively re-enter filter chains.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd
+        </path>
+        
+        <resources>
+          <URI>HttpError.java
+          </URI>
+          <URI>ServerRequestDispatcher.java
+          </URI>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev9
+        </revision>
+        
+        <notes>
+          <scm:Note>Remove printing of exceptions to System.err
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/SimpleFilterChain.java
+        </path>
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev8
         </revision>
         
