@@ -32,7 +32,6 @@ import javax.servlet.ServletRequestListener;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSessionAttributeListener;
@@ -43,7 +42,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -55,55 +53,42 @@ import java.util.Stack;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Hashtable;
-
 import java.util.HashMap;
-
 import java.net.URI;
 import java.net.URL;
 import java.net.MalformedURLException;
 
-
 import spiralcraft.util.IteratorEnumeration;
 import spiralcraft.util.Path;
 import spiralcraft.util.URIUtil;
-
+import spiralcraft.util.thread.ThreadLocalStack;
 import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
 import spiralcraft.vfs.UnresolvableURIException;
 import spiralcraft.vfs.batch.Search;
 import spiralcraft.vfs.file.FileResource;
-
 import spiralcraft.classloader.Archive;
 import spiralcraft.common.ContextualException;
 import spiralcraft.common.LifecycleException;
 import spiralcraft.common.declare.Declarable;
 import spiralcraft.common.declare.DeclarationInfo;
-
 import spiralcraft.lang.BindException;
 import spiralcraft.lang.Focus;
 import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
-
 import spiralcraft.pioneer.io.Governer;
 import spiralcraft.pioneer.io.SimpleGoverner;
 import spiralcraft.text.html.URLEncoder;
-
 import spiralcraft.time.Clock;
-
 import spiralcraft.pioneer.util.ThrowableUtil;
-
 import spiralcraft.pioneer.security.servlet.ServletAuthenticator;
 import spiralcraft.pioneer.security.SecurityException;
-
 import spiralcraft.pioneer.telemetry.Meter;
 import spiralcraft.pioneer.telemetry.Register;
 import spiralcraft.pioneer.telemetry.Meterable;
-
 import spiralcraft.net.ip.AddressSet;
-
 import spiralcraft.servlet.PublicLocator;
 import spiralcraft.servlet.autofilter.Controller;
-
 import spiralcraft.net.http.AcceptHeader;
 
 public class SimpleHttpServiceContext
@@ -205,6 +190,9 @@ public class SimpleHttpServiceContext
   private Resource[] libraryResources;
 
   private DeclarationInfo declarationInfo;
+  
+  private final ThreadLocalStack<ServiceStatus> statusStack
+    =new ThreadLocalStack<>();
 
   /////////////////////////////////////////////////////////////////////////
   //
@@ -266,32 +254,7 @@ public class SimpleHttpServiceContext
         }
       }
       
-        
-      // Push the ClassLoader for this context
-      ClassLoader lastLoader=null;
-      if (contextClassLoader!=null)
-      { 
-        lastLoader=Thread.currentThread().getContextClassLoader();
-        if (lastLoader!=contextClassLoader)
-        { Thread.currentThread().setContextClassLoader(contextClassLoader);
-        }
-        else
-        { lastLoader=null;
-        }
-      }
-        
-      // Ensure we always pop the ClassLoader if set
-      try
-      { 
-        serviceWithErrorHandling(request,response,topLevel);
-      }
-      finally
-      {
-        if (lastLoader!=null)
-        { Thread.currentThread().setContextClassLoader(lastLoader);
-        }
-      }
-        
+      serviceWithErrorHandling(request,response,topLevel);
     }
     catch (ServletException x)
     {
@@ -311,6 +274,61 @@ public class SimpleHttpServiceContext
 			request.setServiceContext(null);
     }
   }
+  
+  protected void serviceInContext
+    (final AbstractHttpServletRequest request
+    ,final HttpServletResponse response
+    ,boolean topLevel
+    )
+    throws ServletException,IOException
+  {
+    
+    FilterChain filterChain=null;
+    
+    // Push the ClassLoader for this context
+    ClassLoader lastLoader=null;
+    if (contextClassLoader!=null)
+    { 
+      lastLoader=Thread.currentThread().getContextClassLoader();
+      if (lastLoader!=contextClassLoader)
+      { Thread.currentThread().setContextClassLoader(contextClassLoader);
+      }
+      else
+      { lastLoader=null;
+      }
+    }
+    
+    try
+    {
+      filterChain=getFilterChainForRequest(request);
+
+      if (filterChain!=null)
+      { 
+        fireRequestInitialized(request);
+        // This is the main act
+        filterChain.doFilter(request,response);
+        fireRequestDestroyed(request);
+      }
+    }
+    finally
+    {
+      if (lastLoader!=null)
+      { Thread.currentThread().setContextClassLoader(lastLoader);
+      }
+      
+      if (filterChain==null)
+      {
+        log.log
+          (Level.SEVERE
+          ,"No servlet configured to handle request for http://"
+            +request.getHeader("Host")
+            +request.getRequestURI()
+          ); 
+        response.sendError(404);
+      }
+    }
+    
+  }
 
   protected void serviceWithErrorHandling
     (final AbstractHttpServletRequest request
@@ -322,26 +340,26 @@ public class SimpleHttpServiceContext
 
     if (preFilter(request,response))
     {
-      
-      FilterChain filterChain=getFilterChainForRequest(request);
       try
-      {
-        if (filterChain!=null)
-        { 
-          fireRequestInitialized(request);
-          // This is the main act
-          filterChain.doFilter(request,response);
-          fireRequestDestroyed(request);
+      { 
+        ServiceStatus status=new ServiceStatus();
+        statusStack.push(status);
+        try
+        { serviceInContext(request,response,topLevel);
         }
-        else
-        {
-          log.log
-            (Level.SEVERE
-            ,"No servlet configured to handle request for http://"
-              +request.getHeader("Host")
-              +request.getRequestURI()
-            ); 
-          response.sendError(404);
+        finally
+        { statusStack.pop();
+        }
+        
+        if (status.error!=null)
+        { 
+          handleError
+            (request
+            ,(HttpServerResponse) response
+            ,status.error.code
+            ,status.error.message
+            ,status.error.exception
+            );
         }
       }
       catch (ServletException x)
@@ -394,6 +412,7 @@ public class SimpleHttpServiceContext
     
   }
   
+  
   @Override
   public void handleError
     (AbstractHttpServletRequest request
@@ -404,6 +423,20 @@ public class SimpleHttpServiceContext
     )
     throws IOException
   {
+    if (statusStack.size()>0)
+    { 
+      statusStack.get().error=new HttpError(code,message,exception);
+      return;
+    }
+        
+    log.fine("Handling error "+code+" "+request+" source="+request.getSource());
+    if (request.getSource()==AbstractHttpServletRequest.RequestSource.ERROR)
+    { 
+      log.warning("Error sending error page: "+request.getRequestURI());
+      response.setStatus(500);
+      return;
+    }
+    
     String errorURI=null;
     
     // Go through error pages
@@ -3075,3 +3108,9 @@ public class SimpleHttpServiceContext
 
 
 }
+
+class ServiceStatus
+{
+  HttpError error;
+}
+

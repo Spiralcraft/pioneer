@@ -156,7 +156,14 @@ public class ServerRequestDispatcher
       );
 
     response.setStatus(status);
-    context.service(dispatchRequest,response);
+
+    DispatchServerResponse dispatchResponse
+      =new DispatchServerResponse
+        ((HttpServletResponse) response
+        ,context.getServer()
+        );
+    
+    context.service(dispatchRequest,dispatchResponse);
 
   }
 }
