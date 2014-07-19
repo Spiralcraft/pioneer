@@ -429,7 +429,6 @@ public class SimpleHttpServiceContext
       return;
     }
         
-    log.fine("Handling error "+code+" "+request+" source="+request.getSource());
     if (request.getSource()==AbstractHttpServletRequest.RequestSource.ERROR)
     { 
       log.warning("Error sending error page: "+request.getRequestURI());
