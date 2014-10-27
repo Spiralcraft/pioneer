@@ -368,6 +368,7 @@ public class SimpleHttpServiceContext
                 ,"ServletException handling "
                   +"http://"+request.getHeader("Host")+request.getRequestURI()
                   +": "+x.toString()
+                ,x
                 );
         if (topLevel)
         {
