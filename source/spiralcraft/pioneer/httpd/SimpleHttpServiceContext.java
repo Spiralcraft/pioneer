@@ -118,6 +118,7 @@ public class SimpleHttpServiceContext
   private ArrayList<FilterMapping> _filterMappings=null;
   private HashMap<String,FilterHolder> _filterMap=null;
   private ArrayList<ErrorPage> _errorPages=new ArrayList<ErrorPage>();
+  private HashMap<Integer,ErrorPage> _errorPageMap=new HashMap<>();
   private ArrayList<String> _listenerClassNames;
   private ArrayList<ServletContextListener> _listeners;
   private ArrayList<ServletContextAttributeListener> _attributeListeners;
@@ -458,13 +459,9 @@ public class SimpleHttpServiceContext
     // Go through codes
     if (code>0)
     {
-      for (ErrorPage errorPage: _errorPages)
-      {
-        if (errorPage.getErrorCode()==code)
-        { 
-          errorURI=errorPage.getLocation().toString();
-          break;
-        }
+      ErrorPage errorPage=_errorPageMap.get(code);
+      if (errorPage!=null)
+      { errorURI=errorPage.getLocation().toString();
       }
     }
     
@@ -2170,7 +2167,9 @@ public class SimpleHttpServiceContext
   }
   
   public void addErrorPage(ErrorPage errorPage)
-  { _errorPages.add(errorPage);
+  { 
+    _errorPages.add(errorPage);
+    _errorPageMap.put(errorPage.getErrorCode(),errorPage);
   }
     
   /**
