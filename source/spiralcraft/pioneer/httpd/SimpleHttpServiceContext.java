@@ -610,6 +610,7 @@ public class SimpleHttpServiceContext
                          )
                         );
               response.sendRedirect(requestURI.toString());
+              return false;
             }
             break; // First matching constraint that requires secure channel
                    // takes precedent
@@ -630,6 +631,7 @@ public class SimpleHttpServiceContext
                      )
                     );
             response.sendRedirect(requestURI.toString());
+            return false;
             
           }
         }
