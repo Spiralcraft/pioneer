@@ -14,6 +14,22 @@
     <details>
     
       <scm:Change>
+        <revision>-dev14
+        </revision>
+        
+        <notes>
+          <scm:Note>Use a more robust mechanism (ServletContext attributes) to
+            connect the web application to the web server process environment
+            when exposeContainerFocus is requested. 
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/SimpleHttpServiceContext.java
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev13
         </revision>
         
