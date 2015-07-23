@@ -68,7 +68,6 @@ import spiralcraft.vfs.UnresolvableURIException;
 import spiralcraft.vfs.batch.Search;
 import spiralcraft.vfs.file.FileResource;
 import spiralcraft.classloader.Archive;
-import spiralcraft.common.ContextualException;
 import spiralcraft.common.LifecycleException;
 import spiralcraft.common.declare.Declarable;
 import spiralcraft.common.declare.DeclarationInfo;
@@ -2722,6 +2721,9 @@ public class SimpleHttpServiceContext
     throws LifecycleException
   {
     loadWebXML();
+    if (exposeContainerFocus)
+    { setAttribute("spiralcraft.lang.Focus",focus);
+    }
     startListeners();
     if (_listeners!=null)
     { 
@@ -2812,20 +2814,11 @@ public class SimpleHttpServiceContext
               .getClass().getName()
               .equals("spiralcraft.servlet.autofilter.Controller")
               )
-          { 
-            startedController=true;
-            if (exposeContainerFocus)
-            { 
-              
-              ((Controller) holder.getFilter()).bind(focus);
-            }
+          { startedController=true;
           }
         }
         catch (ServletException x)
         { log.log(Level.WARNING,"Unexpected exception getting filter",x);
-        }
-        catch (ContextualException x)
-        { log.log(Level.WARNING,"Error binding controller",x);
         }
       }
       
@@ -2864,17 +2857,10 @@ public class SimpleHttpServiceContext
     };
     
     try
-    { 
-      controller.init(config);
-      if (exposeContainerFocus)
-      { controller.bind(focus);
-      }
+    { controller.init(config);
     }
     catch (ServletException x)
     { log.log(Level.WARNING,"Error starting controller",x);
-    }
-    catch (ContextualException x)
-    { log.log(Level.WARNING,"Error binding controller",x);
     }       
   }
   
