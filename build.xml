@@ -2,7 +2,7 @@
 
   <property name="organization" value="spiralcraft"/>
   <property name="module" value="pioneer"/>
-  <property name="buildVersion" value="0.4.17-dev14"/>
+  <property name="buildVersion" value="0.4.17-dev15"/>
   <property name="build.status" value="milestone"/>
 
   <path id="classpath">

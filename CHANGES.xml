@@ -14,6 +14,22 @@
     <details>
     
       <scm:Change>
+        <revision>-dev15
+        </revision>
+        
+        <notes>
+          <scm:Note>Provide an option "ignoreBindError" to Listener so that
+            the startup sequence can continue if the requested interface is not
+            available on the host at startup time.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/SimpleHttpServiceContext.java
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev14
         </revision>
         
