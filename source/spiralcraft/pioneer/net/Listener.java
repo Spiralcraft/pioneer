@@ -79,8 +79,8 @@ public class Listener
       { sd.setServerSocketFactory(factory);
       }
       sd.setConnectionHandler(new DebugConnectionHandler());
-			sd.start();
-			sd.join();
+      sd.start();
+      sd.join();
       
 
       System.out.println("stopped");
@@ -101,9 +101,9 @@ public class Listener
   private ShuntServerSocket _shuntServerSocket;
   private ConnectionHandler _handler=null;
   private boolean _shunt=false;
-	private Thread _runner;
-	private int _totalConnections = 0;
-	private long _startTime;
+  private Thread _runner;
+  private int _totalConnections = 0;
+  private long _startTime;
   private IOException _bindException;
   private ServerSocketFactory _factory=new StandardServerSocketFactory();
   private int _minPort=0;
@@ -111,6 +111,7 @@ public class Listener
   private int _boundPort=0;
   private boolean _tcpNoDelay=true;
   private boolean _debug;
+  private boolean ignoreBindError;
 
   /**
    * Return the port that the socket is bound to
@@ -181,10 +182,10 @@ public class Listener
    * Indicate that a special in-process port
    *   should be used instead of a TCP/IP port.
    */
-	public void setShunt(boolean shunt)
-	{ _shunt=shunt;
-	}
-	
+  public void setShunt(boolean shunt)
+  { _shunt=shunt;
+  }
+  
 
   /** 
    * Indicate how many connections should be
@@ -221,19 +222,26 @@ public class Listener
   }
 
 
-	public int getTotalConnections()
-	{ return _totalConnections;
-	}
+  public int getTotalConnections()
+  { return _totalConnections;
+  }
 
-	public long getUptime()
-	{ return Clock.instance().approxTimeMillis()-_startTime;
-	}
+  public long getUptime()
+  { return Clock.instance().approxTimeMillis()-_startTime;
+  }
 
-
+  /**
+   * Keep operating 
+   * @param ignoreBindError
+   */
+  public void setIgnoreBindError(boolean ignoreBindError)
+  { this.ignoreBindError=ignoreBindError;
+  }
+  
   /**
    * Stop listening and close the server socket.
    */
-	@Override
+  @Override
   public void stop()
   {
     _finished=true;
@@ -243,9 +251,9 @@ public class Listener
   /**
    * Start the Listener in a new daemon thread.
    */
-	@Override
+  @Override
   public void start()
-	{
+  {
     try
     {
       if (_interfaceName!=null)
@@ -256,10 +264,10 @@ public class Listener
     { throw new RuntimeException("Interface "+_interfaceName+" not found");
     }
 
-		_runner=new Thread(this,"Listener-"+(_addr==null?"*:":_addr.getHostAddress()+":")+_port);
+    _runner=new Thread(this,"Listener-"+(_addr==null?"*:":_addr.getHostAddress()+":")+_port);
     _runner.setPriority(Thread.MAX_PRIORITY);
-		_runner.setDaemon(true);
-		_startTime = Clock.instance().approxTimeMillis();
+    _runner.setDaemon(true);
+    _startTime = Clock.instance().approxTimeMillis();
     _runner.start();
     try
     { waitForBind();
@@ -267,7 +275,7 @@ public class Listener
     catch (Exception x)
     { throw new RuntimeException(x.toString());
     }
-	}
+  }
 
   public void waitForBind()
     throws IOException,InterruptedException
@@ -282,7 +290,20 @@ public class Listener
       }
     }
     if (_bindException!=null)
-    { throw _bindException;
+    { 
+      if (ignoreBindError)
+      { 
+        log.log(Level.WARNING
+               ,"Ignoring error binding to "
+               +(_interfaceName!=null?_interfaceName:"*")
+               +":"
+               +_port
+               ,_bindException
+               );
+      }
+      else
+      { throw _bindException;
+      }
     }
   }
 
@@ -290,14 +311,14 @@ public class Listener
    * Wait for the Listener to be stopped, if it has been
    *   started with start()
    */
-	public void join()
-	{
+  public void join()
+  {
     try
     { _runner.join();
     }
     catch (InterruptedException x)
     { }
-	}
+  }
 
   /**
    * Handle incoming connections
@@ -462,12 +483,12 @@ public class Listener
       }
       catch (IOException e)
       {
-      	log.log(Level.SEVERE
-      						,"IOException accepting incoming connection on "
-      								+getSocketDescription()
-      								+": "
-      								+e.toString()
-      						);
+        log.log(Level.SEVERE
+                  ,"IOException accepting incoming connection on "
+                      +getSocketDescription()
+                      +": "
+                      +e.toString()
+                  );
       }
 
     }
@@ -481,20 +502,20 @@ public class Listener
   /**
    * Stop listening
    */
-	private void stopListening()
-	{
-		try
-		{
-			if (_shunt)
-			{ _shuntServerSocket.close();
-			}
-			else
-			{ _serverSocket.close();
-			}
-		}
-		catch (Exception x)
-		{ }
-	}
+  private void stopListening()
+  {
+    try
+    {
+      if (_shunt)
+      { _shuntServerSocket.close();
+      }
+      else
+      { _serverSocket.close();
+      }
+    }
+    catch (Exception x)
+    { }
+  }
 
   private String getSocketDescription()
   { return _shunt?_shuntServerSocket.toString():_serverSocket.toString();
