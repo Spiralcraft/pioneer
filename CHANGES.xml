@@ -14,6 +14,21 @@
     <details>
     
       <scm:Change>
+        <revision>-dev16
+        </revision>
+        
+        <notes>
+          <scm:Note>Add variant of RFC 1123 with 'UTC' suffix to header date
+            parser
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/AbstractHttpServletRequest.java
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev15
         </revision>
         
