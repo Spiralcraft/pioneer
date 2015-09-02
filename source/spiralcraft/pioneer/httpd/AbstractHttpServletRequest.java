@@ -65,12 +65,14 @@ public abstract class AbstractHttpServletRequest
   }
 
   protected final DateFormat[] _altDateFormats
-    ={ new SimpleDateFormat("EEEE, dd-MMM-yy HH:mm:ss 'GMT'")
+    ={ new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'UTC'")
+     , new SimpleDateFormat("EEEE, dd-MMM-yy HH:mm:ss 'GMT'")
      , new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy")
      };
   {
     _altDateFormats[0].setTimeZone(TimeZone.getTimeZone("GMT"));
     _altDateFormats[1].setTimeZone(TimeZone.getTimeZone("GMT"));
+    _altDateFormats[2].setTimeZone(TimeZone.getTimeZone("GMT"));
   }
 
   public enum RequestSource
