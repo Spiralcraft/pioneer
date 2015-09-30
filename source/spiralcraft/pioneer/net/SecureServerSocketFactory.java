@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLContext;
+//import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.KeyManagerFactory;
 
 import java.security.KeyStore;
@@ -129,7 +130,7 @@ public class SecureServerSocketFactory
     throws IOException
   { 
     makeFactory();
-    return _delegate.createServerSocket(port);
+    return configureServerSocket(_delegate.createServerSocket(port));
   }
 
   @Override
@@ -137,7 +138,7 @@ public class SecureServerSocketFactory
     throws IOException
   { 
     makeFactory();
-    return _delegate.createServerSocket(port,backlog);
+    return configureServerSocket(_delegate.createServerSocket(port,backlog));
   }
 
   @Override
@@ -145,9 +146,20 @@ public class SecureServerSocketFactory
     throws IOException
   { 
     makeFactory();
-    return _delegate.createServerSocket(port,backlog,address);
+    return configureServerSocket(_delegate.createServerSocket(port,backlog,address));
   }
   
 
+  protected ServerSocket configureServerSocket(ServerSocket socket)
+  { 
+    // TODO: Apply custom protocol and cipher suite configuration options
+//    SSLServerSocket sslSocket=(SSLServerSocket) socket;
+//    String[] protocols=sslSocket.getSupportedProtocols();
+//    String[] ciphers=sslSocket.getSupportedCipherSuites();
+//    sslSocket.setEnabledProtocols(protocols);
+//    sslSocket.setEnabledCipherSuites(ciphers);
+    return socket;
+  
+  }
 
 }
