@@ -4,3 +4,4 @@ out
 bin
 *.local
 $jarplug.work
+/packages/
