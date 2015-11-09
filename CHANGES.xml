@@ -14,6 +14,28 @@
     <details>
     
       <scm:Change>
+        <revision>-dev17
+        </revision>
+        
+        <notes>
+          <scm:Note>Make sure the built-in Controller filter doesn't try to
+            load when an external Controller filter fails initialization.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd
+        </path>
+        
+        <resources>
+          <URI>FilterHolder.java
+          </URI>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+        </resources>
+        
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev16
         </revision>
         

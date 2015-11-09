@@ -2,8 +2,8 @@
 
   <property name="organization" value="spiralcraft"/>
   <property name="module" value="pioneer"/>
-  <property name="buildVersion" value="0.4.17-dev16"/>
-  <property name="build.status" value="milestone"/>
+  <property name="buildVersion" value="0.4.17-dev17"/>
+  <property name="build.status" value="integration"/>
 
   <path id="classpath">
     <pathelement location="lib/spiralcraft-core.jar"/>
