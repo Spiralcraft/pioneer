@@ -106,6 +106,10 @@ public class FilterHolder
   { _serviceContext=context;
   }
 
+  public String getFilterClass()
+  { return _filterClass;
+  }
+  
   public void setFilterClass(String className)
   { 
     _filterClass=className;

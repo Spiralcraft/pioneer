@@ -2801,20 +2801,25 @@ public class SimpleHttpServiceContext
 
   private void startFilters()
   {
-    boolean startedController=false;
+    boolean hasController=false;
     
     if (_filterMap!=null)
     { 
       for (FilterHolder holder:_filterMap.values())
       { 
         holder.start();
+        if ("spiralcraft.servlet.autofilter.Controller"
+            .equals(holder.getFilterClass())
+            )
+        { hasController=true;
+        }
         try
         {
           if (holder.getFilter()
               .getClass().getName()
               .equals("spiralcraft.servlet.autofilter.Controller")
               )
-          { startedController=true;
+          { hasController=true;
           }
         }
         catch (ServletException x)
@@ -2824,7 +2829,7 @@ public class SimpleHttpServiceContext
       
     }
     
-    if (!startedController)
+    if (!hasController)
     { startControllerFilter();
     }
   }
