@@ -97,7 +97,6 @@ public class SimpleHttpServiceContext
 {
   protected static final ClassLog log
     =ClassLog.getInstance(SimpleHttpServiceContext.class);
-  private static final String version="1.0pre1";
   
   //private static final String DEBUG_GROUP
   //  =SimpleHttpServiceContext.class.getName();
@@ -131,7 +130,7 @@ public class SimpleHttpServiceContext
     =new Stack<FilterHolder>();
 
 
-  private String _serverInfo="Spiralcraft Web Server v"+version;
+  private String _serverInfo="Spiralcraft HTTPD";
 //  private URL _baseUrl;
   private Hashtable<String,Object> _attributes;
   private String _defaultUriCompletion;

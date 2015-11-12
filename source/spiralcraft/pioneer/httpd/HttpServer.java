@@ -60,8 +60,6 @@ public class HttpServer
   public static final String DEBUG_SERVICE
     ="spiralcraft.pioneer.httpd.service";
 
-  private static final String version="1.0pre1";
-
   private ClassLog _log=ClassLog.getInstance(HttpServer.class);
   private HttpServiceContext _serviceContext;
   private int _socketTimeout=30000;
@@ -225,13 +223,7 @@ public class HttpServer
       _serviceContext.start();
     
       if (_serverInfo==null)
-      {
-        if (version!=null)
-        { _serverInfo="Spiralcraft Web Server v"+version;
-        }
-        else
-        { _serverInfo="Spiralcraft Web Server";
-        }
+      { _serverInfo="Spiralcraft HTTPD";
       }
       started=true;
       super.start();
