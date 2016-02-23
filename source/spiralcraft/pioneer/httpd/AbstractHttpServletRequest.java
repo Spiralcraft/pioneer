@@ -153,7 +153,13 @@ public abstract class AbstractHttpServletRequest
   public abstract byte[] getRawRemoteAddress();
   
   public void setServiceContext(HttpServiceContext context)
-  { _context=context;
+  { 
+    _context=context;
+    contextResolved();
+  }
+
+  protected void contextResolved()
+  {
   }
 
   @Override

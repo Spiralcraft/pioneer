@@ -483,7 +483,7 @@ public class HttpServer
           catch (IOException x2)
           { }
           if (_log.canLog(Level.INFO))
-          { _log.log(Level.INFO,"IOException handling connection from "+addr+": "+x.toString());
+          { _log.log(Level.INFO,"IOException handling connection from "+addr+": "+x.toString()+": "+x.getCause());
           }
         }
       }

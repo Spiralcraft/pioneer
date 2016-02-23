@@ -205,7 +205,7 @@ public class HttpServerRequest
       { parseRequest();
       }
       catch (Exception x)
-      { throw new IOException("Invalid request: "+_requestLine);
+      { throw new IOException("Invalid request: "+_requestLine+": "+x);
       }
 
       if (debugProtocol)
@@ -863,8 +863,9 @@ public class HttpServerRequest
       _requestURI=_requestURL;
       _queryString=null;
     }
+    
   }
-  
+
   
   private void parseHeader(String header)
   {
@@ -938,8 +939,28 @@ public class HttpServerRequest
     }
   }
 
-
-
+  @Override
+  protected void contextResolved()
+  { stripURLSessionToken();
+  }
+  
+  private void stripURLSessionToken()
+  {
+    int colonPos=_requestURI.lastIndexOf(";");
+    if (colonPos>0 && _requestURI.substring(colonPos+1).startsWith(_context.getSessionParameterName()+"="))
+    { 
+      _requestedSessionId=_requestURI.substring(_requestURI.indexOf('=',colonPos)+1);
+      _session=_context.getSessionManager().getSession(_requestedSessionId, false);
+      if (_session!=null)
+      {
+        _sessionFromCookie=false;
+        _sessionFromUrl=true;
+      }
+      _requestURI=_requestURI.substring(0, colonPos);
+    }
+    
+    
+  }  
 
 
 
