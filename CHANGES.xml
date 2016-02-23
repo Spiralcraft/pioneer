@@ -14,6 +14,29 @@
     <details>
     
       <scm:Change>
+        <revision>-dev18
+        </revision>
+        
+        <notes>
+          <scm:Note>Handle session token passed via the URL
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd
+        </path>
+        
+        <resources>
+          <URI>AbstractHttpServletRequest.java
+          </URI>
+          <URI>HttpServer.java
+          </URI>
+          <URI>HttpServerRequest.java
+          </URI>
+        </resources>
+        
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev17
         </revision>
         
