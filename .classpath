@@ -4,9 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/spiralcraft-net.jar"/>
 	<classpathentry kind="lib" path="lib/spiralcraft-core.jar" sourcepath="/spiralcraft-modules-core/source"/>
-	<classpathentry kind="lib" path="lib/spiralcraft-servlet.jar"/>
+	<classpathentry kind="lib" path="lib/spiralcraft-servlet.jar" sourcepath="/spiralcraft-modules-servlet"/>
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/spiralcraft-modules-core"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/spiralcraft-modules-servlet"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
