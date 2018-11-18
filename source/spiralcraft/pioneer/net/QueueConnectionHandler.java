@@ -53,10 +53,10 @@ public class QueueConnectionHandler
 
   private ClassLog _log=ClassLog.getInstance(QueueConnectionHandler.class);
 
-	private ConnectionHandlerFactory _factory;
+	protected ConnectionHandlerFactory _factory;
   private Pool _threadPool=new Pool();
-  private final LinkedList<Socket> _queue
-    =new LinkedList<Socket>();
+  private final LinkedList<SocketRef> _queue
+    =new LinkedList<>();
   private final Object _queueMonitor=new Object();
   private final DispatchThread _dispatchThread=new DispatchThread();
 //  private int _maxQueueLength=500;
@@ -161,7 +161,7 @@ public class QueueConnectionHandler
    * Implements ConnectionHandler.handleConnection()
    */
   @Override
-  public final void handleConnection(Socket sock)
+  public final void handleConnection(Socket sock,ServerSocketFactory factory)
   {
     
     assertInit();
@@ -180,7 +180,7 @@ public class QueueConnectionHandler
       }
       synchronized (_queueMonitor)
       { 
-        _queue.add(sock);
+        _queue.add(new SocketRef(sock,factory));
         _queueMonitor.notify();
       }
     }
@@ -206,7 +206,7 @@ public class QueueConnectionHandler
       {
         while (!_finished)
         {
-          Socket sock=null;
+          SocketRef sock=null;
           synchronized(_queueMonitor)
           {
             if (_queue.size()==0 && !_finished)
@@ -231,7 +231,7 @@ public class QueueConnectionHandler
               // Ignore the request
               // Close the socket
               try
-              { sock.close();
+              { sock.socket.close();
               }
               catch (IOException x)
               { }
@@ -244,9 +244,9 @@ public class QueueConnectionHandler
         { 
           // Ignore pending connections
           //   by closing sockets
-          Socket sock= _queue.removeFirst();
+          SocketRef sock= _queue.removeFirst();
           try
-          { sock.close();
+          { sock.socket.close();
           }
           catch (IOException x)
           { }
@@ -285,7 +285,7 @@ public class QueueConnectionHandler
 		extends Thread
 	{
     private final ConnectionHandler _handler;
-    private volatile Socket _socket;
+    private volatile SocketRef _socket;
     private boolean _done=false;
     private final Object _monitor=new Object();
 
@@ -305,7 +305,7 @@ public class QueueConnectionHandler
       }
     }
 
-    public void handleConnection(Socket sock)
+    public void handleConnection(SocketRef sock)
     {
       synchronized (_monitor) 
       {
@@ -331,7 +331,7 @@ public class QueueConnectionHandler
             {
               try
               {
-                _handler.handleConnection(_socket);
+                _handler.handleConnection(_socket.socket,_socket.factory);
                 _socket=null;
                 _threadPool.checkin(this);
               }
@@ -365,4 +365,16 @@ public class QueueConnectionHandler
   }
 
 
+}
+
+class SocketRef
+{
+  final Socket socket;
+  final ServerSocketFactory factory;
+  
+  SocketRef(Socket socket,ServerSocketFactory factory)
+  { 
+    this.socket=socket;
+    this.factory=factory;
+  }
 }

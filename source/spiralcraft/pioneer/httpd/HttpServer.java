@@ -16,6 +16,7 @@ package spiralcraft.pioneer.httpd;
 
 import spiralcraft.net.ip.AddressSet;
 import spiralcraft.pioneer.net.ConnectionHandlerFactory;
+import spiralcraft.pioneer.net.ServerSocketFactory;
 import spiralcraft.pioneer.net.ConnectionHandler;
 
 import spiralcraft.app.kit.AbstractComponent;
@@ -352,7 +353,7 @@ public class HttpServer
     }
     
     @Override
-    public void handleConnection(Socket socket)
+    public void handleConnection(Socket socket,ServerSocketFactory factory)
     {
       if (!ensureRunning())
       { 
@@ -419,7 +420,7 @@ public class HttpServer
           
             if (!done)
             {
-              _response.start(socket);
+              _response.start(socket,factory);
               _response.setHeader(HttpServerResponse.HDR_SERVER,_serverInfo);
             
               try

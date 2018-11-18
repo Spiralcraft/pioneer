@@ -35,7 +35,7 @@ public class DebugConnectionHandler
 {
 
   @Override
-  public void handleConnection(Socket sock)
+  public void handleConnection(Socket sock,ServerSocketFactory factory)
   {
     try
     {

@@ -16,19 +16,21 @@ package spiralcraft.pioneer.net;
 
 
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.InetAddress;
 
 import java.io.IOException;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLContext;
-//import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.KeyManagerFactory;
 
 import java.security.KeyStore;
 import java.security.GeneralSecurityException;
 
-import java.security.Security;
+//import java.security.Security;
 
 import spiralcraft.vfs.Resource;
 
@@ -40,10 +42,10 @@ import java.util.Enumeration;
 public class SecureServerSocketFactory
   implements ServerSocketFactory
 {
-  static
-  {
-    Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider()); 
-  }
+//  static
+//  {
+//    Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider()); 
+//  }
   private static final ClassLog _log
     =ClassLog.getInstance(SecureServerSocketFactory.class);
 
@@ -153,13 +155,30 @@ public class SecureServerSocketFactory
   protected ServerSocket configureServerSocket(ServerSocket socket)
   { 
     // TODO: Apply custom protocol and cipher suite configuration options
-//    SSLServerSocket sslSocket=(SSLServerSocket) socket;
-//    String[] protocols=sslSocket.getSupportedProtocols();
-//    String[] ciphers=sslSocket.getSupportedCipherSuites();
-//    sslSocket.setEnabledProtocols(protocols);
-//    sslSocket.setEnabledCipherSuites(ciphers);
+//      SSLServerSocket sslSocket=(SSLServerSocket) socket;
+//      String[] protocols=sslSocket.getSupportedProtocols();
+//      String[] ciphers=sslSocket.getSupportedCipherSuites();
+//      
+//      sslSocket.setEnabledProtocols(protocols);
+//      sslSocket.setEnabledCipherSuites(ciphers);
     return socket;
   
+  }
+  
+  @Override
+  public int getMaxOutputFragmentLength(Socket socket)
+  { 
+    SSLParameters sslParams = ((SSLSocket) socket).getSSLParameters();
+    int param= sslParams.getMaximumPacketSize()-1024;
+    int ret=
+      param==0
+      ?(15*1024)
+      :param>(16*1024)
+      ?param-1024
+      :param
+      ;   
+    return ret;
+    //return 15*1024;
   }
 
 }

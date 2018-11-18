@@ -15,6 +15,7 @@
 package spiralcraft.pioneer.net;
 
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.InetAddress;
 import java.io.IOException;
 
@@ -37,5 +38,10 @@ public class StandardServerSocketFactory
   public ServerSocket createServerSocket(int port,int backlog,InetAddress address)
     throws IOException
   { return new ServerSocket(port,backlog,address);
+  }
+  
+  @Override
+  public int getMaxOutputFragmentLength(Socket sock)
+  { return Integer.MAX_VALUE;
   }
 }

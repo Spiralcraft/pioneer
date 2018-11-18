@@ -69,7 +69,9 @@ public class Listener
         { port=Integer.parseInt(args[++i]);
         }
         else if (args[i].equals("-factory"))
-        { factory=(ServerSocketFactory) Class.forName(args[++i]).newInstance();
+        { 
+          factory=(ServerSocketFactory) 
+            Class.forName(args[++i]).getDeclaredConstructor().newInstance();
         }
       }
 
@@ -462,7 +464,7 @@ public class Listener
             if (_connectionTimeout>0)
             { sock.setSoTimeout(_connectionTimeout);
             }
-            _handler.handleConnection(sock);
+            _handler.handleConnection(sock,_factory);
           }
           catch (Throwable e)
           {

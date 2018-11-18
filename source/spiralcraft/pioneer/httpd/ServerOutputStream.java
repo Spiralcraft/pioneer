@@ -20,6 +20,7 @@ package spiralcraft.pioneer.httpd;
 import javax.servlet.ServletOutputStream;
 
 import java.io.OutputStream;
+import java.net.Socket;
 import java.io.IOException;
 
 import spiralcraft.util.ByteBuffer;
@@ -30,6 +31,7 @@ import spiralcraft.log.Level;
 import spiralcraft.util.string.StringUtil;
 
 import spiralcraft.pioneer.io.Governer;
+import spiralcraft.pioneer.net.ServerSocketFactory;
 import spiralcraft.pioneer.io.GovernedOutputStream;
 
 public class ServerOutputStream
@@ -48,6 +50,8 @@ public class ServerOutputStream
   private static final byte[] CRLF="\r\n".getBytes();
   private int _count=0;
   private boolean _buffering=true;
+  private int maxWriteSize=Integer.MAX_VALUE;
+                                      
   private int _bufferSize=128*1024;
   private HttpServer _server;
   private boolean _committed;
@@ -68,17 +72,19 @@ public class ServerOutputStream
   { _trace=traceStream;
   }
 
-  public void start(OutputStream out)
+  public void start(Socket socket,ServerSocketFactory factory)
+    throws IOException
   {
-    _out=out;
-    _chunking=false;
-    _buffer.clear();
-    _chunkBuffer.clear();
-    _prepared=false;
-    _count=0;
-    _buffering=true;
-    _committed=false;
-    _closeRequested=false;
+    this.maxWriteSize=factory.getMaxOutputFragmentLength(socket);
+    this._out=socket.getOutputStream();
+    this._chunking=false;
+    this._buffer.clear();
+    this._chunkBuffer.clear();
+    this._prepared=false;
+    this._count=0;
+    this._buffering=true;
+    this._committed=false;
+    this._closeRequested=false;
   }
 
   public void resetBuffer()
@@ -130,6 +136,9 @@ public class ServerOutputStream
   public final void write(final int data)
     throws IOException
   { 
+    if (_server.getDebugProtocol())
+    { log.fine("Accepting output: "+data+" ("+((char) data)+")");
+    }  
     final byte[] bytes={(byte) data};
     write(bytes,0,1);
   }
@@ -255,52 +264,62 @@ public class ServerOutputStream
   public void flush()
     throws IOException
   {
-    if (!_prepared)
-    { prepare();
-    }
-    super.flush();
-
-
-
-    if (!_chunking)
-    { 
-      if (_buffer.length()>0)
-      { 
-        _out.write(_buffer.toByteArray());
-        _out.flush();
-        _server.wroteBytes(_buffer.length());
-        if (_trace!=null)
-        {
-          _trace.write(_buffer.toByteArray());
-          _trace.flush();
-        }
-        _buffer.clear();
-      }
-    }
-    else
+    try
     {
-      if (_buffer.length()>0)
-      {
-        _chunkBuffer.clear();
-        byte[] sizeBytes
-          =StringUtil.asciiBytes
-            (Integer.toString(_buffer.length(),16)
-            );
-        _chunkBuffer.append(sizeBytes);
-        _chunkBuffer.append(CRLF);
-        _chunkBuffer.append(_buffer.toByteArray());
-        _chunkBuffer.append(CRLF);
-        _out.write(_chunkBuffer.toByteArray());
-        _out.flush();
-        _server.wroteBytes(_chunkBuffer.length());
-        if (_trace!=null)
-        {
-          _trace.write(_chunkBuffer.toByteArray());
-          _trace.flush();
-        }
-        _buffer.clear();
-
+      if (_server.getDebugProtocol())
+      { log.fine("Flush requested");
       }
+      
+      if (!_prepared)
+      { prepare();
+      }
+      
+      super.flush();
+  
+  
+  
+      if (!_chunking)
+      { 
+        if (_buffer.length()>0)
+        { 
+          if (_server.getDebugProtocol())
+          { log.fine("Writing "+_buffer.length()+" bytes");
+          }  
+          writeToClient(_buffer.toByteArray());
+          _buffer.clear();
+        }
+      }
+      else
+      {
+        if (_buffer.length()>0)
+        {
+          _chunkBuffer.clear();
+          byte[] sizeBytes
+            =StringUtil.asciiBytes
+              (Integer.toString(_buffer.length(),16)
+              );
+          _chunkBuffer.append(sizeBytes);
+          _chunkBuffer.append(CRLF);
+          _chunkBuffer.append(_buffer.toByteArray());
+          _chunkBuffer.append(CRLF);
+          
+          writeToClient(_chunkBuffer.toByteArray());
+          _chunkBuffer.clear();
+          _buffer.clear();
+  
+        }
+      }
+
+    }
+    catch (IOException x)
+    {
+      if (_server.getDebugProtocol())
+      { 
+        log.log(Level.WARNING,"Flush fail: ",x);
+        log.log(Level.WARNING,"Out =  "+_out);
+        log.log(Level.WARNING,_buffer.toAsciiString());
+      }
+      throw x;
     }
   }
 
@@ -352,6 +371,7 @@ public class ServerOutputStream
   
   public void setBufferSize(int bytes)
   { 
+    
     if (_committed)
     { throw new IllegalStateException("Response committed");
     }
@@ -372,8 +392,22 @@ public class ServerOutputStream
     throws IOException
   {
     _committed=true;
-    _out.write(bytes,start,len);
-    _out.flush();
+
+    // Write output in [maxWriteSize] blocks
+    int pos=0;
+    int count=1;
+    while (start+pos<len)
+    {
+      int writeLen=Math.min(maxWriteSize, len-pos);
+      if (_server.getDebugProtocol())
+      { log.fine("Writing block "+count+" of "+writeLen+"/"+len+" bytes to client");
+      }
+      _out.write(bytes,start+pos,writeLen);
+      pos+=writeLen;
+      count++;
+      _out.flush();
+    }
+
     _server.wroteBytes(len);
     if (_trace!=null)
     {

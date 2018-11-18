@@ -25,7 +25,7 @@ public interface ConnectionHandler
   /**
    * Handle a server connection. 
    */
-  public void handleConnection(Socket socket);
+  public void handleConnection(Socket socket,ServerSocketFactory factory);
 
 
 }

@@ -34,6 +34,7 @@ import spiralcraft.net.mime.ContentTypeHeader;
 import spiralcraft.pioneer.util.MappedList;
 import spiralcraft.pioneer.util.ListMap;
 import spiralcraft.pioneer.util.Translator;
+import spiralcraft.pioneer.net.ServerSocketFactory;
 
 import spiralcraft.time.Clock;
 import spiralcraft.time.ClockFormat;
@@ -209,11 +210,11 @@ public class HttpServerResponse
    * @param socket
    * @throws IOException
    */
-  void start(Socket socket)
+  void start(Socket socket,ServerSocketFactory factory)
     throws IOException
   {
-    _socket=socket;
-    _outputStream.start(_socket.getOutputStream());
+    this._socket=socket;
+    this._outputStream.start(_socket,factory);
     recycle();
     debugProtocol=_server.getDebugProtocol();
     debugAPI=_server.getDebugAPI();
@@ -358,7 +359,7 @@ public class HttpServerResponse
     { _log.fine(""+code);
     }
 
-	  String msg =  _statusMap.get(new Integer(code));
+	  String msg =  _statusMap.get(code);
 	  if (msg==null)
     { sendError(code,"Unknown Error");
     }
@@ -412,7 +413,7 @@ public class HttpServerResponse
     { _log.fine(""+code);
     }
     _status=code;
-    _reason=_statusMap.get(new Integer(code));
+    _reason=_statusMap.get(code);
   }
 
   @Override
