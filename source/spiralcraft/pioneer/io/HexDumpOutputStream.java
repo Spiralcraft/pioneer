@@ -48,7 +48,7 @@ public class HexDumpOutputStream
   @Override
   public synchronized void write(int value)
   {
-    short byteValue=new Integer(value).shortValue();
+    short byteValue=Integer.valueOf(value).shortValue();
     if (byteValue<0)
     { byteValue+=128;
     }

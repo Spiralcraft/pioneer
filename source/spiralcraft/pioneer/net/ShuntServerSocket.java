@@ -33,17 +33,17 @@ public class ShuntServerSocket
 	private boolean _closed=false;
 	
 	private static void addListener(int port,ShuntServerSocket sock)
-	{	_listeners.put(new Integer(port),sock);
+	{	_listeners.put(port,sock);
 	}
 
 	private static void removeListener(int port)
-	{	_listeners.remove(new Integer(port));
+	{	_listeners.remove(port);
 	}
 	
 	public static void connect(ShuntSocket client)
 		throws IOException
 	{ 
-		ShuntServerSocket sock= _listeners.get(new Integer(client.getPort()));
+		ShuntServerSocket sock= _listeners.get(client.getPort());
 		if (sock!=null)
 		{ sock.notifyConnect(client);
 		}

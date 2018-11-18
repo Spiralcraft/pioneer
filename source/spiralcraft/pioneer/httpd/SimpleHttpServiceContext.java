@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -2879,7 +2880,7 @@ public class SimpleHttpServiceContext
         {
           Class<?> listenerClass=Class.forName
             (className,true,Thread.currentThread().getContextClassLoader());
-          Object listener=listenerClass.newInstance();
+          Object listener=listenerClass.getDeclaredConstructor().newInstance();
           if (listener instanceof ServletContextListener)
           { addServletContextListener((ServletContextListener) listener);
           }
@@ -2907,6 +2908,12 @@ public class SimpleHttpServiceContext
         { throw new LifecycleException("Listener class not found",x);
         }
         catch (InstantiationException x)
+        { throw new LifecycleException("Error instantiating listener class",x);
+        }
+        catch (NoSuchMethodException x)
+        { throw new LifecycleException("Error instantiating listener class",x);
+        }
+        catch (InvocationTargetException x)
         { throw new LifecycleException("Error instantiating listener class",x);
         }
         catch (IllegalAccessException x)

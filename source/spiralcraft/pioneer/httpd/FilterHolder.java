@@ -208,7 +208,7 @@ public class FilterHolder
             (_filterClass
             ,true
             ,Thread.currentThread().getContextClassLoader()
-            ).newInstance();
+            ).getDeclaredConstructor().newInstance();
       }
       else
       {

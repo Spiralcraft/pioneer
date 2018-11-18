@@ -48,6 +48,10 @@
         </httpd:RotatingFileAccessLog>
       </serviceContext.accessLog>
       
+      <debugService>true
+      </debugService>
+      <debugProtocol>true
+      </debugProtocol>
     </here:HttpService>
   </services>
 </service:Daemon>

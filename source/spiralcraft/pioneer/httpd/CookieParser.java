@@ -175,7 +175,7 @@ public class CookieParser
       }
       else
       { 
-        ret=ret.substring(1).concat(new Character(chr).toString());
+        ret=ret.substring(1).concat(Character.toString(chr));
         ret=ret.concat(readUntil('"'));
         pos=Math.min(pos+1,header.length()); // Skip assumed ';' after quote
       }

@@ -234,7 +234,7 @@ public class ServletHolder
             (_servletClass
             ,true
             ,Thread.currentThread().getContextClassLoader()
-            ).newInstance();
+            ).getDeclaredConstructor().newInstance();
       }
       else
       { 
