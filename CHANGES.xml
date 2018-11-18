@@ -14,6 +14,44 @@
     <details>
     
       <scm:Change>
+        <revision>-dev19
+        </revision>
+        
+        <notes>
+          <scm:Note>Adapt fragment output size to Socket params to fix SSL errors
+            caused by permissive SSLSocket OutputStream.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer
+        </path>
+        
+        <resources>
+          <URI>net/ConnectionHandler.java
+          </URI>
+          <URI>net/DebugConnectionHandler.java
+          </URI>
+          <URI>net/ServerSocketFactory.java
+          </URI>
+          <URI>net/StandardServerSocketFactory.java
+          </URI>
+          <URI>net/Listener.java
+          </URI>
+          <URI>net/QueueConnectionHandler.java
+          </URI>
+          <URI>net/SecureServerSocketFactory.java
+          </URI>
+          <URI>httpd/HttpServer.java
+          </URI>
+          <URI>httpd/HttpServerResponse.java
+          </URI>
+          <URI>httpd/ServerOutputStream.java
+          </URI>
+        </resources>
+        
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev18
         </revision>
         

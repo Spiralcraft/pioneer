@@ -1,7 +1,7 @@
 <project default="init-sandbox">
   <property file="../sandbox.local.properties"/>
 	
-  <property name="sandbox-version" value="0.4.17-dev1"/>
+  <property name="sandbox-version" value="0.4.17-dev5"/>
   <property name="sandbox-root" location="../../.."/>
   <property name="sandbox-artifact" value="spiralcraft-sandbox-${sandbox-version}.zip"/>
   <property name="dist-repo" value="http://publish.spiralcraft.com/snapshot"/>

@@ -16,6 +16,9 @@
     value="spiralcraft-core.jar spiralcraft-net.jar spiralcraft-servlet.jar servlet-api.jar"
   />        
 
+  <property name="spiralcraft.javac.target" value="9"/>
+  <property name="spiralcraft.javac.source" value="9"/>
+
   <property name="logs.dir" location="test/logs"/>
   
   <property name="depends.dir" location="../../repo"/>
