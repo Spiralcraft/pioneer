@@ -39,6 +39,7 @@ import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
 import spiralcraft.util.ArrayUtil;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 
 public class SecureServerSocketFactory
@@ -108,13 +109,17 @@ public class SecureServerSocketFactory
       {
         // Make sure that if an alias is specified, it is the only one
         //   in our in-memory copy of the key-store.
+        ArrayList<String> deletes=new ArrayList();
         Enumeration<String> aliases=ks.aliases();
         while (aliases.hasMoreElements())
         {
           String alias=aliases.nextElement();
           if (!alias.equals(_keyAlias))
-          { ks.deleteEntry(alias);
+          { deletes.add(alias);
           }
+        }
+        for (String alias : deletes)
+        { ks.deleteEntry(alias);
         }
       }
 
