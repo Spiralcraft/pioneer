@@ -25,6 +25,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.KeyManagerFactory;
 
 import java.security.KeyStore;
@@ -36,6 +37,7 @@ import spiralcraft.vfs.Resource;
 
 import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
+import spiralcraft.util.ArrayUtil;
 
 import java.util.Enumeration;
 
@@ -46,8 +48,10 @@ public class SecureServerSocketFactory
 //  {
 //    Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider()); 
 //  }
-  private static final ClassLog _log
+  private final ClassLog log
     =ClassLog.getInstance(SecureServerSocketFactory.class);
+  private Level logLevel=ClassLog.getInitialDebugLevel
+      (getClass(),Level.INFO);
 
   private SSLServerSocketFactory _delegate;
   private SSLContext _sslContext;
@@ -55,6 +59,11 @@ public class SecureServerSocketFactory
   private String _passphrase="passphrase";
   private String _keyAlias;
 
+  
+  public void setLogLevel(Level logLevel)
+  { this.logLevel=logLevel;
+  }
+  
   public void setKeystoreResource(Resource val)
   { _keystoreResource=val;
   }
@@ -111,11 +120,14 @@ public class SecureServerSocketFactory
 
       kmf.init(ks,passphrase);
       _sslContext.init(kmf.getKeyManagers(),null,null);
-      _log.log
-        (Level.INFO
+      if (logLevel.canLog(Level.INFO))
+      {
+        log.log
+          (Level.INFO
           ,"SSL Init: SSL Session timeout "
-          +_sslContext.getServerSessionContext().getSessionTimeout()
-        );
+            +_sslContext.getServerSessionContext().getSessionTimeout()
+          );
+      }
       _delegate=_sslContext.getServerSocketFactory();
     }
     catch (GeneralSecurityException x)
@@ -155,12 +167,32 @@ public class SecureServerSocketFactory
   protected ServerSocket configureServerSocket(ServerSocket socket)
   { 
     // TODO: Apply custom protocol and cipher suite configuration options
-//      SSLServerSocket sslSocket=(SSLServerSocket) socket;
-//      String[] protocols=sslSocket.getSupportedProtocols();
-//      String[] ciphers=sslSocket.getSupportedCipherSuites();
-//      
+      SSLServerSocket sslSocket=(SSLServerSocket) socket;
+
+      String[] protocols=sslSocket.getSupportedProtocols();
+      String[] ciphers=sslSocket.getSupportedCipherSuites();
+
+      String[] enabledProtocols=sslSocket.getEnabledProtocols();
+      String[] enabledCiphers=sslSocket.getEnabledCipherSuites();
+      if (logLevel.canLog(Level.CONFIG))
+      {
+        log.config("Protocols: Enabled:"
+                  +ArrayUtil.format(enabledProtocols,"|",null)
+                  +" Supported:"
+                  +ArrayUtil.format(protocols,"|",null)
+                  );
+        log.config("Cyphers: Enabled:"
+            +ArrayUtil.format(enabledCiphers,"|",null)
+            +" Supported:"
+            +ArrayUtil.format(ciphers,"|",null)
+            );
+        
+        
+      }
+
 //      sslSocket.setEnabledProtocols(protocols);
 //      sslSocket.setEnabledCipherSuites(ciphers);
+    
     return socket;
   
   }
