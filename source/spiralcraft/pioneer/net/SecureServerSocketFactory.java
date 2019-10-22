@@ -102,32 +102,31 @@ public class SecureServerSocketFactory
           );
       }
       
-//      // DONT DO THIS - certificate chain will be destroyed
-//
-//      if (   (_keyAlias!=null) 
-//          && (ks.size() > 1) 
-//          && (ks.containsAlias(_keyAlias))
-//         ) 
-//      {
-//        // Make sure that if an alias is specified, it is the only one
-//        //   in our in-memory copy of the key-store.
-//        ArrayList<String> deletes=new ArrayList<>();
-//        Enumeration<String> aliases=ks.aliases();
-//        while (aliases.hasMoreElements())
-//        {
-//          String alias=aliases.nextElement();
-//          if (!alias.equals(_keyAlias))
-//          { deletes.add(alias);
-//          }
-//        }
-//        for (String alias : deletes)
-//        { 
-//          if (logLevel.canLog(Level.DEBUG))
-//          { log.fine("Deleting alias "+alias+" (!="+_keyAlias+")");
-//          }
-//          ks.deleteEntry(alias);
-//        }
-//      }
+
+      if (   (_keyAlias!=null) 
+          && (ks.size() > 1) 
+          && (ks.containsAlias(_keyAlias))
+         ) 
+      {
+        // Make sure that if an alias is specified, it is the only one
+        //   in our in-memory copy of the key-store.
+        ArrayList<String> deletes=new ArrayList<>();
+        Enumeration<String> aliases=ks.aliases();
+        while (aliases.hasMoreElements())
+        {
+          String alias=aliases.nextElement();
+          if (!alias.equals(_keyAlias))
+          { deletes.add(alias);
+          }
+        }
+        for (String alias : deletes)
+        { 
+          if (logLevel.canLog(Level.DEBUG))
+          { log.fine("Deleting alias "+alias+" (!="+_keyAlias+")");
+          }
+          ks.deleteEntry(alias);
+        }
+      }
 
       kmf.init(ks,passphrase);
       _sslContext.init(kmf.getKeyManagers(),null,null);
