@@ -52,6 +52,10 @@ public class HttpService
     { handlerQueue=new QueueConnectionHandler();
     }
     
+    if (meterContext!=null)
+    { handlerQueue.installMeter(meterContext);
+    }
+    
     handlerQueue.setConnectionHandlerFactory(this);
     
     for (Listener listener: listeners)

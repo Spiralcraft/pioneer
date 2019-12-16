@@ -19,10 +19,11 @@ import spiralcraft.pioneer.net.ConnectionHandlerFactory;
 import spiralcraft.pioneer.net.ServerSocketFactory;
 import spiralcraft.pioneer.net.ConnectionHandler;
 
-import spiralcraft.app.kit.AbstractComponent;
+import spiralcraft.service.AbstractService;
 import spiralcraft.common.ContextualException;
 import spiralcraft.common.LifecycleException;
 import spiralcraft.lang.Focus;
+import spiralcraft.lang.util.LangUtil;
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
 
@@ -40,17 +41,16 @@ import java.io.FileOutputStream;
 import javax.servlet.ServletException;
 
 
-import spiralcraft.pioneer.telemetry.Meter;
-import spiralcraft.pioneer.telemetry.Register;
-import spiralcraft.pioneer.telemetry.Meterable;
+import spiralcraft.meter.Meter;
+import spiralcraft.meter.MeterContext;
+import spiralcraft.meter.Register;
 import spiralcraft.vfs.Resolver;
 import spiralcraft.vfs.Resource;
 
 public class HttpServer
-  extends AbstractComponent
+  extends AbstractService
   implements
     ConnectionHandlerFactory
-    ,Meterable
 {
   public static final String DEBUG_PROTOCOL
     ="spiralcraft.pioneer.httpd.protocol";
@@ -67,6 +67,7 @@ public class HttpServer
   private String _serverInfo;
   private int _initialBufferCapacity=8192;
   private Meter _meter;
+  protected MeterContext meterContext;
   private Register _bytesOutputRegister;
   private Register _requestsRegister;
   private Register _connectionsRegister;
@@ -176,18 +177,19 @@ public class HttpServer
     }
   }
 
-  @Override
-  public void installMeter(Meter meter)
+  
+  private void installMeter(MeterContext meterContext)
   {
-    _meter=meter;
-    _requestsRegister=_meter.createRegister(HttpServer.class,"requests");
-    _bytesOutputRegister=_meter.createRegister(HttpServer.class,"bytesOutput");
-    _connectionsRegister=_meter.createRegister(HttpServer.class,"connections");
-    _activeRequestsRegister=_meter.createRegister(HttpServer.class,"activeRequests");
-    _activeConnectionsRegister=_meter.createRegister(HttpServer.class,"activeConnections");
-    _uncaughtIoExceptionsRegister=_meter.createRegister(HttpServer.class,"uncaughtIoExceptions");
-    _uncaughtRuntimeExceptionsRegister=_meter.createRegister(HttpServer.class,"uncaughtRuntimeExceptions");
-    _uncaughtServletExceptionsRegister=_meter.createRegister(HttpServer.class,"uncaughtServletExceptions");
+    this.meterContext=meterContext;
+    Meter meter=meterContext.meter("Service");
+    _requestsRegister=meter.register("requests");
+    _bytesOutputRegister=meter.register("bytesOutput");
+    _connectionsRegister=meter.register("connections");
+    _activeRequestsRegister=meter.register("activeRequests");
+    _activeConnectionsRegister=meter.register("activeConnections");
+    _uncaughtIoExceptionsRegister=meter.register("uncaughtIoExceptions");
+    _uncaughtRuntimeExceptionsRegister=meter.register("uncaughtRuntimeExceptions");
+    _uncaughtServletExceptionsRegister=meter.register("uncaughtServletExceptions");
     
   }
 
@@ -209,12 +211,12 @@ public class HttpServer
       if (_serviceContext==null)
       { 
         SimpleHttpServiceContext serviceContext=new SimpleHttpServiceContext();
-        if (_meter!=null)
-        { serviceContext.installMeter(_meter.createChildMeter("defaultContext"));
-        }
         _serviceContext=serviceContext;
       }
       _serviceContext.setServer(this);
+      if (meterContext!=null)
+      { _serviceContext.installMeter(meterContext.subcontext("rootContext"));
+      }
       try
       { _serviceContext.bind(focus);
       }
@@ -259,6 +261,17 @@ public class HttpServer
   { return new HttpConnectionHandler();
   }
 
+  protected Focus<?> bindImports(Focus<?> focus)
+    throws ContextualException
+  {
+    focus=super.bindImports(focus);
+      
+    MeterContext meterContext=LangUtil.findInstance(MeterContext.class, focus);
+    if (meterContext!=null)
+    { installMeter(meterContext.subcontext("httpd"));
+    }
+    return focus;
+  }
 
   @Override
   protected Focus<?> bindExports(Focus<?> focus)

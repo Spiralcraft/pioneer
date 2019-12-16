@@ -32,6 +32,7 @@ import java.net.URI;
 import spiralcraft.common.Lifecycle;
 
 import spiralcraft.lang.Contextual;
+import spiralcraft.meter.MeterContext;
 import spiralcraft.pioneer.io.Governer;
 
 public interface HttpServiceContext
@@ -184,6 +185,7 @@ public interface HttpServiceContext
   
   boolean getCookiesArePortSpecific();
   
+  void installMeter(MeterContext meterContext);
   
   /**
    * <p>Dispatch the request to an error handler

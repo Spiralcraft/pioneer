@@ -83,9 +83,9 @@ import spiralcraft.time.Clock;
 import spiralcraft.pioneer.util.ThrowableUtil;
 import spiralcraft.pioneer.security.servlet.ServletAuthenticator;
 import spiralcraft.pioneer.security.SecurityException;
-import spiralcraft.pioneer.telemetry.Meter;
-import spiralcraft.pioneer.telemetry.Register;
-import spiralcraft.pioneer.telemetry.Meterable;
+import spiralcraft.meter.Meter;
+import spiralcraft.meter.MeterContext;
+import spiralcraft.meter.Register;
 import spiralcraft.net.ip.AddressSet;
 import spiralcraft.servlet.PublicLocator;
 import spiralcraft.servlet.autofilter.Controller;
@@ -93,7 +93,6 @@ import spiralcraft.net.http.AcceptHeader;
 
 public class SimpleHttpServiceContext
   implements HttpServiceContext
-            ,Meterable
             ,Declarable
 {
   protected static final ClassLog log
@@ -155,7 +154,7 @@ public class SimpleHttpServiceContext
   
   private int _maxSessionInactiveInterval=600;
 
-  private Meter _meter;
+  private MeterContext _meterContext;
   private Register _requestsRegister;
 	private AddressSet _allowedIpFilter;
   private AddressSet _deniedIpFilter;
@@ -2068,11 +2067,11 @@ public class SimpleHttpServiceContext
   { return _parentContext;
   }
   
-  @Override
-  public void installMeter(Meter meter)
+  public void installMeter(MeterContext meterContext)
   {
-    _meter=meter;
-    _requestsRegister=_meter.createRegister(SimpleHttpServiceContext.class,"requests");
+    _meterContext=meterContext;
+    Meter meter=meterContext.meter("Context");
+    _requestsRegister=meter.register("requests");
     
   }
   
@@ -2591,8 +2590,8 @@ public class SimpleHttpServiceContext
         SimpleHttpSessionManager sessionManager=new SimpleHttpSessionManager();
         sessionManager.setServletContext(this);
         sessionManager.setMaxInactiveInterval(_maxSessionInactiveInterval);
-        if (_meter!=null)
-        { sessionManager.installMeter(_meter.createChildMeter("sessions"));
+        if (_meterContext!=null)
+        { sessionManager.installMeter(_meterContext);
         }
         sessionManager.init();
         _sessionManager=sessionManager;

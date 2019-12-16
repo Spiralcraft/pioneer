@@ -41,14 +41,12 @@ import spiralcraft.pioneer.util.ThrowableUtil;
 
 import java.io.IOException;
 
-import spiralcraft.pioneer.telemetry.Meterable;
-import spiralcraft.pioneer.telemetry.Meter;
-import spiralcraft.pioneer.telemetry.Register;
-import spiralcraft.pioneer.telemetry.FrameListener;
-import spiralcraft.pioneer.telemetry.FrameEvent;
+import spiralcraft.meter.MeterContext;
+import spiralcraft.meter.Meter;
+import spiralcraft.meter.Register;
 
 public class QueueConnectionHandler
-	implements ConnectionHandler,Meterable,FrameListener
+	implements ConnectionHandler
 {
 
   private ClassLog _log=ClassLog.getInstance(QueueConnectionHandler.class);
@@ -75,23 +73,13 @@ public class QueueConnectionHandler
     setLowWaterThreadCount(1);
   }
 
-  @Override
-  public void installMeter(Meter meter)
+  public void installMeter(MeterContext meterContext)
   { 
-    _meter=meter;
-    _queueSizeRegister
-      =_meter.createRegister
-        (QueueConnectionHandler.class,"queueSize");
-    _connectsRegister
-      =_meter.createRegister
-        (QueueConnectionHandler.class,"connects");
-    _meter.setFrameListener(this);
-    _threadPool.installMeter(_meter.createChildMeter("pool"));
-  }
+    _meter=meterContext.meter("requestQueue");
+    _queueSizeRegister=_meter.register("queueSize");
+    _connectsRegister=_meter.register("connects");
 
-  @Override
-  public void nextFrame(FrameEvent event)
-  { _queueSizeRegister.setValue(_queue.size());
+    _threadPool.installMeter(meterContext);
   }
 
   public void init()
@@ -181,6 +169,7 @@ public class QueueConnectionHandler
       synchronized (_queueMonitor)
       { 
         _queue.add(new SocketRef(sock,factory));
+        _queueSizeRegister.incrementValue();
         _queueMonitor.notify();
       }
     }
@@ -213,7 +202,9 @@ public class QueueConnectionHandler
             { _queueMonitor.wait();
             }
             if (_queue.size()>0 && !_finished)
-            { sock=_queue.removeFirst();
+            { 
+              sock=_queue.removeFirst();
+              _queueSizeRegister.decrementValue();
             }
           }
           if (sock!=null)
@@ -245,6 +236,7 @@ public class QueueConnectionHandler
           // Ignore pending connections
           //   by closing sockets
           SocketRef sock= _queue.removeFirst();
+          _queueSizeRegister.decrementValue();
           try
           { sock.socket.close();
           }

@@ -20,14 +20,11 @@ import spiralcraft.time.Scheduler;
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
 
-import spiralcraft.pioneer.telemetry.Meterable;
-import spiralcraft.pioneer.telemetry.Meter;
-import spiralcraft.pioneer.telemetry.Register;
-import spiralcraft.pioneer.telemetry.FrameListener;
-import spiralcraft.pioneer.telemetry.FrameEvent;
+import spiralcraft.meter.MeterContext;
+import spiralcraft.meter.Meter;
+import spiralcraft.meter.Register;
 
 public class Pool
-  implements Meterable,FrameListener
 {
   private static final ClassLog _log=ClassLog.getInstance(Pool.class);
 
@@ -48,7 +45,7 @@ public class Pool
   private boolean _conserve=false;
 
   private Meter _meter;
-  private Register _checkedInRegister;
+  private Register _availableRegister;
   private Register _checkedOutRegister;
   private Register _checkInsRegister;
   private Register _checkOutsRegister;
@@ -62,39 +59,32 @@ public class Pool
   private boolean debug;
 
 
-  @Override
-  public void installMeter(Meter meter)
+
+  public void installMeter(MeterContext meterContext)
   { 
-    _meter=meter;
-    _checkedInRegister
-      =_meter.createRegister(Pool.class,"checkedIn");
+    _meter=meterContext.meter("connectionPool");
+    _availableRegister
+      =_meter.register("available");
     _checkedOutRegister
-      =_meter.createRegister(Pool.class,"checkedOut");
+      =_meter.register("checkedOut");
     _checkInsRegister
-      =_meter.createRegister(Pool.class,"checkIns");
+      =_meter.register("checkIns");
     _checkOutsRegister
-      =_meter.createRegister(Pool.class,"checkOuts");
+      =_meter.register("checkOuts");
     _clientDiscardsRegister
-      =_meter.createRegister(Pool.class,"clientDiscards");
+      =_meter.register("clientDiscards");
     _waitsRegister
-      =_meter.createRegister(Pool.class,"waits");
+      =_meter.register("waits");
     _waitingRegister
-      =_meter.createRegister(Pool.class,"waiting");
+      =_meter.register("waiting");
     _overdueDiscardsRegister
-      =_meter.createRegister(Pool.class,"overdueDiscards");
+      =_meter.register("overdueDiscards");
     _addsRegister
-      =_meter.createRegister(Pool.class,"adds");
+      =_meter.register("adds");
     _removesRegister
-      =_meter.createRegister(Pool.class,"removes");
-    _meter.setFrameListener(this);
+      =_meter.register("removes");
   }
 
-  @Override
-  public void nextFrame(FrameEvent event)
-  { 
-    _checkedInRegister.setValue(_available.size());
-    _checkedOutRegister.setValue(_out.size());      
-  }
 
   public void setDebug(boolean debug)
   { this.debug=debug;
@@ -195,7 +185,11 @@ public class Pool
       _started=false;
       _keeper.stop();
       while (!_available.isEmpty())
-      { _factory.discardResource(_available.pop().resource );
+      { 
+        if (_meter!=null)
+        { _availableRegister.decrementValue();
+        }
+        _factory.discardResource(_available.pop().resource );
       }      
     }
   }
@@ -276,7 +270,10 @@ public class Pool
       ref.checkOutTime=Clock.instance().approxTimeMillis();
       _out.put(ref.resource,ref);
       if (_meter!=null)
-      { _checkOutsRegister.incrementValue();
+      { 
+        _checkedOutRegister.incrementValue();
+        _checkOutsRegister.incrementValue();
+        _availableRegister.decrementValue();
       }
       return ref.resource;
 
@@ -290,16 +287,22 @@ public class Pool
   public void checkin(Object resource)
   {
     _lastUse=Clock.instance().approxTimeMillis();
-    if (_meter!=null)
-    { _checkInsRegister.incrementValue();
-    }
     synchronized (_monitor)
     {
       Reference ref= _out.remove(resource);
+      if (_meter!=null)
+      { 
+        _checkInsRegister.incrementValue();
+        _checkedOutRegister.decrementValue();
+      }
       if (ref!=null)
       {
         if (_started)
-        { _available.push(ref);
+        { 
+          _available.push(ref);
+          if (_meter!=null)
+          { _availableRegister.incrementValue();
+          }
         }
         else
         { _factory.discardResource(resource);
@@ -512,7 +515,9 @@ public class Pool
         _monitor.notify();
       }
       if (_meter!=null)
-      { _addsRegister.incrementValue();
+      { 
+        _addsRegister.incrementValue();
+        _availableRegister.incrementValue();
       }
     }
   }
@@ -541,7 +546,9 @@ public class Pool
           );
       }
       if (_meter!=null)
-      { _removesRegister.incrementValue();
+      { 
+        _availableRegister.decrementValue();
+        _removesRegister.incrementValue();
       }
 
     }

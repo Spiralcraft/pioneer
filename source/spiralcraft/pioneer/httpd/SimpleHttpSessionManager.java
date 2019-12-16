@@ -37,9 +37,9 @@ import spiralcraft.util.IteratorEnumeration;
 
 import java.util.Enumeration;
 
-import spiralcraft.pioneer.telemetry.Meter;
-import spiralcraft.pioneer.telemetry.Register;
-import spiralcraft.pioneer.telemetry.Meterable;
+import spiralcraft.meter.Meter;
+import spiralcraft.meter.Register;
+import spiralcraft.meter.MeterContext;
 
 
 @SuppressWarnings("deprecation")
@@ -49,7 +49,6 @@ import spiralcraft.pioneer.telemetry.Meterable;
 public class SimpleHttpSessionManager
   implements HttpSessionManager
             ,HttpSessionContext
-            ,Meterable
 {
 
   private static final ClassLog log
@@ -57,7 +56,6 @@ public class SimpleHttpSessionManager
   
   private int _maxInactiveInterval=600;
   private int _maxSecondsToJoin=60;
-  private Meter _meter;
   private Register _activeSessionsRegister;
   private Register _deadSessionsRegister;
   private Register _newSessionsRegister;
@@ -70,14 +68,12 @@ public class SimpleHttpSessionManager
   private ReaperThread _reaper=new ReaperThread();
   private int _reapIntervalSeconds=30;
   
-  @Override
-  public void installMeter(Meter meter)
+  public void installMeter(MeterContext meterContext)
   {
-    _meter=meter;
-    _activeSessionsRegister=_meter.createRegister(HttpServer.class,"activeSessions");
-    _newSessionsRegister=_meter.createRegister(HttpServer.class,"newSessions");
-    _deadSessionsRegister=_meter.createRegister(HttpServer.class,"deadSessions");
-    // _log=_meter.getEventLog(HttpServer.class);
+    Meter meter=meterContext.meter("SessionManager");
+    _activeSessionsRegister=meter.register("activeSessions");
+    _newSessionsRegister=meter.register("newSessions");
+    _deadSessionsRegister=meter.register("deadSessions");
   }
 
 	/**
