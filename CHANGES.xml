@@ -14,6 +14,37 @@
     <details>
     
       <scm:Change>
+        <revision>-dev23
+        </revision>
+        
+        <notes>
+          <scm:Note>Replace telemetry package with new metering framework in
+            core module.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer
+        </path>
+        
+        <resources>
+          <URI>httpd/HttpServer.java
+          </URI>
+          <URI>httpd/HttpService.java
+          </URI>
+          <URI>httpd/HttpServiceContext.java
+          </URI>
+          <URI>httpd/SimpleHttpServiceContext.java
+          </URI>
+          <URI>httpd/SimpleHttpSessionManager.java
+          </URI>
+          <URI>pool/Pool.java
+          </URI>
+          <URI>net/QueueConnectionHandler.java
+          </URI>
+        </resources>
+      </scm:Change>
+      
+      <scm:Change>
         <revision>-dev19
         </revision>
         
