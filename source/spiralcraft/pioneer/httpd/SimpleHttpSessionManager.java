@@ -166,6 +166,7 @@ public class SimpleHttpSessionManager
     private String _id;
     private volatile boolean _new=true;
     private volatile boolean _expired=false;
+    private volatile boolean invalid=false;
     private long _lastAccess;
     private long _creationTime=Clock.instance().approxTimeMillis();
     private int _maxInactiveIntervalMs=_maxInactiveInterval*1000;
@@ -258,6 +259,13 @@ public class SimpleHttpSessionManager
     @Override
     public void invalidate()
     {
+      synchronized (this)
+      { 
+        if (invalid)
+        { return;
+        }
+        invalid=true;
+      }
       if (_activeSessionsRegister!=null)
       { _activeSessionsRegister.decrementValue();
       }
