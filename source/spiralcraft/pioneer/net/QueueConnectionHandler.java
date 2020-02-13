@@ -169,7 +169,9 @@ public class QueueConnectionHandler
       synchronized (_queueMonitor)
       { 
         _queue.add(new SocketRef(sock,factory));
-        _queueSizeRegister.incrementValue();
+        if (_meter!=null)
+        { _queueSizeRegister.incrementValue();
+        }
         _queueMonitor.notify();
       }
     }
@@ -204,7 +206,9 @@ public class QueueConnectionHandler
             if (_queue.size()>0 && !_finished)
             { 
               sock=_queue.removeFirst();
-              _queueSizeRegister.decrementValue();
+              if (_meter!=null)
+              { _queueSizeRegister.decrementValue();
+              }
             }
           }
           if (sock!=null)
@@ -236,7 +240,9 @@ public class QueueConnectionHandler
           // Ignore pending connections
           //   by closing sockets
           SocketRef sock= _queue.removeFirst();
-          _queueSizeRegister.decrementValue();
+          if (_meter!=null)
+          { _queueSizeRegister.decrementValue();
+          }
           try
           { sock.socket.close();
           }
