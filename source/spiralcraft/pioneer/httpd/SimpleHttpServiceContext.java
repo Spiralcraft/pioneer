@@ -44,6 +44,7 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -55,6 +56,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Hashtable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.net.URI;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -170,7 +172,8 @@ public class SimpleHttpServiceContext
   private String _servletContextName=null;
   protected boolean debug;
   private HttpServer _server;
-  protected String virtualHostName;  
+  protected String virtualHostName;
+  protected HashSet<String> validHostSet;
  
   private boolean _initialized=false;
   protected Focus<?> focus;
@@ -552,6 +555,17 @@ public class SimpleHttpServiceContext
     throws IOException
             ,ServletException
   {
+    
+    if (validHostSet!=null 
+        && !validHostSet.contains(request.getServerName().toLowerCase())
+       )
+    { 
+      response.sendError(404);
+      if (log.canLog(Level.INFO))
+      { log.info("Rejected invalid host "+request.getServerName());
+      }
+      return false;
+    }
     
     if (request instanceof HttpServerRequest)
     {
@@ -2510,6 +2524,27 @@ public class SimpleHttpServiceContext
   
   public void setExposeContainerFocus(boolean exposeContainerFocus)
   { this.exposeContainerFocus=exposeContainerFocus;
+  }
+  
+  /**
+   * Specify the list of hostnames that this context will respond to when
+   *   set up as a context that receives wildcard requests. If specified, 
+   *   hostnames not in the list will be rejected with a "404 Not Found" response.
+   * 
+   * @param validHostnames
+   */
+  public void setValidHostNames(String[] validHostNames)
+  { 
+    if (validHostNames!=null)
+    { 
+      this.validHostSet=new HashSet<String>();
+      for (String host:validHostNames)
+      { this.validHostSet.add(host.toLowerCase());
+      }
+    }
+    else
+    { this.validHostSet=null;
+    }
   }
   
   /////////////////////////////////////////////////////////////////////////
