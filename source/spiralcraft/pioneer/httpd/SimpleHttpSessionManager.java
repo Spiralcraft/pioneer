@@ -105,7 +105,7 @@ public class SimpleHttpSessionManager
         { session=new Session();
         }
       }
-      else 
+      else if (session._new)
       { session.markNotNew();
       }
     }
@@ -209,12 +209,15 @@ public class SimpleHttpSessionManager
     
     private synchronized void markNotNew()
     { 
-      touch();
-      _new=false;
-      if (meter!=null)
-      { 
-        _newSessionsRegister.decrementValue();
-        _requestedSessionsRegister.incrementValue();
+      if (_new)
+      {
+        touch();
+        _new=false;
+        if (meter!=null)
+        { 
+          _newSessionsRegister.decrementValue();
+          _requestedSessionsRegister.incrementValue();
+        }
       }
     }
 
