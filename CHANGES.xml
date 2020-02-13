@@ -14,6 +14,42 @@
     <details>
     
       <scm:Change>
+        <revision>-dev24
+        </revision>
+        
+        <notes>
+          <scm:Note>Restrict non-valid hosts for wildcard context
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer
+        </path>
+        
+        <resources>
+          <URI>httpd/SimpleHttpServiceContext.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev24
+        </revision>
+        
+        <notes>
+          <scm:Note>Differentiate new vs. requested sessions in meter
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer
+        </path>
+        
+        <resources>
+          <URI>httpd/SimpleHttpSessionManager.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev23
         </revision>
         
