@@ -59,8 +59,11 @@ public class SimpleHttpSessionManager
   private Register _activeSessionsRegister;
   private Register _deadSessionsRegister;
   private Register _newSessionsRegister;
+  private Register _totalSessionsRegister;
+  private Register _requestedSessionsRegister;
   private boolean _logSessionEvents=true;
   private ServletContext _servletContext;
+  private Meter meter;
 	
   private HashMap<String,Session> _sessions
     =new HashMap<String,Session>();
@@ -70,10 +73,13 @@ public class SimpleHttpSessionManager
   
   public void installMeter(MeterContext meterContext)
   {
-    Meter meter=meterContext.meter("SessionManager");
+    this.meter=meterContext.meter("SessionManager");
     _activeSessionsRegister=meter.register("activeSessions");
     _newSessionsRegister=meter.register("newSessions");
     _deadSessionsRegister=meter.register("deadSessions");
+    _totalSessionsRegister=meter.register("totalSessions");
+    _requestedSessionsRegister=meter.register("requestedSessions");
+
   }
 
 	/**
@@ -178,11 +184,11 @@ public class SimpleHttpSessionManager
     
     public Session()
     {
-      if (_newSessionsRegister!=null)
-      { _newSessionsRegister.incrementValue();
-      }
-      if (_activeSessionsRegister!=null)
-      { _activeSessionsRegister.incrementValue();
+      if (meter!=null)
+      {
+        _newSessionsRegister.incrementValue();
+        _activeSessionsRegister.incrementValue();
+        _totalSessionsRegister.incrementValue();
       }
 
       _id=RandomSessionId.nextId();
@@ -205,6 +211,11 @@ public class SimpleHttpSessionManager
     { 
       touch();
       _new=false;
+      if (meter!=null)
+      { 
+        _newSessionsRegister.decrementValue();
+        _requestedSessionsRegister.incrementValue();
+      }
     }
 
     @Override
@@ -266,11 +277,13 @@ public class SimpleHttpSessionManager
         }
         invalid=true;
       }
-      if (_activeSessionsRegister!=null)
-      { _activeSessionsRegister.decrementValue();
-      }
-      if (_deadSessionsRegister!=null)
-      { _deadSessionsRegister.incrementValue();
+      if (meter!=null)
+      {
+        if (_new)
+        { _newSessionsRegister.decrementValue();
+        }
+        _activeSessionsRegister.decrementValue();
+        _deadSessionsRegister.incrementValue();
       }
       _expired=true;
       synchronized (_sessionLock)
@@ -294,7 +307,7 @@ public class SimpleHttpSessionManager
     public void finalize()
       throws Throwable
     { 
-      if (_deadSessionsRegister!=null)
+      if (meter!=null)
       { _deadSessionsRegister.decrementValue();
       }
       super.finalize();
