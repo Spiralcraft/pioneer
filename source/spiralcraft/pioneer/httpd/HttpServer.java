@@ -246,8 +246,14 @@ public class HttpServer
     started=false;
     try
     {
-      if (_serviceContext==null)
-      { _serviceContext.stop();
+      if (_serviceContext!=null)
+      { 
+        try
+        { _serviceContext.stop();
+        }
+        catch (Exception x)
+        { log.log(Level.WARNING,"Error stopping "+_serviceContext,x);
+        }
       }
     }
     finally

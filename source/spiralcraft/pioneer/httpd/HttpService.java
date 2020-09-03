@@ -75,6 +75,7 @@ public class HttpService
   public void stop()
     throws LifecycleException
   {
+    log.fine("Stopping HttpService "+getDeclarationInfo());
     for (Listener listener: listeners)
     { listener.stop();
     }

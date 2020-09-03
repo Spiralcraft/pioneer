@@ -44,7 +44,6 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -75,7 +74,9 @@ import spiralcraft.common.LifecycleException;
 import spiralcraft.common.declare.Declarable;
 import spiralcraft.common.declare.DeclarationInfo;
 import spiralcraft.lang.BindException;
+import spiralcraft.lang.Binding;
 import spiralcraft.lang.Focus;
+import spiralcraft.lang.SimpleFocus;
 import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
 import spiralcraft.pioneer.io.Governer;
@@ -196,6 +197,9 @@ public class SimpleHttpServiceContext
   private final ThreadLocalStack<ServiceStatus> statusStack
     =new ThreadLocalStack<>();
 
+  private Focus<?> childFocus;
+  private Binding<?>[] imports;
+  
   /////////////////////////////////////////////////////////////////////////
   //
   // Service Methods
@@ -686,6 +690,17 @@ public class SimpleHttpServiceContext
   
   public void setLibraries(Resource[] libraries)
   { this.libraryResources=libraries;
+  }
+  
+  /**
+   * Bindings imported from the web server and process environment that will be made
+   *   available to the application running in this context. Provides access to
+   *   global services and state in a controlled manner.
+   * 
+   * @param imports
+   */
+  public void setImports(Binding<?>[] imports)
+  { this.imports=imports;
   }
   
   /**
@@ -2755,9 +2770,6 @@ public class SimpleHttpServiceContext
     throws LifecycleException
   {
     loadWebXML();
-    if (exposeContainerFocus)
-    { setAttribute("spiralcraft.lang.Focus",focus);
-    }
     startListeners();
     if (_listeners!=null)
     { 
@@ -2842,6 +2854,7 @@ public class SimpleHttpServiceContext
       for (FilterHolder holder:_filterMap.values())
       { 
         holder.start();
+        _filterStack.push(holder);
         if ("spiralcraft.servlet.autofilter.Controller"
             .equals(holder.getFilterClass())
             )
@@ -3046,6 +3059,7 @@ public class SimpleHttpServiceContext
   public void stop()
     throws LifecycleException
   { 
+    log.fine("Stopping HttpServiceContext "+getDeclarationInfo());
     _running=false;
     
     
@@ -3099,10 +3113,19 @@ public class SimpleHttpServiceContext
     throws LifecycleException
   {
     while (!_filterStack.isEmpty())
-    { _filterStack.pop().stop();
+    { 
+      FilterHolder holder=_filterStack.pop();
+      log.debug("Stopping filter "+holder);
+      try
+      { holder.stop();
+      }
+      catch (Exception x)
+      { log.log(Level.WARNING,"Error stopping filter "+holder,x);
+      }
     }
     if (controller!=null)
     { 
+      log.debug("Stopping controller filter");
       controller.destroy();
       controller=null;
     }
@@ -3112,7 +3135,14 @@ public class SimpleHttpServiceContext
     throws LifecycleException
   {
     while (!_servletStack.isEmpty())
-    { _servletStack.pop().stop();
+    { 
+      ServletHolder holder=_servletStack.pop();
+      try
+      { holder.stop();
+      }
+      catch (Exception x)
+      { log.log(Level.WARNING,"Error stopping servlet "+holder,x);
+      }
     }
   }
 
@@ -3122,6 +3152,20 @@ public class SimpleHttpServiceContext
     throws BindException
   {
     this.focus=focus;
+    if (exposeContainerFocus)
+    { childFocus=focus.chain(focus.getSubject());
+    }
+    else
+    { childFocus=new SimpleFocus<Void>();
+    }
+    if (imports!=null)
+    {
+      for (Binding<?> binding:imports)
+      { childFocus.addFacet(binding.bind(focus));
+      }
+    }
+    setAttribute("spiralcraft.lang.Focus",childFocus);
+    
     return focus;
   }
 

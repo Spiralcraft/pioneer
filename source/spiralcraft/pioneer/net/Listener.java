@@ -32,10 +32,6 @@ import spiralcraft.time.Clock;
 import spiralcraft.pioneer.util.ThrowableUtil;
 
 
-import spiralcraft.pioneer.net.ServerSocketFactory;
-import spiralcraft.pioneer.net.StandardServerSocketFactory;
-
-
 /**
  * Accepts connections on a specified host/port and delegates
  *   to a ConnectionHandler.
@@ -485,12 +481,21 @@ public class Listener
       }
       catch (IOException e)
       {
-        log.log(Level.SEVERE
-                  ,"IOException accepting incoming connection on "
-                      +getSocketDescription()
-                      +": "
-                      +e.toString()
-                  );
+        if (!_finished 
+          && !(e instanceof SocketException) 
+          && !e.getMessage().equals("Socket closed")
+          )
+        {
+          log.log(Level.SEVERE
+                    ,"IOException accepting incoming connection on "
+                        +getSocketDescription()
+                        +": "
+                        +e.toString()
+                    );
+        }
+        else
+        { log.info("Server socket closed: "+getSocketDescription());
+        }
       }
 
     }
