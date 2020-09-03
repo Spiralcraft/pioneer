@@ -1,0 +1,6 @@
+#!/bin/bash
+export JAVA="/cygdrive/c/Program Files/Java/jdk-12.0.2/bin/java"
+ls "$JAVA"
+echo $JAVA
+"$JAVA" -jar ../../build/lib/ant-launcher.jar -f run/LAUNCH.ant.xml launch-gui
+

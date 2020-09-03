@@ -1,0 +1,6 @@
+#!/bin/bash
+export JAVA_HOME="/c/Program Files/Java/jdk-12.0.2/bin"
+source $(dirname $0)/.env
+export JAVA=$JAVA_HOME/java
+echo $0
+"$JAVA" -jar ../lib/spiralcraft.jar httpd.dev
