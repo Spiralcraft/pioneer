@@ -20,7 +20,9 @@ import spiralcraft.pioneer.net.Listener;
 
 
 import spiralcraft.service.Service;
+import spiralcraft.common.ContextualException;
 import spiralcraft.common.LifecycleException;
+import spiralcraft.lang.Focus;
 
 
 /**
@@ -42,6 +44,16 @@ public class HttpService
   
   public QueueConnectionHandler getHandlerQueue()
   { return handlerQueue;
+  }
+  
+  @Override
+  public Focus<?> bindExports(Focus<?> focus)
+    throws ContextualException
+  {
+    for (Listener listener: listeners)
+    { listener.bind(focus);
+    }
+    return super.bindExports(focus);
   }
   
   @Override

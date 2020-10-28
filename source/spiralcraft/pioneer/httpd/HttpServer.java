@@ -281,6 +281,7 @@ public class HttpServer
 
   @Override
   protected Focus<?> bindExports(Focus<?> focus)
+    throws ContextualException
   { 
     if (logLevel.isDebug())
     { log.debug("HttpServer binding to "+focus);

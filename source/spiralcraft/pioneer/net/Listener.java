@@ -23,8 +23,11 @@ import java.net.BindException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-
+import spiralcraft.common.ContextualException;
 import spiralcraft.common.Lifecycle;
+import spiralcraft.lang.Binding;
+import spiralcraft.lang.Focus;
+import spiralcraft.lang.spi.SimpleChannel;
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
 import spiralcraft.time.Clock;
@@ -110,6 +113,7 @@ public class Listener
   private boolean _tcpNoDelay=true;
   private boolean _debug;
   private boolean ignoreBindError;
+  private Binding<?> onReady;
 
   /**
    * Return the port that the socket is bound to
@@ -236,6 +240,10 @@ public class Listener
   { this.ignoreBindError=ignoreBindError;
   }
   
+  public void setOnReady(Binding<?> onReady)
+  { this.onReady=onReady;
+  }
+  
   /**
    * Stop listening and close the server socket.
    */
@@ -272,6 +280,9 @@ public class Listener
     }
     catch (Exception x)
     { throw new RuntimeException(x.toString());
+    }
+    if (this.onReady!=null)
+    { this.onReady.get();
     }
   }
 
@@ -318,6 +329,16 @@ public class Listener
     { }
   }
 
+  public void bind(Focus<?> chain) 
+    throws ContextualException
+  {
+    chain=chain.<Listener>chain(new SimpleChannel<Listener>(this,true));
+    if (this.onReady!=null)
+    { this.onReady.bind(chain);
+    }
+    
+  }
+  
   /**
    * Handle incoming connections
    */
