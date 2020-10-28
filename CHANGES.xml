@@ -18,6 +18,29 @@
         </revision>
         
         <notes>
+          <scm:Note>Listener accepts a binding for when it becomes ready to accept
+            connections.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer
+        </path>
+        
+        <resources>
+          <URI>httpd/HttpService.java
+          </URI>
+          <URI>httpd/HttpServer.java
+          </URI>
+          <URI>net/Listener.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev25
+        </revision>
+        
+        <notes>
           <scm:Note>Integrate the web app component model into the process shutdown logic
           </scm:Note>
         </notes>
