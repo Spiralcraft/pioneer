@@ -22,10 +22,12 @@ import java.net.InetAddress;
 import java.io.IOException;
 
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 
 import java.security.KeyStore;
@@ -34,13 +36,15 @@ import java.security.GeneralSecurityException;
 //import java.security.Security;
 
 import spiralcraft.vfs.Resource;
-
+import spiralcraft.common.LifecycleException;
 import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
 import spiralcraft.util.ArrayUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 
 public class SecureServerSocketFactory
   implements ServerSocketFactory
@@ -59,6 +63,8 @@ public class SecureServerSocketFactory
   private Resource _keystoreResource;
   private String _passphrase="passphrase";
   private String _keyAlias;
+  private CertManager certManager;
+  private String[] enableAdditionalProtocols;
 
   
   public void setLogLevel(Level logLevel)
@@ -73,8 +79,49 @@ public class SecureServerSocketFactory
   { _passphrase=val;
   }
 
+  public void setEnableAdditionalProtocols(String[] protocols)
+  { this.enableAdditionalProtocols=protocols;
+  }
+  
   public void setKeyAlias(String val)
   { _keyAlias=val;
+  }
+  
+  public void setCertManager(CertManager certManager)
+  { this.certManager=certManager;
+  }
+  
+  public void start()
+    throws LifecycleException
+  { 
+    if (certManager!=null)
+    { 
+      certManager.setKeystoreInfo(_keystoreResource,_passphrase,_keyAlias);
+      certManager.start();
+      try
+      { certManager.refreshKeystore();
+      }
+      catch (Exception x)
+      { log.log(Level.WARNING,"Error refreshing keystore- using existing key",x);
+      }
+    }
+    
+    try
+    { makeFactory();
+    }
+    catch (IOException x)
+    { throw new LifecycleException("Error starting socket factory",x);
+    }
+  }
+
+  public void stop()
+    throws LifecycleException
+  { 
+    if (certManager!=null)
+    { certManager.stop();
+    }
+  
+    _delegate=null;
   }
   
   private void makeFactory()
@@ -88,7 +135,6 @@ public class SecureServerSocketFactory
     {
       char[] passphrase=_passphrase.toCharArray();
       _sslContext=SSLContext.getInstance("TLS");
-      KeyManagerFactory kmf=KeyManagerFactory.getInstance("SunX509");
       KeyStore ks=KeyStore.getInstance("JKS");
       if (_keystoreResource!=null)
       { ks.load(_keystoreResource.getInputStream(), passphrase);
@@ -128,8 +174,33 @@ public class SecureServerSocketFactory
         }
       }
 
+//      KeyManagerFactory kmf=KeyManagerFactory.getInstance("SunX509");
+      KeyManagerFactory kmf
+        =KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
       kmf.init(ks,passphrase);
-      _sslContext.init(kmf.getKeyManagers(),null,null);
+      KeyManager[] origKeyManagers=kmf.getKeyManagers();
+      KeyManager[] keyManagers;
+      if (certManager!=null)
+      { 
+        keyManagers=new KeyManager[origKeyManagers.length];
+        Arrays.setAll
+          (keyManagers
+          , i->certManager.decorateKeyManager(origKeyManagers[i])
+          );
+      }
+      else
+      { keyManagers=origKeyManagers;
+      }
+      
+
+      if (logLevel.canLog(Level.DEBUG))
+      {
+        for (KeyManager keyManager : keyManagers)
+        { log.fine("KeyManager: "+keyManager);
+        }
+      }
+          
+      _sslContext.init(keyManagers,null,null);
       if (logLevel.canLog(Level.INFO))
       {
         log.log
@@ -152,25 +223,19 @@ public class SecureServerSocketFactory
   @Override
   public ServerSocket createServerSocket(int port)
     throws IOException
-  { 
-    makeFactory();
-    return configureServerSocket(_delegate.createServerSocket(port));
+  { return configureServerSocket(_delegate.createServerSocket(port));
   }
 
   @Override
   public ServerSocket createServerSocket(int port,int backlog)
     throws IOException
-  { 
-    makeFactory();
-    return configureServerSocket(_delegate.createServerSocket(port,backlog));
+  { return configureServerSocket(_delegate.createServerSocket(port,backlog));
   }
 
   @Override
   public ServerSocket createServerSocket(int port,int backlog,InetAddress address)
     throws IOException
-  { 
-    makeFactory();
-    return configureServerSocket(_delegate.createServerSocket(port,backlog,address));
+  { return configureServerSocket(_delegate.createServerSocket(port,backlog,address));
   }
   
 
@@ -178,6 +243,15 @@ public class SecureServerSocketFactory
   { 
     // TODO: Apply custom protocol and cipher suite configuration options
       SSLServerSocket sslSocket=(SSLServerSocket) socket;
+      if (enableAdditionalProtocols!=null)
+      {
+        sslSocket.setEnabledProtocols
+          (ArrayUtil.concat
+            (sslSocket.getEnabledProtocols()
+            ,enableAdditionalProtocols
+            )
+          );
+      }
 
       String[] protocols=sslSocket.getSupportedProtocols();
       String[] ciphers=sslSocket.getSupportedCipherSuites();
@@ -191,7 +265,7 @@ public class SecureServerSocketFactory
                   +" Supported:"
                   +ArrayUtil.format(protocols,"|",null)
                   );
-        log.config("Cyphers: Enabled:"
+        log.config("Ciphers: Enabled:"
             +ArrayUtil.format(enabledCiphers,"|",null)
             +" Supported:"
             +ArrayUtil.format(ciphers,"|",null)
@@ -199,14 +273,68 @@ public class SecureServerSocketFactory
         
         
       }
-
+      
 //      sslSocket.setEnabledProtocols(protocols);
 //      sslSocket.setEnabledCipherSuites(ciphers);
-    
+    if (certManager!=null)
+    { certManager.socketReady();
+    }
     return socket;
   
   }
   
+  public void configureConnectedSocket(Socket sock)
+    throws IOException
+  {
+    SSLSocket sslSocket=(SSLSocket) sock;
+    sslSocket.setHandshakeApplicationProtocolSelector
+      (
+        (serverSocket, clientProtocols) -> 
+        {
+          SSLSession handshakeSession = serverSocket.getHandshakeSession();
+          // callback function called with current SSLSocket and client AP values
+          // plus any other useful information to help determine appropriate
+          // application protocol. Here the protocol and ciphersuite are also
+          // passed to the callback function.
+          return chooseApplicationProtocol(
+              serverSocket,
+              clientProtocols,
+              handshakeSession.getProtocol(),
+              handshakeSession.getCipherSuite());
+        }
+      );
+    sslSocket.startHandshake();
+
+    // After the handshake, get the application protocol that has been
+    // returned from the callback method.
+
+    String ap = sslSocket.getApplicationProtocol();
+    if (logLevel.isDebug())
+    { log.fine("Application Protocol server side: \"" + ap + "\"");
+    }
+  }
+  
+  public String chooseApplicationProtocol
+    (SSLSocket serverSocket
+    ,List<String> clientProtocols
+    , String protocol
+    , String cipherSuite 
+    )
+  {
+    if (logLevel.isFine())
+    {
+      log.fine("Client protocols: "+ArrayUtil.format(clientProtocols.toArray(),",","\""));
+      log.fine("Protocol: "+protocol);
+      log.fine("Cipher suite: "+cipherSuite);
+    }
+    
+    if (clientProtocols.contains("acme-tls/1"))
+    { return "acme-tls/1";
+    }
+    return "";
+  }
+    
+    
   @Override
   public int getMaxOutputFragmentLength(Socket socket)
   { 
@@ -224,3 +352,4 @@ public class SecureServerSocketFactory
   }
 
 }
+

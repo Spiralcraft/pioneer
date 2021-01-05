@@ -25,6 +25,7 @@ import java.net.UnknownHostException;
 
 import spiralcraft.common.ContextualException;
 import spiralcraft.common.Lifecycle;
+import spiralcraft.common.LifecycleException;
 import spiralcraft.lang.Binding;
 import spiralcraft.lang.Focus;
 import spiralcraft.lang.spi.SimpleChannel;
@@ -249,9 +250,11 @@ public class Listener
    */
   @Override
   public void stop()
+    throws LifecycleException
   {
     _finished=true;
     stopListening();
+    _factory.stop();
   }
 
   /**
@@ -259,7 +262,9 @@ public class Listener
    */
   @Override
   public void start()
+    throws LifecycleException
   {
+    _factory.start();
     try
     {
       if (_interfaceName!=null)
@@ -475,6 +480,7 @@ public class Listener
           if (_debug && log.canLog(Level.DEBUG))
           { log.log(Level.INFO,"Got connection from "+sock.getInetAddress().getHostAddress());
           }
+          _factory.configureConnectedSocket(sock);
           try
           {
             sock.setTcpNoDelay(_tcpNoDelay);

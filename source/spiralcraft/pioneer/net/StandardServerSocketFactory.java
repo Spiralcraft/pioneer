@@ -44,4 +44,18 @@ public class StandardServerSocketFactory
   public int getMaxOutputFragmentLength(Socket sock)
   { return Integer.MAX_VALUE;
   }
+  
+  @Override
+  public void start()
+  {
+  }
+  
+  @Override
+  public void stop()
+  {
+  }
+  
+  public void configureConnectedSocket(Socket sock)
+  {
+  }
 }

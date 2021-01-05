@@ -2,11 +2,15 @@ package spiralcraft.pioneer.net;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+
+import spiralcraft.common.Lifecycle;
+
 import java.net.InetAddress;
 import java.io.IOException;
 
 
 public interface ServerSocketFactory
+  extends Lifecycle
 {
   public ServerSocket createServerSocket(int port)
     throws IOException;
@@ -18,4 +22,12 @@ public interface ServerSocketFactory
     throws IOException;
     
   public int getMaxOutputFragmentLength(Socket socket);
+  
+  /**
+   * Called for each connection
+   * @param socket
+   */
+  public void configureConnectedSocket(Socket socket)
+    throws IOException;
+  
 }
