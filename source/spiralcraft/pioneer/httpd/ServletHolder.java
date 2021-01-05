@@ -35,6 +35,7 @@ import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
 import spiralcraft.servlet.kit.StandardServletConfig;
 import spiralcraft.vfs.Resolver;
+import spiralcraft.vfs.Resource;
 
 /**
  * Loads and manages a Servlet instance
@@ -214,7 +215,8 @@ public class ServletHolder
       
       if (dataURI!=null)
       { 
-        if (Resolver.getInstance().resolve(dataURI).exists())
+        Resource dataResource=Resolver.getInstance().resolve(dataURI);
+        if (dataResource.exists())
         {
           servlet=AbstractXmlObject.<Servlet>create
             (_servletClass==null
@@ -224,7 +226,15 @@ public class ServletHolder
             ).get();
         }
         else
-        { throw new ServletException("Servlet data resource not found "+dataURI);
+        { 
+          throw new ServletException
+            ("Servlet definition not found for '"+_servletName+"' "
+            +dataResource.getURI()
+            +(!dataURI.equals(dataResource.getURI())
+                ?"("+dataURI+")"
+                :""
+             )
+            );
         }
       }
       else if (_servletClass!=null)
