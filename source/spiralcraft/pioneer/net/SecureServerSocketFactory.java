@@ -196,12 +196,15 @@ public class SecureServerSocketFactory
       if (logLevel.canLog(Level.DEBUG))
       {
         for (KeyManager keyManager : keyManagers)
-        { log.fine("KeyManager: "+keyManager);
+        { 
+          if (logLevel.isFine())
+          { log.fine("KeyManager: "+keyManager);
+          }
         }
       }
           
       _sslContext.init(keyManagers,null,null);
-      if (logLevel.canLog(Level.INFO))
+      if (logLevel.isInfo())
       {
         log.log
           (Level.INFO
@@ -309,7 +312,7 @@ public class SecureServerSocketFactory
     // returned from the callback method.
 
     String ap = sslSocket.getApplicationProtocol();
-    if (logLevel.isDebug())
+    if (logLevel.isFine())
     { log.fine("Application Protocol server side: \"" + ap + "\"");
     }
   }
