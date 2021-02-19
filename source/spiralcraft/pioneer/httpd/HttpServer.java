@@ -397,14 +397,6 @@ public class HttpServer
 
       try
       {
-
-        if (debugProtocol)
-        { 
-          _log.log(Level.DEBUG,"Got HTTP connection from "
-            +socket.getInetAddress().getHostAddress());
-        }
-
-        
         if (debugIO)
         { traceStream=newTraceStream(connectionNum);
         }
@@ -413,6 +405,14 @@ public class HttpServer
 
 
         socket.setSoTimeout(_socketTimeout);
+        factory.configureConnectedSocket(socket);
+
+        if (debugProtocol)
+        { 
+          _log.log(Level.DEBUG,"Got HTTP connection from "
+            +socket.getInetAddress().getHostAddress());
+        }
+
         boolean done=false;
         while (!done)
         {

@@ -32,7 +32,6 @@ import spiralcraft.lang.spi.SimpleChannel;
 import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
 import spiralcraft.time.Clock;
-
 import spiralcraft.pioneer.util.ThrowableUtil;
 
 
@@ -480,7 +479,6 @@ public class Listener
           if (_debug && log.canLog(Level.DEBUG))
           { log.log(Level.INFO,"Got connection from "+sock.getInetAddress().getHostAddress());
           }
-          _factory.configureConnectedSocket(sock);
           try
           {
             sock.setTcpNoDelay(_tcpNoDelay);
