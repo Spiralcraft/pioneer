@@ -108,6 +108,9 @@ public class SimpleHttpSessionManager
       else if (session._new)
       { session.markNotNew();
       }
+      else
+      { session.touch();
+      }
     }
     return session;
   }
