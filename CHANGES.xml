@@ -14,6 +14,20 @@
     <details>
     
       <scm:Change>
+        <revision>-dev28
+        </revision>
+        
+        <notes>
+          <scm:Note>Fix session expiration time not resetting on access.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/SimpleHttpSessionManager.java
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev27
         </revision>
         
