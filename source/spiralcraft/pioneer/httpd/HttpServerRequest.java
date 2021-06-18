@@ -21,7 +21,7 @@ import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.Set;
 
-import spiralcraft.net.ip.Subnet;
+import spiralcraft.net.ip.AddressV4;
 import spiralcraft.pioneer.util.MappedList;
 import spiralcraft.pioneer.util.ListMap;
 import spiralcraft.pioneer.util.Translator;
@@ -822,7 +822,7 @@ public class HttpServerRequest
           }
           // Reset our remote address to the one the proxy supplied
           this._remoteInetAddress
-            =InetAddress.getByAddress(Subnet.parse(headerVal));
+            =InetAddress.getByAddress(AddressV4.parse(headerVal));
           this._remoteAddr=null;
           this._rawRemoteAddr=null;
           this._remoteHost=null;
