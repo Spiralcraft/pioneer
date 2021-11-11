@@ -18,6 +18,22 @@
         </revision>
         
         <notes>
+          <scm:Note>Add request attribute to suppress session cookies. Used for
+            specific situations where a caching spider proxy erroneously caches 
+            set-cookie headers.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/HttpServerRequest.java
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev28
+        </revision>
+        
+        <notes>
           <scm:Note>Fix session expiration time not resetting on access.
           </scm:Note>
         </notes>
