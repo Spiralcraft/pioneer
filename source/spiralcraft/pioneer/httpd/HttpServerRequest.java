@@ -537,7 +537,13 @@ public class HttpServerRequest
       _session
         =_context.getSessionManager().getSession(_requestedSessionId,create);
       if (_session!=null && _session.isNew())
-      { addSessionCookie(_context.getSessionCookieName(),_session.getId(),false);
+      { 
+        if (Boolean.TRUE.equals(getAttribute("suppressSessionCookie")))
+        { return _session;
+        }
+        else
+        { addSessionCookie(_context.getSessionCookieName(),_session.getId(),false);
+        }
       }
       validateSecureSession();
       return _session;
