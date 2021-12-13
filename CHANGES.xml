@@ -14,6 +14,50 @@
     <details>
     
       <scm:Change>
+        <revision>-dev29
+        </revision>
+        
+        <notes>
+          <scm:Note>Decouple servlet container to support alternate server engines
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd
+        </path>
+        
+        <resources>
+          <URI>AbstractHttpServletRequest.java
+          </URI>
+          <URI>DispatchServerRequest.java
+          </URI>
+          <URI>DispatchServerResponse.java
+          </URI>
+          <URI>HttpServer.java
+          </URI>
+          <URI>HttpServerRequest.java
+          </URI>
+          <URI>HttpServerResponse.java
+          </URI>
+          <URI>HttpServiceContext.java
+          </URI>
+          <URI>MultiAliasHttpServiceContext.java
+          </URI>
+          <URI>ServerInputStream.java
+          </URI>
+          <URI>ServerOutputStream.java
+          </URI>
+          <URI>ServerRequestDispatcher.java
+          </URI>
+          <URI>ServletRequestDispatcher.java
+          </URI>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+          <URI>DebugSettings.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev28
         </revision>
         
