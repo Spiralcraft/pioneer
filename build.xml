@@ -16,8 +16,8 @@
     value="spiralcraft-core.jar spiralcraft-net.jar spiralcraft-servlet.jar servlet-api.jar"
   />        
 
-  <property name="spiralcraft.javac.target" value="13"/>
-  <property name="spiralcraft.javac.source" value="13"/>
+  <property name="spiralcraft.javac.target" value="17"/>
+  <property name="spiralcraft.javac.source" value="17"/>
 
   <property name="logs.dir" location="test/logs"/>
   
