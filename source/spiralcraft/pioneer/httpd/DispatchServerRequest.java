@@ -49,11 +49,11 @@ public class DispatchServerRequest
     (HttpServletRequest containingRequest
     ,String uri
     ,RequestSource source
-    ,HttpServer server
+    ,DebugSettings debugSettings
     )
   { 
     this.containingRequest=containingRequest;
-    setHttpServer(server);
+    setDebugSettings(debugSettings);
     start();
     updateURI(uri);
     

@@ -66,12 +66,12 @@ public class ServletRequestDispatcher
         ((HttpServletRequest) request
         ,servletName
         ,RequestSource.INCLUDE
-        ,context.getServer()
+        ,context.getDebugSettings()
         );
     DispatchServerResponse dispatchResponse
       =new DispatchServerResponse
         ((HttpServletResponse) response
-        ,context.getServer()
+        ,context.getDebugSettings()
         );
     
     
@@ -97,7 +97,7 @@ public class ServletRequestDispatcher
         ((HttpServletRequest) request
         ,servletName
         ,RequestSource.FORWARD
-        ,context.getServer()
+        ,context.getDebugSettings()
         );
 
     context.service(dispatchRequest,(HttpServerResponse) response);

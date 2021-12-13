@@ -54,7 +54,7 @@ public class MultiAliasHttpServiceContext
     throws IOException
           ,ServletException
   { 
-    boolean debugService=debug || request.getHttpServer().getDebugService();
+    boolean debugService=debug || request.getDebugSettings().getDebugService();
     
     // Force pathInfo computation
     request.updateContextPath(getContextPath());

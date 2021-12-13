@@ -67,12 +67,12 @@ public class ServerRequestDispatcher
         ((HttpServletRequest) request
         ,uri
         ,RequestSource.INCLUDE
-        ,context.getServer()
+        ,context.getDebugSettings()
         );
     DispatchServerResponse dispatchResponse
       =new DispatchServerResponse
         ((HttpServletResponse) response
-        ,context.getServer()
+        ,context.getDebugSettings()
         );
 
      
@@ -93,7 +93,7 @@ public class ServerRequestDispatcher
         ((HttpServletRequest) request
         ,uri
         ,RequestSource.FORWARD
-        ,context.getServer()
+        ,context.getDebugSettings()
         );
 
     context.service(dispatchRequest,(HttpServletResponse) response);
@@ -126,7 +126,7 @@ public class ServerRequestDispatcher
       ((HttpServletRequest) request
       ,uri
       ,RequestSource.ERROR
-      ,context.getServer()
+      ,context.getDebugSettings()
       );
     
 //    DispatchServerResponse dispatchResponse
@@ -160,7 +160,7 @@ public class ServerRequestDispatcher
     DispatchServerResponse dispatchResponse
       =new DispatchServerResponse
         ((HttpServletResponse) response
-        ,context.getServer()
+        ,context.getDebugSettings()
         );
     
     context.service(dispatchRequest,dispatchResponse);

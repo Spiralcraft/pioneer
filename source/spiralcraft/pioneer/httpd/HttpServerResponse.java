@@ -113,7 +113,6 @@ public class HttpServerResponse
 
   private static final Charset UTF_8=Charset.forName("UTF-8");
   
-  private HttpServer _server;
   private Socket _socket;
   private HttpServerRequest _request;
   private ArrayList<Cookie> _cookies;
@@ -131,6 +130,7 @@ public class HttpServerResponse
   private boolean debugAPI;
   private String contentType;
   private String characterEncoding="UTF-8";
+  private DebugSettings debugSettings;
 
   private final MappedList _headers=new MappedList(new ArrayList<Variable>());
   private final ListMap _headerMap
@@ -155,11 +155,15 @@ public class HttpServerResponse
   }
 
   public void setHttpServer(HttpServer server)
-  { 
-    _server=server;
-    _outputStream.setHttpServer(server);
+  { _outputStream.setHttpServer(server);
   }
 
+  public void setDebugSettings(DebugSettings debugSettings)
+  {
+    this.debugSettings=debugSettings;
+    _outputStream.setDebugSettings(debugSettings);
+  }
+  
   public void setTraceStream(OutputStream traceStream)
   { _outputStream.setTraceStream(traceStream);
   }
@@ -216,8 +220,8 @@ public class HttpServerResponse
     this._socket=socket;
     this._outputStream.start(_socket,factory);
     recycle();
-    debugProtocol=_server.getDebugProtocol();
-    debugAPI=_server.getDebugAPI();
+    debugProtocol=debugSettings.getDebugProtocol();
+    debugAPI=debugSettings.getDebugAPI();
   }
 
   /**
@@ -616,7 +620,7 @@ public class HttpServerResponse
   { 
     if (!_sentHeaders)
     {
-      if (_server.getDebugService())
+      if (debugSettings.getDebugService())
       { _log.fine("Sending headers");
       }
 

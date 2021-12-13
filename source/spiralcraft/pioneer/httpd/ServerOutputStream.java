@@ -53,9 +53,10 @@ public class ServerOutputStream
   private int maxWriteSize=Integer.MAX_VALUE;
                                       
   private int _bufferSize=128*1024;
-  private HttpServer _server;
+  private DebugSettings debugSettings;
   private boolean _committed;
   private boolean _closeRequested;
+  private HttpServer server;
   
   public ServerOutputStream(HttpServerResponse resp,int initialBufferCapacity)
   {
@@ -64,10 +65,14 @@ public class ServerOutputStream
     _chunkBuffer=new ByteBuffer(initialBufferCapacity);
   }
 
-  public void setHttpServer(HttpServer server)
-  { _server=server;
+  public void setDebugSettings(DebugSettings debugSettings)
+  { this.debugSettings=debugSettings;
   }
 
+  public void setHttpServer(HttpServer server)
+  { this.server=server;
+  }
+  
   public void setTraceStream(OutputStream traceStream)
   { _trace=traceStream;
   }
@@ -101,7 +106,7 @@ public class ServerOutputStream
   
   public void setChunking(boolean chunking)
   { 
-    if (_server.getDebugProtocol())
+    if (debugSettings.getDebugProtocol())
     { log.fine("Chunking set to "+chunking);
     }
     _chunking=chunking;
@@ -118,7 +123,7 @@ public class ServerOutputStream
   public final void write(final String data)
     throws IOException
   {
-    if (_server.getDebugProtocol())
+    if (debugSettings.getDebugProtocol())
     { log.fine("Accepting output: ascii data "+data);
     }
     if (data==null)
@@ -136,7 +141,7 @@ public class ServerOutputStream
   public final void write(final int data)
     throws IOException
   { 
-    if (_server.getDebugProtocol())
+    if (debugSettings.getDebugProtocol())
     { log.fine("Accepting output: "+data+" ("+((char) data)+")");
     }  
     final byte[] bytes={(byte) data};
@@ -147,17 +152,17 @@ public class ServerOutputStream
   public final void write(final byte[] data,final int start,final int len)
     throws IOException
   { 
-    if (_server.getDebugProtocol())
+    if (debugSettings.getDebugProtocol())
     { log.fine("Accepting output: "+len+" bytes");
     }
     
     if (!_prepared)
     {
-      if (_server.getDebugProtocol())
+      if (debugSettings.getDebugProtocol())
       { log.fine("Inserting headers before appending content");
       }
       prepare();
-      if (_server.getDebugProtocol())
+      if (debugSettings.getDebugProtocol())
       { log.fine("Finished inserting headers");
       }
     }
@@ -165,14 +170,14 @@ public class ServerOutputStream
     {
       if (!_chunking)
       { 
-        if (_server.getDebugProtocol())
+        if (debugSettings.getDebugProtocol())
         { log.fine("Not buffered, not chunked");
         }
         writeToClient(data,start,len);
       }
       else
       {
-        if (_server.getDebugProtocol())
+        if (debugSettings.getDebugProtocol())
         { log.fine("Not buffered, chunked");
         }
         
@@ -194,7 +199,7 @@ public class ServerOutputStream
       {
         if (len>_bufferSize)
         { 
-          if (_server.getDebugProtocol())
+          if (debugSettings.getDebugProtocol())
           { log.fine("Output exceeds total buffer size");
           }
           
@@ -205,20 +210,20 @@ public class ServerOutputStream
         }
         else if (len+_buffer.length()>_bufferSize)
         { 
-          if (_server.getDebugProtocol())
+          if (debugSettings.getDebugProtocol())
           { log.fine("Pre-flushing buffer to make room");
           }
           
           flush();
 
-          if (_server.getDebugProtocol())
+          if (debugSettings.getDebugProtocol())
           { log.fine("Buffering "+len+" bytes");
           }
           _buffer.append(data,start,len);
         }
         else
         { 
-          if (_server.getDebugProtocol())
+          if (debugSettings.getDebugProtocol())
           { log.fine("Buffering "+len+" bytes");
           }
 
@@ -227,7 +232,7 @@ public class ServerOutputStream
       }
       else
       { 
-        if (_server.getDebugProtocol())
+        if (debugSettings.getDebugProtocol())
         { log.fine("Infinite buffer");
         }
         _buffer.append(data,start,len);
@@ -252,7 +257,7 @@ public class ServerOutputStream
     
     if (!_prepared)
     {
-      if (_server.getDebugProtocol())
+      if (debugSettings.getDebugProtocol())
       { log.fine("Preparing");
       }
       _prepared=true;
@@ -266,7 +271,7 @@ public class ServerOutputStream
   {
     try
     {
-      if (_server.getDebugProtocol())
+      if (debugSettings.getDebugProtocol())
       { log.fine("Flush requested");
       }
       
@@ -282,7 +287,7 @@ public class ServerOutputStream
       { 
         if (_buffer.length()>0)
         { 
-          if (_server.getDebugProtocol())
+          if (debugSettings.getDebugProtocol())
           { log.fine("Writing "+_buffer.length()+" bytes");
           }  
           writeToClient(_buffer.toByteArray());
@@ -313,7 +318,7 @@ public class ServerOutputStream
     }
     catch (IOException x)
     {
-      if (_server.getDebugProtocol())
+      if (debugSettings.getDebugProtocol())
       { 
         log.log(Level.WARNING,"Flush fail: ",x);
         log.log(Level.WARNING,"Out =  "+_out);
@@ -327,7 +332,7 @@ public class ServerOutputStream
   public void close()
     throws IOException
   { 
-    if (_server.getDebugProtocol())
+    if (debugSettings.getDebugProtocol())
     { log.fine("Requested output stream close");
     }
     _closeRequested=true;
@@ -342,7 +347,7 @@ public class ServerOutputStream
       }
       catch (IOException x)
       {
-        if (_server.getDebugProtocol())
+        if (debugSettings.getDebugProtocol())
         { log.log(Level.DEBUG,"Exception closing underlying stream",x);
         }
       }
@@ -363,7 +368,7 @@ public class ServerOutputStream
 
   public boolean isCommitted()
   { 
-    if (_server.getDebugService())
+    if (debugSettings.getDebugService())
     { log.fine(""+_committed);
     }
     return _committed;
@@ -376,7 +381,7 @@ public class ServerOutputStream
     { throw new IllegalStateException("Response committed");
     }
     
-    if (_server.getDebugService())
+    if (debugSettings.getDebugService())
     { log.fine(""+bytes+" bytes (from "+_bufferSize+")");
     }
     _bufferSize=bytes;
@@ -399,7 +404,7 @@ public class ServerOutputStream
     while (start+pos<len)
     {
       int writeLen=Math.min(maxWriteSize, len-pos);
-      if (_server.getDebugProtocol())
+      if (debugSettings.getDebugProtocol())
       { log.fine("Writing block "+count+" of "+writeLen+"/"+len+" bytes to client");
       }
       _out.write(bytes,start+pos,writeLen);
@@ -408,7 +413,7 @@ public class ServerOutputStream
       _out.flush();
     }
 
-    _server.wroteBytes(len);
+    server.wroteBytes(len);
     if (_trace!=null)
     {
       _trace.write(bytes,start,len);

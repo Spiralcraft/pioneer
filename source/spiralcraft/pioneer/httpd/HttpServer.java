@@ -83,10 +83,9 @@ public class HttpServer
   private String _remoteAddressHeaderName;
   private AddressSet _serverProxyAddresses;
   
-  private boolean debugProtocol;
-  private boolean debugService;
-  private boolean debugIO;
-  private boolean debugAPI;
+  private DebugSettings debugSettings
+    =new DebugSettings();
+    
   
   protected Focus<?> focus;
  
@@ -94,40 +93,6 @@ public class HttpServer
   { _serverInfo=serverInfo;
   }
   
-  public void setDebugProtocol(boolean val)
-  { debugProtocol=val;
-  }
-  
-  public boolean getDebugProtocol()
-  { return debugProtocol;
-  }
-
-  public void setDebugService(boolean val)
-  { debugService=val;
-  }
-  
-  public boolean getDebugService()
-  { return debugService;
-  }
-  
-  public void setDebugAPI(boolean debugAPI)
-  { this.debugAPI=debugAPI;
-  }
-  
-  public boolean getDebugAPI()
-  { return debugAPI;
-  }
-  
-  
-
-  public void setDebugIO(boolean val)
-  { debugIO=val;
-  }
-
-  public boolean getDebugIO()
-  { return debugIO;
-  }
-
   public void setTraceDir(URI uri)
     throws IOException
   { 
@@ -163,7 +128,7 @@ public class HttpServer
     if (_meter!=null)
     { _bytesOutputRegister.adjustValue(count);
     }
-    if (debugProtocol)
+    if (debugSettings.debugProtocol)
     { _log.fine("Wrote "+count+" bytes");
     }
   }
@@ -213,7 +178,7 @@ public class HttpServer
         SimpleHttpServiceContext serviceContext=new SimpleHttpServiceContext();
         _serviceContext=serviceContext;
       }
-      _serviceContext.setServer(this);
+      _serviceContext.setDebugSettings(debugSettings);
       if (meterContext!=null)
       { _serviceContext.installMeter(meterContext.subcontext("rootContext"));
       }
@@ -296,12 +261,13 @@ public class HttpServer
   {
 
     private final HttpServerRequest _request
-      =new HttpServerRequest(HttpServer.this);
+      =new HttpServerRequest(HttpServer.this,debugSettings);
 
     private final HttpServerResponse _response=new HttpServerResponse(_request,_initialBufferCapacity);
     { 
       _request.setResponse(_response);
       _response.setHttpServer(HttpServer.this);
+      _response.setDebugSettings(debugSettings);
     }
 
     private boolean ensureRunning()
@@ -397,7 +363,7 @@ public class HttpServer
 
       try
       {
-        if (debugIO)
+        if (debugSettings.debugIO)
         { traceStream=newTraceStream(connectionNum);
         }
         _request.setTraceStream(traceStream);
@@ -407,7 +373,7 @@ public class HttpServer
         socket.setSoTimeout(_socketTimeout);
         factory.configureConnectedSocket(socket);
 
-        if (debugProtocol)
+        if (debugSettings.debugProtocol)
         { 
           _log.log(Level.DEBUG,"Got HTTP connection from "
             +socket.getInetAddress().getHostAddress());
@@ -423,7 +389,7 @@ public class HttpServer
             }
             catch (InterruptedIOException x)
             { 
-              if (debugProtocol)
+              if (debugSettings.debugProtocol)
               { 
                 _log.log(Level.DEBUG
                         ,"HTTP connection timed out from "
@@ -479,7 +445,7 @@ public class HttpServer
             if (_meter!=null && _request.wasStarted())
             { _activeRequestsRegister.decrementValue();
             }
-            if (debugProtocol)
+            if (debugSettings.debugProtocol)
             { _log.log(Level.DEBUG,"Finished HTTP request from "+socket.getInetAddress().getHostAddress());
             }
 
@@ -538,7 +504,7 @@ public class HttpServer
         }
         
         
-        if (debugProtocol)
+        if (debugSettings.debugProtocol)
         { _log.log(Level.DEBUG,"Finished HTTP connection from "+socket.getInetAddress().getHostAddress());
         }
 

@@ -172,7 +172,8 @@ public class SimpleHttpServiceContext
   protected AccessLog _accessLog=null;
   private String _servletContextName=null;
   protected boolean debug;
-  private HttpServer _server;
+  private DebugSettings debugSettings;
+  
   protected String virtualHostName;
   protected HashSet<String> validHostSet;
  
@@ -220,7 +221,7 @@ public class SimpleHttpServiceContext
     
     // TODO: Unwrap this logic to use a "ServerFilter", perhaps in
     //   new httpd module.
-    if (debug || request.getHttpServer().getDebugService())
+    if (debug || request.getDebugSettings().getDebugService())
     { log.fine(request.getRequestURI());
     }
     
@@ -1093,7 +1094,7 @@ public class SimpleHttpServiceContext
       ret=_docRootURI.resolve(name.substring(1)).toURL();
     }
     
-    if (_server.getDebugAPI())
+    if (debugSettings.getDebugAPI())
     { log.fine("getResource("+name+") returned "+ret);
     }
     return ret;
@@ -1116,7 +1117,7 @@ public class SimpleHttpServiceContext
     }
     catch (IOException x)
     {
-      if (_server.getDebugAPI())
+      if (debugSettings.getDebugAPI())
       { log.log(Level.FINE,"getResourceAsStream("+name+") IOException",x);
       }
     }
@@ -1133,7 +1134,7 @@ public class SimpleHttpServiceContext
   { 
 	  if (_docRootDir==null)
 	  { 
-      if (_server.getDebugAPI())
+      if (debugSettings.getDebugAPI())
       { 
         log.fine("getRealPath("+rawUri+") returned null- "
                  +"no document root dir configured"
@@ -1167,14 +1168,14 @@ public class SimpleHttpServiceContext
       if (relFile.isDirectory() && !realPath.endsWith(File.separator))
       { realPath=realPath+File.separator;
       }
-      if (_server.getDebugAPI())
+      if (debugSettings.getDebugAPI())
       { log.fine("getRealPath("+rawUri+") returned "+realPath);
       }
       return realPath;
     }
     else
     { 
-      if (_server.getDebugAPI())
+      if (debugSettings.getDebugAPI())
       { log.fine("getRealPath("+rawUri+") is not bounded and returned null");
       }
       return null;
@@ -2003,7 +2004,7 @@ public class SimpleHttpServiceContext
     {
       if (!path.startsWith("/"))
       { 
-        if (_server.getDebugAPI())
+        if (debugSettings.getDebugAPI())
         { log.fine("getResourcePaths("+path+"): path does not start with '/'");
         }
         return null;
@@ -2035,14 +2036,14 @@ public class SimpleHttpServiceContext
 //          log.fine(path+" : "+result);
         }
       }
-      if (_server.getDebugAPI())
+      if (debugSettings.getDebugAPI())
       { log.fine("getResourcePaths("+path+") returned "+set);
       }
       return set;
     }
     catch (IOException x)
     {
-      if (_server.getDebugAPI())
+      if (debugSettings.getDebugAPI())
       { log.log(Level.FINE,"IOException in getResourcePaths("+path+")",x);
       }
       return null;
@@ -2056,14 +2057,13 @@ public class SimpleHttpServiceContext
   //
   //////////////////////////////////////////////////////////////////////////
   
-  @Override
-  public void setServer(HttpServer server)
-  { _server=server;
+
+  public void setDebugSettings(DebugSettings debugSettings)
+  { this.debugSettings=debugSettings;
   }
   
-  @Override
-  public HttpServer getServer()
-  { return _server;
+  public DebugSettings getDebugSettings()
+  { return debugSettings;
   }
   
   public void setDebugWAR(boolean debugWAR)
@@ -2580,7 +2580,7 @@ public class SimpleHttpServiceContext
     }
     _initialized=true;
     if (_parentContext!=null)
-    { _server=_parentContext.getServer();
+    { debugSettings=_parentContext.getDebugSettings();
     }
     
     if (_docRootDir!=null)

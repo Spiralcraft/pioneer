@@ -44,10 +44,10 @@ public final class ServerInputStream
   private OutputStream _trace;
   private final boolean debugIO;
    
-  public ServerInputStream(HttpServer server)
+  public ServerInputStream(DebugSettings debugSettings)
   { 
 //  this.server=server;
-    this.debugIO=server.getDebugIO();
+    this.debugIO=debugSettings.getDebugIO();
   }
 
   public void setTraceStream(OutputStream traceStream)

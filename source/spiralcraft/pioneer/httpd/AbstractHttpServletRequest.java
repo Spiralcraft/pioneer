@@ -28,6 +28,7 @@ import java.net.URI;
 import java.nio.charset.Charset;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import javax.servlet.http.HttpServletRequest;
@@ -106,7 +107,7 @@ public abstract class AbstractHttpServletRequest
   protected final HashMap<String,Object> _attributes
     =new HashMap<String,Object>();
   protected long _startTime;	
-  protected HttpServer _httpServer;
+  protected DebugSettings debugSettings;
   protected String _characterEncoding;
   protected ContentTypeHeader _contentType;
   protected RequestSource _source;
@@ -114,12 +115,12 @@ public abstract class AbstractHttpServletRequest
   protected ClassLog _log
     =ClassLog.getInstance(AbstractHttpServletRequest.class);
 
-  public HttpServer getHttpServer()
-  { return _httpServer;
+  public DebugSettings getDebugSettings()
+  { return debugSettings;
   }
   
-  public void setHttpServer(HttpServer server)
-  { _httpServer=server;
+  public void setDebugSettings(DebugSettings ds)
+  { debugSettings=ds;
   }  
   /**
    * Initialize before use
@@ -172,7 +173,7 @@ public abstract class AbstractHttpServletRequest
   @Override
   public String getContextPath()
   { 
-    if (_httpServer.getDebugAPI())
+    if (debugSettings.getDebugAPI())
     { log.fine(_contextPath);
     }
     return _contextPath;
@@ -184,7 +185,7 @@ public abstract class AbstractHttpServletRequest
 		if (_pathTranslated==null)
 		{ _pathTranslated=_context.getRealPath(_pathInfo);
 		}
-    if (_httpServer.getDebugService())
+    if (debugSettings.getDebugService())
     { log.fine(_pathTranslated);
     }
 		return _pathTranslated;
@@ -194,7 +195,7 @@ public abstract class AbstractHttpServletRequest
   public String getPathInfo()
 	{ 
 	  
-    if (_httpServer.getDebugAPI())
+    if (debugSettings.getDebugAPI())
     { log.fine(_pathInfo);
     }
 	  return _pathInfo;
@@ -231,7 +232,7 @@ public abstract class AbstractHttpServletRequest
 	@Override
   public String getServletPath()
 	{ 
-    if (_httpServer.getDebugAPI())
+    if (debugSettings.getDebugAPI())
     { log.fine(_servletPath);
     }
 	  
@@ -242,7 +243,7 @@ public abstract class AbstractHttpServletRequest
   public String getRequestURI()
 	{ 
 	  
-    if (_httpServer.getDebugAPI())
+    if (debugSettings.getDebugAPI())
     { log.fine(_requestURI);
     }
 	  return _requestURI;
@@ -291,6 +292,46 @@ public abstract class AbstractHttpServletRequest
     _contextPath=contextPath;
     calcPathInfo();
   
+  }
+  
+  @Override
+  public int getIntHeader(String name)
+  {
+    String var=getHeader(name);
+    if (var==null)
+    { return -1;
+    }
+    else
+    { return Integer.parseInt(var); 
+    }
+  }
+  
+  @Override
+  public long getDateHeader(String name)
+    throws IllegalArgumentException
+  {
+    String value=getHeader(name);
+    if (value==null)
+    { return 0;
+    }
+    else
+    { 
+      try
+      { return _rfc1123HeaderDateFormat.parse(value).getTime();
+      }
+      catch (ParseException x)
+      { }
+
+      for (int i=0;i<_altDateFormats.length;i++)
+      {
+        try
+        { return _altDateFormats[i].parse(value).getTime();
+        }
+        catch (ParseException x)
+        { }
+      }
+      throw new IllegalArgumentException("Unrecognized date format '"+value+"'");
+    }
   }
 
   
@@ -370,7 +411,7 @@ public abstract class AbstractHttpServletRequest
   public Object getAttribute(String name)
 	{ 
 	  Object ret=_attributes.get(name);
-	  if (_httpServer.getDebugService())
+	  if (debugSettings.getDebugService())
 	  { log.fine(name +" = "+ ret);
 	  }
 	  return ret;
@@ -384,7 +425,7 @@ public abstract class AbstractHttpServletRequest
   @Override
   public void setAttribute(String name,Object value)
   { 
-    if (_httpServer.getDebugService())
+    if (debugSettings.getDebugService())
     { log.fine(name +" = "+ value);
     }
     
@@ -574,7 +615,7 @@ public abstract class AbstractHttpServletRequest
                 ,getInputStream()
                 ,_characterEncoding!=null?Charset.forName(_characterEncoding):UTF_8
                 );
-          if (getHttpServer().getDebugService())
+          if (getDebugSettings().getDebugService())
           { _log.log(Level.DEBUG,"Read post: ["+_post.toString()+"]");
           }
         }

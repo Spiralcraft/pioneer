@@ -45,22 +45,14 @@ public interface HttpServiceContext
   void service(AbstractHttpServletRequest request,HttpServletResponse response)
     throws ServletException,IOException;
   
-  /**
-   * 
-   * @return The server that contains this context
-   */
-  HttpServer getServer();
-  
   void setVirtualHostName(String hostName);
   
   HttpServiceContext getParentContext();
   
-  /**
-   * The server that contains this context
-   * 
-   * @param server
-   */
-  void setServer(HttpServer server);
+  
+  void setDebugSettings(DebugSettings debugSettings);
+  
+  DebugSettings getDebugSettings();
   
   /** 
    * The ContextPath associated with this context

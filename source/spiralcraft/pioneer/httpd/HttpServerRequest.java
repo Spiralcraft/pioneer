@@ -132,14 +132,16 @@ public class HttpServerRequest
   
   private boolean debugProtocol;
   private boolean debugAPI;
+  private HttpServer server;
 
   { _source=RequestSource.REQUEST;
   }
   
-  public HttpServerRequest(HttpServer server)
+  public HttpServerRequest(HttpServer server,DebugSettings debugSettings)
   { 
-    _inputStream=new ServerInputStream(server);
-    this.setHttpServer(server);
+    _inputStream=new ServerInputStream(debugSettings);
+    this.setDebugSettings(debugSettings);
+    this.server=server;
   }
 
   public void setTraceStream(OutputStream traceStream)
@@ -156,8 +158,8 @@ public class HttpServerRequest
     throws IOException
   {
     super.start();
-    debugProtocol=_httpServer.getDebugProtocol();
-    debugAPI=_httpServer.getDebugAPI();
+    debugProtocol=debugSettings.getDebugProtocol();
+    debugAPI=debugSettings.getDebugAPI();
     
     _started=false;
     _socket=sock;
@@ -200,7 +202,7 @@ public class HttpServerRequest
       _requestLine=sanitizeAscii(_requestLine);
       _started=true;
       _startTime=Clock.instance().approxTimeMillis();
-      _httpServer.requestStarted();
+      server.requestStarted();
       try
       { parseRequest();
       }
@@ -230,7 +232,7 @@ public class HttpServerRequest
     for (int i=0;i<len;i++)
     {
       char chr=input.charAt(i);
-      if (chr<0x20 || chr>0x7F)
+      if (chr<0x20 || chr>0x7e)
       { throw new IOException("Illegal character "+((int) chr)+" in request");
       }
     }
@@ -247,7 +249,7 @@ public class HttpServerRequest
     {
       if (_inputStream.getCount()<getContentLength())
       { 
-        if (_httpServer.getDebugProtocol())
+        if (debugSettings.getDebugProtocol())
         { 
           log.fine
             ("Discarding "
@@ -351,33 +353,6 @@ public class HttpServerRequest
     return _cookies;
   }
   
-  @Override
-  public long getDateHeader(String name)
-    throws IllegalArgumentException
-  {
-    String value=getHeader(name);
-    if (value==null)
-    { return 0;
-    }
-    else
-    { 
-      try
-      { return _rfc1123HeaderDateFormat.parse(value).getTime();
-      }
-      catch (ParseException x)
-      { }
-
-      for (int i=0;i<_altDateFormats.length;i++)
-      {
-        try
-        { return _altDateFormats[i].parse(value).getTime();
-        }
-        catch (ParseException x)
-        { }
-      }
-      throw new IllegalArgumentException("Unrecognized date format '"+value+"'");
-    }
-  }
   
   @Override
   public String getHeader(String name)
@@ -404,18 +379,7 @@ public class HttpServerRequest
     
     return new IteratorEnumeration<String>(names.iterator());
   }
-  
-  @Override
-  public int getIntHeader(String name)
-  {
-    String var=getHeader(name);
-    if (var==null)
-    { return -1;
-    }
-    else
-    { return Integer.parseInt(var); 
-    }
-  }
+
   
   @Override
   public String getMethod()
@@ -815,15 +779,15 @@ public class HttpServerRequest
   private void determineRemoteAddress()
     throws IOException
   {
-    if (_httpServer.isProxy(_socket.getInetAddress().getAddress()))
+    if (server.isProxy(_socket.getInetAddress().getAddress()))
     { 
-      String headerName=_httpServer.getRemoteAddressHeaderName();
+      String headerName=server.getRemoteAddressHeaderName();
       if (headerName!=null)
       {
         String headerVal=getHeader(headerName);
         if (headerVal!=null)
         { 
-          if (_httpServer.getDebugService())
+          if (debugSettings.getDebugService())
           { log.log(Level.DEBUG,"Proxied remote address header is "+headerVal);
           }
           // Reset our remote address to the one the proxy supplied
