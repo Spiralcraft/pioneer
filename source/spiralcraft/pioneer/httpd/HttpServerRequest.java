@@ -144,6 +144,10 @@ public class HttpServerRequest
     this.server=server;
   }
 
+  public boolean isDispatch()
+  { return false;
+  }
+  
   public void setTraceStream(OutputStream traceStream)
   { _inputStream.setTraceStream(traceStream);
   }

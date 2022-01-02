@@ -191,7 +191,7 @@ public interface HttpServiceContext
    */
   void handleError
     (AbstractHttpServletRequest request
-    ,HttpServerResponse response
+    ,HttpServletResponse response
     ,int code
     ,String message
     ,Throwable exception

@@ -115,6 +115,12 @@ public abstract class AbstractHttpServletRequest
   protected ClassLog _log
     =ClassLog.getInstance(AbstractHttpServletRequest.class);
 
+  /**
+   * 
+   * @return Whether this is the original request or a wrapper created for dispatch
+   */
+  public abstract boolean isDispatch();
+  
   public DebugSettings getDebugSettings()
   { return debugSettings;
   }

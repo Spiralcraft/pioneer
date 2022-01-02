@@ -104,7 +104,7 @@ public class ServerRequestDispatcher
   
   public void sendError
     (ServletRequest request
-    ,HttpServerResponse response
+    ,HttpServletResponse response
     ,int status
     ,String message
     ,Throwable exception

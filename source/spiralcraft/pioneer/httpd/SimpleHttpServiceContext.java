@@ -244,7 +244,7 @@ public class SimpleHttpServiceContext
       // We must to this here to compute other path fields
       request.updateContextPath(getContextPath());
       
-      boolean topLevel=request instanceof HttpServerRequest;
+      boolean topLevel=!request.isDispatch();
       
       if (topLevel)
       {
@@ -381,7 +381,7 @@ public class SimpleHttpServiceContext
         {
           handleError
             (request
-            ,(HttpServerResponse) response
+            ,response
             ,500
             ,"Internal Server Error"
             ,x
@@ -402,7 +402,7 @@ public class SimpleHttpServiceContext
         {
           handleError
             (request
-            ,(HttpServerResponse) response
+            ,response
             ,500
             ,"Internal Server Error"
             ,x
@@ -424,7 +424,7 @@ public class SimpleHttpServiceContext
   @Override
   public void handleError
     (AbstractHttpServletRequest request
-    ,HttpServerResponse response
+    ,HttpServletResponse response
     ,int code
     ,String message
     ,Throwable exception
@@ -518,7 +518,7 @@ public class SimpleHttpServiceContext
     
       response.setStatus(code);
       if (debug)
-      { log.fine("Sending error for status: "+response.getStatus());
+      { log.fine("Sending error for status: "+code+" "+message);
       }
       
       ServerRequestDispatcher dispatcher
@@ -542,7 +542,7 @@ public class SimpleHttpServiceContext
 
     PrintWriter out = response.getWriter();
     out.println("<html><head><title>"
-                +code+"-"+response.getReason()+"</title><body>"+message
+                +code+"-"+message+"</title><body>"+message
                 +"</body></html>");
     out.flush();
     

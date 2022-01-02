@@ -45,6 +45,10 @@ public class DispatchServerRequest
   
   private final HttpServletRequest containingRequest;
 
+  public boolean isDispatch()
+  { return true;
+  }
+  
 	public DispatchServerRequest
     (HttpServletRequest containingRequest
     ,String uri
