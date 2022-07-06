@@ -162,7 +162,9 @@ public abstract class AbstractHttpServletRequest
   public void setServiceContext(HttpServiceContext context)
   { 
     _context=context;
-    contextResolved();
+    if (_context!=null)
+    { contextResolved();
+    }
   }
 
   protected void contextResolved()

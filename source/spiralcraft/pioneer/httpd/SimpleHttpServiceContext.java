@@ -237,8 +237,8 @@ public class SimpleHttpServiceContext
     
     try
     {
-			_requestsPending++;
-			_requestsHandled++;
+      _requestsPending++;
+      _requestsHandled++;
       request.setServiceContext(this);
       
       // We must to this here to compute other path fields
@@ -277,8 +277,8 @@ public class SimpleHttpServiceContext
       if (_accessLog!=null && (request instanceof HttpServerRequest))
       { _accessLog.log((HttpServerRequest) request,(HttpServerResponse) response);
       }	
-			_requestsPending--;
-			request.setServiceContext(null);
+      _requestsPending--;
+      request.setServiceContext(null);
     }
   }
   
