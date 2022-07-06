@@ -14,6 +14,26 @@
     <details>
     
       <scm:Change>
+        <revision>-dev31
+        </revision>
+        
+        <notes>
+          <scm:Note>Fix NPE regression when using url session tokens
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd
+        </path>
+        
+        <resources>
+          <URI>AbstractHttpServletRequest.java
+          </URI>
+          <URI>SimpleHttpServiceContext.java
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev30
         </revision>
         
