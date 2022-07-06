@@ -351,8 +351,15 @@ public class HttpServerResponse
     if (debugAPI)
     { _log.fine(code+" "+msg);
     }
-
-    _request._context.handleError(_request,this,code,msg,null);
+    
+    if (_request._context!=null)
+    { _request._context.handleError(_request,this,code,msg,null);
+    }
+    else
+    {
+      setStatus(code);
+      flushBuffer();
+    }
   }
       
   @Override
