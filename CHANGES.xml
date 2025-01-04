@@ -14,6 +14,38 @@
     <details>
     
       <scm:Change>
+        <revision>-dev33
+        </revision>
+                
+        <path>source/spiralcraft/pioneer/net/SecureServerSocketFactory.java
+        </path>
+
+        <notes>
+          <scm:Note>Fall back to the default application protocol selector.
+          </scm:Note>
+          <scm:Note>Fix error returning an empty string instead of null.
+          </scm:Note>
+          <scm:Note>Added additional fine logging detail
+          </scm:Note>
+        </notes>
+        
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev33
+        </revision>
+        
+        <notes>
+          <scm:Note>Restore ability to configure debug settings externally
+            for the default server engine.
+          </scm:Note>
+        </notes>
+        
+        <path>source/spiralcraft/pioneer/httpd/HttpServer.java
+        </path>
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev32
         </revision>
         
