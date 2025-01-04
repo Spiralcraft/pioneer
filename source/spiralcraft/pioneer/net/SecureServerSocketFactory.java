@@ -27,8 +27,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.ExtendedSSLSession;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SNIServerName;
 
 import java.security.KeyStore;
 import java.security.GeneralSecurityException;
@@ -45,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.function.BiFunction;
 
 public class SecureServerSocketFactory
   implements ServerSocketFactory
@@ -286,10 +289,20 @@ public class SecureServerSocketFactory
   
   }
   
+  /**
+   * Configure the socket that represents a new connection from a client.
+   * 
+   * Called from HttpConnectionHandler immediately after connection
+   */
   public void configureConnectedSocket(Socket sock)
     throws IOException
   {
+    if (logLevel.isFine())
+    { log.fine("Configuring connected socket "+sock);
+    }
     SSLSocket sslSocket=(SSLSocket) sock;
+    BiFunction<SSLSocket,List<String>,String> defaultProtocolSelector
+      =sslSocket.getHandshakeApplicationProtocolSelector(); 
     sslSocket.setHandshakeApplicationProtocolSelector
       (
         (serverSocket, clientProtocols) -> 
@@ -299,14 +312,40 @@ public class SecureServerSocketFactory
           // plus any other useful information to help determine appropriate
           // application protocol. Here the protocol and ciphersuite are also
           // passed to the callback function.
-          return chooseApplicationProtocol(
+          String applicationProtocol=
+            chooseApplicationProtocol(
               serverSocket,
               clientProtocols,
               handshakeSession.getProtocol(),
-              handshakeSession.getCipherSuite());
+              handshakeSession.getCipherSuite()
+            );
+          if (applicationProtocol==null && defaultProtocolSelector!=null)
+          { return defaultProtocolSelector.apply(serverSocket, clientProtocols);
+          }
+          else 
+          { return applicationProtocol;
+          }
         }
       );
     sslSocket.startHandshake();
+
+    if (logLevel.isFine())
+    {
+      SSLSession session = sslSocket.getSession();
+      if (session instanceof ExtendedSSLSession) 
+      {
+        ExtendedSSLSession extendedSession = (ExtendedSSLSession) session;
+        List<SNIServerName> serverNames = extendedSession.getRequestedServerNames();
+        if (serverNames != null && !serverNames.isEmpty()) 
+        {
+            SNIServerName sniServerName = serverNames.get(0);
+            String sniHostname = new String(sniServerName.getEncoded(),"UTF-8");
+            if (logLevel.isFine())
+            { log.fine("SNI Hostname: " + sniHostname);
+            }
+        }    
+      }
+    }
 
     // After the handshake, get the application protocol that has been
     // returned from the callback method.
@@ -317,6 +356,16 @@ public class SecureServerSocketFactory
     }
   }
   
+  /**
+   * Add support for "acme-tls/1", otherwise defer to default selection.
+   * 
+   * @param serverSocket
+   * @param clientProtocols
+   * @param protocol
+   * @param cipherSuite
+   * @return A mutually acceptable client protocol, null to abort, or empty string
+   *           to revert to default behavior.
+   */
   public String chooseApplicationProtocol
     (SSLSocket serverSocket
     ,List<String> clientProtocols
@@ -334,7 +383,7 @@ public class SecureServerSocketFactory
     if (clientProtocols.contains("acme-tls/1"))
     { return "acme-tls/1";
     }
-    return "";
+    return null; // defers to default
   }
     
     
