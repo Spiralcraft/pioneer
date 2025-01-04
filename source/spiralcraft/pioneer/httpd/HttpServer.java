@@ -101,6 +101,23 @@ public class HttpServer
     
   }
   
+  public void setDebugProtocol(boolean val)
+  { debugSettings.debugProtocol=val;
+  }
+  
+  public void setDebugService(boolean val)
+  { debugSettings.debugService=val;
+  }
+  
+  public void setDebugIO(boolean val)
+  { debugSettings.debugIO=val;
+  }
+
+
+  public void setDebugAPI(boolean val)
+  { debugSettings.debugAPI=val;
+  }
+
   public void setRemoteAddressHeaderName(String headerName)
   { this._remoteAddressHeaderName=headerName;
   }
