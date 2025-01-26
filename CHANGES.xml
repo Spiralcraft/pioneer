@@ -17,6 +17,39 @@
         <revision>-dev33
         </revision>
                 
+        <path>source/spiralcraft/pioneer
+        </path>
+
+        <resources>
+          <URI>httpd/HttpServer.java
+          </URI>
+          <URI>httpd/HttpServerContext.java
+          </URI>
+          <URI>httpd/HttpServiceContext.java
+          </URI>
+          <URI>httpd/SimpleHttpServiceContext.java
+          </URI>
+          <URI>net/CertNamanger.java
+          </URI>
+          <URI>net/CompoundKeyManager.java
+          </URI>
+          <URI>net/KeyContext.java
+          </URI>
+          <URI>net/SecureServerSocketFactory.java
+          </URI>
+        </resources>
+        <notes>
+          <scm:Note>Feature set to enable multiple independent contexts behind one 
+            HTTPS IP/socket 
+          </scm:Note>
+        </notes>
+        
+      </scm:Change>
+    
+      <scm:Change>
+        <revision>-dev33
+        </revision>
+                
         <path>source/spiralcraft/pioneer/net/SecureServerSocketFactory.java
         </path>
 
