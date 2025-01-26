@@ -24,7 +24,8 @@
           
           <serverSocketFactory>
             <net:SecureServerSocketFactory>
-            
+              <logLevel>FINE
+              </logLevel>
             
             </net:SecureServerSocketFactory>
           </serverSocketFactory>
@@ -48,10 +49,14 @@
         </httpd:RotatingFileAccessLog>
       </serviceContext.accessLog>
       
-      <debugService>true
+      <debugService>false
       </debugService>
-      <debugProtocol>true
+      <debugProtocol>false
       </debugProtocol>
+      <debugAPI>false
+      </debugAPI>
+      <debugIO>false
+      </debugIO>        
     </here:HttpService>
   </services>
 </service:Daemon>
