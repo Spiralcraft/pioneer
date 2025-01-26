@@ -32,27 +32,19 @@ import java.net.URI;
 import spiralcraft.common.Lifecycle;
 
 import spiralcraft.lang.Contextual;
-import spiralcraft.meter.MeterContext;
 import spiralcraft.pioneer.io.Governer;
 
 public interface HttpServiceContext
-  extends ServletContext,Lifecycle,Contextual
+  extends HttpServerContext,ServletContext
 {
 
-  /**
-   * Process a request
-   */
-  void service(AbstractHttpServletRequest request,HttpServletResponse response)
-    throws ServletException,IOException;
+
   
   void setVirtualHostName(String hostName);
   
   HttpServiceContext getParentContext();
   
   
-  void setDebugSettings(DebugSettings debugSettings);
-  
-  DebugSettings getDebugSettings();
   
   /** 
    * The ContextPath associated with this context
@@ -177,7 +169,7 @@ public interface HttpServiceContext
   
   boolean getCookiesArePortSpecific();
   
-  void installMeter(MeterContext meterContext);
+
   
   /**
    * <p>Dispatch the request to an error handler

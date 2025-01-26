@@ -29,10 +29,8 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.ExtendedSSLSession;
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SNIServerName;
 
-import java.security.KeyStore;
 import java.security.GeneralSecurityException;
 
 //import java.security.Security;
@@ -43,9 +41,6 @@ import spiralcraft.log.ClassLog;
 import spiralcraft.log.Level;
 import spiralcraft.util.ArrayUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -61,25 +56,59 @@ public class SecureServerSocketFactory
   private Level logLevel=ClassLog.getInitialDebugLevel
       (getClass(),Level.INFO);
 
+  private KeyContext defaultKeyContext;
+
+  private KeyContext[] keyContexts;
+  
   private SSLServerSocketFactory _delegate;
   private SSLContext _sslContext;
-  private Resource _keystoreResource;
-  private String _passphrase="passphrase";
-  private String _keyAlias;
-  private CertManager certManager;
-  private String[] enableAdditionalProtocols;
 
+  private String[] enableAdditionalProtocols;
+  private String[] enabledApplicationProtocols=new String[] {"http/1.1"};
   
   public void setLogLevel(Level logLevel)
   { this.logLevel=logLevel;
   }
+
+  private void useDefaultKeyContext()
+  {
+    if (logLevel.isFine())
+    { log.fine("Using default KeyContext mode");
+    }
+    if (keyContexts==null && defaultKeyContext==null)
+    { defaultKeyContext=new KeyContext();
+    }
+    else if (keyContexts!=null)
+    { 
+      throw new IllegalStateException
+        ("Cannot set default crypto properties after adding KeyContexts"
+        );
+    }
+    
+  }
+  
+  public void setKeyContexts(KeyContext[] kc)
+  {
+    if (defaultKeyContext!=null)
+    {
+      throw new IllegalStateException
+        ("Cannot add KeyContexts when using default crypto properties");
+    }
+    this.keyContexts=kc;
+  }
+  
+  
   
   public void setKeystoreResource(Resource val)
-  { _keystoreResource=val;
+  { 
+    useDefaultKeyContext();
+    defaultKeyContext.setKeystoreResource(val);
   }
 
   public void setPassphrase(String val)
-  { _passphrase=val;
+  { 
+    useDefaultKeyContext();
+    defaultKeyContext.setPassphrase(val);
   }
 
   public void setEnableAdditionalProtocols(String[] protocols)
@@ -87,41 +116,56 @@ public class SecureServerSocketFactory
   }
   
   public void setKeyAlias(String val)
-  { _keyAlias=val;
+  { 
+    useDefaultKeyContext();
+    defaultKeyContext.setKeyAlias(val);
   }
   
   public void setCertManager(CertManager certManager)
-  { this.certManager=certManager;
+  { 
+    useDefaultKeyContext();
+    defaultKeyContext.setCertManager(certManager);
   }
   
   public void start()
     throws LifecycleException
   { 
-    if (certManager!=null)
-    { 
-      certManager.setKeystoreInfo(_keystoreResource,_passphrase,_keyAlias);
-      certManager.start();
-      try
-      { certManager.refreshKeystore();
-      }
-      catch (Exception x)
-      { log.log(Level.WARNING,"Error refreshing keystore- using existing key",x);
-      }
+//    if (logLevel.isFine())
+//    { System.setProperty("javax.net.debug", "ssl");
+//    }
+
+    if (keyContexts==null && defaultKeyContext==null)
+    { useDefaultKeyContext();
     }
     
+    if (defaultKeyContext!=null)
+    { keyContexts=new KeyContext[] {defaultKeyContext};
+    }
+    
+    if (keyContexts!=null)
+    {
+      for (KeyContext kc: keyContexts)
+      { kc.start();
+      }
+    }
+   
     try
     { makeFactory();
     }
     catch (IOException x)
     { throw new LifecycleException("Error starting socket factory",x);
     }
+    
   }
 
   public void stop()
     throws LifecycleException
   { 
-    if (certManager!=null)
-    { certManager.stop();
+    if (keyContexts!=null)
+    {
+      for (KeyContext kc: keyContexts)
+      { kc.stop();
+      }
     }
   
     _delegate=null;
@@ -134,79 +178,24 @@ public class SecureServerSocketFactory
     { return;
     }
 
+    
     try
     {
-      char[] passphrase=_passphrase.toCharArray();
+      CompoundKeyManager keyManager=new CompoundKeyManager();
+      keyManager.setLogLevel(logLevel);
+      
+      if (keyContexts!=null)
+      {
+        for (KeyContext kc: keyContexts)
+        { 
+          KeyManager[] keyManagers=kc.initKeyManagers();
+          keyManager.addKeyManagers(kc.getDomains(), keyManagers);
+        }
+      }
+
+
       _sslContext=SSLContext.getInstance("TLS");
-      KeyStore ks=KeyStore.getInstance("JKS");
-      if (_keystoreResource!=null)
-      { ks.load(_keystoreResource.getInputStream(), passphrase);
-      }
-      else
-      { 
-        ks.load
-          (SecureServerSocketFactory.class
-            .getResourceAsStream("testkeys")
-          , passphrase
-          );
-      }
-      
-
-      if (   (_keyAlias!=null) 
-          && (ks.size() > 1) 
-          && (ks.containsAlias(_keyAlias))
-         ) 
-      {
-        // Make sure that if an alias is specified, it is the only one
-        //   in our in-memory copy of the key-store.
-        ArrayList<String> deletes=new ArrayList<>();
-        Enumeration<String> aliases=ks.aliases();
-        while (aliases.hasMoreElements())
-        {
-          String alias=aliases.nextElement();
-          if (!alias.equals(_keyAlias))
-          { deletes.add(alias);
-          }
-        }
-        for (String alias : deletes)
-        { 
-          if (logLevel.canLog(Level.DEBUG))
-          { log.fine("Deleting alias "+alias+" (!="+_keyAlias+")");
-          }
-          ks.deleteEntry(alias);
-        }
-      }
-
-//      KeyManagerFactory kmf=KeyManagerFactory.getInstance("SunX509");
-      KeyManagerFactory kmf
-        =KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-      kmf.init(ks,passphrase);
-      KeyManager[] origKeyManagers=kmf.getKeyManagers();
-      KeyManager[] keyManagers;
-      if (certManager!=null)
-      { 
-        keyManagers=new KeyManager[origKeyManagers.length];
-        Arrays.setAll
-          (keyManagers
-          , i->certManager.decorateKeyManager(origKeyManagers[i])
-          );
-      }
-      else
-      { keyManagers=origKeyManagers;
-      }
-      
-
-      if (logLevel.canLog(Level.DEBUG))
-      {
-        for (KeyManager keyManager : keyManagers)
-        { 
-          if (logLevel.isFine())
-          { log.fine("KeyManager: "+keyManager);
-          }
-        }
-      }
-          
-      _sslContext.init(keyManagers,null,null);
+      _sslContext.init(new KeyManager[] {keyManager},null,null);
       if (logLevel.isInfo())
       {
         log.log
@@ -247,8 +236,13 @@ public class SecureServerSocketFactory
 
   protected ServerSocket configureServerSocket(ServerSocket socket)
   { 
+    
     // TODO: Apply custom protocol and cipher suite configuration options
       SSLServerSocket sslSocket=(SSLServerSocket) socket;
+      SSLParameters params=sslSocket.getSSLParameters();
+      params.setApplicationProtocols(enabledApplicationProtocols);
+      sslSocket.setSSLParameters(params);
+      
       if (enableAdditionalProtocols!=null)
       {
         sslSocket.setEnabledProtocols
@@ -264,6 +258,7 @@ public class SecureServerSocketFactory
 
       String[] enabledProtocols=sslSocket.getEnabledProtocols();
       String[] enabledCiphers=sslSocket.getEnabledCipherSuites();
+      String[] applicationProtocols = sslSocket.getSSLParameters().getApplicationProtocols();
       if (logLevel.canLog(Level.CONFIG))
       {
         log.config("Protocols: Enabled:"
@@ -276,14 +271,20 @@ public class SecureServerSocketFactory
             +" Supported:"
             +ArrayUtil.format(ciphers,"|",null)
             );
+        log.config("ApplicationProtocols"
+            +ArrayUtil.format(applicationProtocols,"|",null)
+            );
         
         
       }
       
 //      sslSocket.setEnabledProtocols(protocols);
 //      sslSocket.setEnabledCipherSuites(ciphers);
-    if (certManager!=null)
-    { certManager.socketReady();
+    if (keyContexts!=null)
+    { 
+      for (KeyContext kc: keyContexts)
+      { kc.socketReady();
+      }
     }
     return socket;
   
@@ -301,8 +302,21 @@ public class SecureServerSocketFactory
     { log.fine("Configuring connected socket "+sock);
     }
     SSLSocket sslSocket=(SSLSocket) sock;
+
     BiFunction<SSLSocket,List<String>,String> defaultProtocolSelector
-      =sslSocket.getHandshakeApplicationProtocolSelector(); 
+      =sslSocket.getHandshakeApplicationProtocolSelector() !=null
+      ? sslSocket.getHandshakeApplicationProtocolSelector() 
+      : (SSLSocket serverSocket, List<String> clientProtocols) ->
+        {
+          for (String protocol : clientProtocols)
+          { 
+            if (ArrayUtil.contains(enabledApplicationProtocols, protocol))
+            { return protocol;
+            }
+          }
+          return null;
+        };
+    
     sslSocket.setHandshakeApplicationProtocolSelector
       (
         (serverSocket, clientProtocols) -> 
@@ -320,10 +334,19 @@ public class SecureServerSocketFactory
               handshakeSession.getCipherSuite()
             );
           if (applicationProtocol==null && defaultProtocolSelector!=null)
-          { return defaultProtocolSelector.apply(serverSocket, clientProtocols);
+          { 
+            String ret = defaultProtocolSelector.apply(serverSocket, clientProtocols);
+            if (logLevel.isFine())
+            { log.fine("defaultProtocolSelector returned applicatioin protocol "+ret);
+            }
+            return ret;
           }
           else 
-          { return applicationProtocol;
+          { 
+            if (logLevel.isFine())
+            { log.fine("handshakeApplicationProtocolSelector returning "+applicationProtocol);
+            }
+            return applicationProtocol;
           }
         }
       );

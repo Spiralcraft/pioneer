@@ -51,4 +51,6 @@ public interface CertManager
    * Called once the socket is listening
    */
   public void socketReady();
+  
+  public String[] getDomains();
 }

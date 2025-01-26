@@ -2562,6 +2562,14 @@ public class SimpleHttpServiceContext
     }
   }
   
+  public String[] getHostNames()
+  { 
+    if (validHostSet!=null)
+    { return validHostSet.toArray(new String[validHostSet.size()]);
+    }
+    else return null;
+  }
+  
   /////////////////////////////////////////////////////////////////////////
   //
   // Startup sequence

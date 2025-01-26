@@ -32,7 +32,7 @@ import spiralcraft.pioneer.util.ThrowableUtil;
 
 import java.net.Socket;
 import java.net.URI;
-
+import java.util.HashMap;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
@@ -63,6 +63,7 @@ public class HttpServer
 
   private ClassLog _log=ClassLog.getInstance(HttpServer.class);
   private HttpServiceContext _serviceContext;
+  private HttpServerContext[] serverContexts;
   private int _socketTimeout=30000;
   private String _serverInfo;
   private int _initialBufferCapacity=8192;
@@ -82,12 +83,14 @@ public class HttpServer
   private Resource traceResource;
   private String _remoteAddressHeaderName;
   private AddressSet _serverProxyAddresses;
+  private HashMap<String,HttpServerContext> hostMap=new HashMap<>();
   
   private DebugSettings debugSettings
     =new DebugSettings();
     
   
   protected Focus<?> focus;
+  private volatile int nextContextId=0;
  
   public void setServerInfo(String serverInfo)
   { _serverInfo=serverInfo;
@@ -175,12 +178,36 @@ public class HttpServer
     
   }
 
+  /**
+   * The root service context for a single-scope server
+   * 
+   * @param context
+   */
   public void setServiceContext(HttpServiceContext context)
   { _serviceContext=context;
   }
 
+  /**
+   * The root service context for a single-scope server
+   * 
+   * @param context
+   */
   public HttpServiceContext getServiceContext()
   { return _serviceContext;
+  }
+  
+  /**
+   * The set of independently scoped serverContexts running
+   *   in this server
+   * 
+   * @param contexts
+   */
+  public void setServerContexts(HttpServerContext[] contexts)
+  { this.serverContexts=contexts;
+  }
+
+  public HttpServerContext[] getServerContexts()
+  { return this.serverContexts;
   }
   
   @Override
@@ -190,23 +217,27 @@ public class HttpServer
     stopping=false;
     try
     {
-      if (_serviceContext==null)
-      { 
-        SimpleHttpServiceContext serviceContext=new SimpleHttpServiceContext();
-        _serviceContext=serviceContext;
+      if (serverContexts==null)
+      {
+        if (_serviceContext==null)
+        { 
+          SimpleHttpServiceContext serviceContext=new SimpleHttpServiceContext();
+          _serviceContext=serviceContext;
+        }
+        serverContexts=new HttpServerContext[] { _serviceContext };
       }
-      _serviceContext.setDebugSettings(debugSettings);
-      if (meterContext!=null)
-      { _serviceContext.installMeter(meterContext.subcontext("rootContext"));
+      else
+      {
+        if (_serviceContext!=null)
+        { 
+          throw new IllegalStateException
+            ("Cannot have both a single ServiceContext AND ServerContexts");
+        }
       }
-      try
-      { _serviceContext.bind(focus);
+      
+      for (HttpServerContext ctx: serverContexts)
+      { startServerContext(ctx);
       }
-      catch (ContextualException x)
-      { throw new LifecycleException("Error binding ServletContext",x);
-      }
-      _serviceContext.start();
-    
       if (_serverInfo==null)
       { _serverInfo="Spiralcraft HTTPD";
       }
@@ -219,6 +250,28 @@ public class HttpServer
     
   }
 
+  private void startServerContext(HttpServerContext ctx)
+    throws LifecycleException
+  {
+    int id=nextContextId++;
+    ctx.setDebugSettings(debugSettings);
+    if (meterContext!=null)
+    { 
+      ctx.installMeter
+        (meterContext.subcontext("context"+id));
+    }
+    try
+    { ctx.bind(focus);
+    }
+    catch (ContextualException x)
+    { throw new LifecycleException("Error binding ServletContext",x);
+    }
+    ctx.start();
+    listContext(ctx);
+  }
+
+
+
   @Override
   public synchronized void stop()
     throws LifecycleException
@@ -228,15 +281,17 @@ public class HttpServer
     started=false;
     try
     {
-      if (_serviceContext!=null)
+      for (HttpServerContext ctx: serverContexts)
       { 
+        delistContext(ctx);
+
         try
-        { _serviceContext.stop();
+        { ctx.stop();
         }
         catch (Exception x)
-        { log.log(Level.WARNING,"Error stopping "+_serviceContext,x);
+        { log.log(Level.WARNING,"Error stopping "+ctx,x);
         }
-      }
+      }      
     }
     finally
     { notifyAll();
@@ -272,6 +327,55 @@ public class HttpServer
     return focus;
   }
 
+  /**
+   * Maps the host header of the request to either a specific 
+   *   context listed for the host or a catch-all context.
+   *   
+   * @param request
+   * @return
+   */
+  private HttpServerContext mapHost(HttpServerRequest request)
+  { 
+    String host=request.getHeader("Host");
+    if (host==null)
+    { host="*";
+    }
+    else
+    { host=host.toLowerCase();
+    }
+    HttpServerContext ret=hostMap.get(host);
+    if (ret==null)
+    { ret=hostMap.get("*");
+    }
+    return ret;
+  }
+  
+  private void listContext(HttpServerContext ctx)
+    throws LifecycleException
+  {
+    String[] hostNames=ctx.getHostNames();
+    if (hostNames==null)
+    { hostNames=new String[] {"*"};
+    }
+    for (String name: hostNames)
+    { 
+      if (hostMap.containsKey(name))
+      { throw new LifecycleException("Host "+name+" already registered");
+      }
+      hostMap.put(name, ctx);
+    }
+  }
+  
+  private void delistContext(HttpServerContext ctx)
+  {
+    String[] hostNames=ctx.getHostNames();
+    if (hostNames==null)
+    { hostNames=new String[] {"*"};
+    }
+    for (String name: hostNames)
+    { hostMap.remove(name,ctx);
+    }
+  }  
 
   class HttpConnectionHandler
     implements ConnectionHandler
@@ -429,7 +533,14 @@ public class HttpServer
               try
               { 
                 _request.readHeaders();
-                _serviceContext.service(_request,_response);
+
+                HttpServerContext context=mapHost(_request);
+                if (context!=null)
+                { context.service(_request,_response);
+                }
+                else
+                { _response.sendError(503,"Service unavailable");
+                }
               }
               catch (ServletException x)
               {
