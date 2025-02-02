@@ -270,7 +270,9 @@ public class CompoundKeyManager
         }
       }
     }
-    log.fine("chooseServerAlias returning null for domain "+domain);
+    if (logLevel.isFine())
+    { log.fine("chooseServerAlias returning null for domain "+domain);
+    }
     return null;
   }
 

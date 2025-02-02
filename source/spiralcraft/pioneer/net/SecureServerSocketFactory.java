@@ -261,17 +261,17 @@ public class SecureServerSocketFactory
       String[] applicationProtocols = sslSocket.getSSLParameters().getApplicationProtocols();
       if (logLevel.canLog(Level.CONFIG))
       {
-        log.config("Protocols: Enabled:"
+        log.config("Protocols: Enabled: "
                   +ArrayUtil.format(enabledProtocols,"|",null)
                   +" Supported:"
                   +ArrayUtil.format(protocols,"|",null)
                   );
-        log.config("Ciphers: Enabled:"
+        log.config("Ciphers: Enabled: "
             +ArrayUtil.format(enabledCiphers,"|",null)
             +" Supported:"
             +ArrayUtil.format(ciphers,"|",null)
             );
-        log.config("ApplicationProtocols"
+        log.config("ApplicationProtocols: "
             +ArrayUtil.format(applicationProtocols,"|",null)
             );
         
