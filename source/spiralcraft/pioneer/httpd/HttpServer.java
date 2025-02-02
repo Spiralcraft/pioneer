@@ -342,10 +342,14 @@ public class HttpServer
     }
     else
     { host=host.toLowerCase();
-    }
+    }    
+    host=stripPort(host);
     HttpServerContext ret=hostMap.get(host);
     if (ret==null)
     { ret=hostMap.get("*");
+    }
+    if (ret==null && logLevel.isInfo())
+    { log.info("No map for host "+host+" or *");
     }
     return ret;
   }
@@ -354,7 +358,7 @@ public class HttpServer
     throws LifecycleException
   {
     String[] hostNames=ctx.getHostNames();
-    if (hostNames==null)
+    if (hostNames==null || hostNames.length==0)
     { hostNames=new String[] {"*"};
     }
     for (String name: hostNames)
@@ -363,6 +367,9 @@ public class HttpServer
       { throw new LifecycleException("Host "+name+" already registered");
       }
       hostMap.put(name, ctx);
+      if (logLevel.isConfig())
+      { log.fine("Listed "+name+" for "+ctx);
+      }
     }
   }
   
@@ -377,6 +384,16 @@ public class HttpServer
     }
   }  
 
+  private String stripPort(String hostPort)
+  {
+    int i=hostPort.indexOf(':');
+    if (i>0)
+    { return hostPort.substring(0,i);
+    }
+    else return hostPort;
+    
+  }
+  
   class HttpConnectionHandler
     implements ConnectionHandler
   {
