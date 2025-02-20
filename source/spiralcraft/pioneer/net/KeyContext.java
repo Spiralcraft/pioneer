@@ -71,7 +71,9 @@ public class KeyContext
       catch (Exception x)
       { log.log(Level.WARNING,"Error refreshing keystore- using existing key",x);
       }
-      domains=certManager.getDomains();
+      if (domains==null) 
+      { domains=certManager.getDomains();
+      }
     }
     
   }

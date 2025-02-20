@@ -97,8 +97,13 @@ public class SecureServerSocketFactory
     this.keyContexts=kc;
   }
   
+  public void setDomains(String[] domains)
+  { 
+    useDefaultKeyContext();
+    defaultKeyContext.setDomains(domains);
+  }
   
-  
+
   public void setKeystoreResource(Resource val)
   { 
     useDefaultKeyContext();
