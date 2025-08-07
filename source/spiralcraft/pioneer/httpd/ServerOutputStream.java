@@ -40,6 +40,8 @@ public class ServerOutputStream
   private static final ClassLog log
     =ClassLog.getInstance(ServerOutputStream.class);
 
+  public final static byte[] END_CHUNK="0\r\n\r\n".getBytes();
+
   private OutputStream _out;
   private OutputStream _trace;
   private boolean _chunking;
@@ -241,6 +243,17 @@ public class ServerOutputStream
     _count+=len;
   }
 
+  void finish()
+    throws IOException
+  { 
+    flush();
+    if (_chunking)
+    {
+      setChunking(false);
+      writeToClient(END_CHUNK);
+    }
+  }
+  
   @Override
   public void write(byte[] data)
     throws IOException
@@ -340,18 +353,7 @@ public class ServerOutputStream
 
   void cleanup()
   {
-    if (_closeRequested)
-    { 
-      try
-      { _out.close();
-      }
-      catch (IOException x)
-      {
-        if (debugSettings.getDebugProtocol())
-        { log.log(Level.DEBUG,"Exception closing underlying stream",x);
-        }
-      }
-    }
+    // DO NOT CLOSE OUTPUT STREAMS BECAUSE IT MESSES WITH TLS
   }
   
   public int getCount()

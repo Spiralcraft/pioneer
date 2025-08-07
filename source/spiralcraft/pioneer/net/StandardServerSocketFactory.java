@@ -18,10 +18,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
 import java.io.IOException;
+import spiralcraft.log.ClassLog;
 
 public class StandardServerSocketFactory
   implements ServerSocketFactory
 {
+
+  private static ClassLog log=ClassLog.getInstance(StandardServerSocketFactory.class);
+  
   @Override
   public ServerSocket createServerSocket(int port)
     throws IOException
@@ -57,5 +61,15 @@ public class StandardServerSocketFactory
   
   public void configureConnectedSocket(Socket sock)
   {
+  }
+  
+  public void closeSocket(Socket sock)
+  { 
+    try
+    { sock.close();
+    }
+    catch (IOException x)
+    { log.fine("Error closing socket "+sock+" : "+x);
+    }
   }
 }

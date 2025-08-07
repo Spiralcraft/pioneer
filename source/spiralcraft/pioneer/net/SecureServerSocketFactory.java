@@ -431,5 +431,19 @@ public class SecureServerSocketFactory
     //return 15*1024;
   }
 
+  @Override
+  public void closeSocket(Socket sock)
+  { 
+    SSLSocket sslSocket=(SSLSocket ) sock;
+    try
+    {
+      sslSocket.getOutputStream().flush();
+      sslSocket.shutdownOutput();
+      sslSocket.close();
+    }
+    catch (IOException x)
+    { log.fine("Error closing socket "+sock+" : "+x);
+    }
+  }
 }
 

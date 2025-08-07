@@ -109,7 +109,6 @@ public class HttpServerResponse
   public final static byte[] COOKIE_SECURE="secure".getBytes();
   public final static byte[] COOKIE_VERSION="version".getBytes();
 
-  public final static byte[] END_CHUNK="0\r\n\r\n".getBytes();
 
   private static final Charset UTF_8=Charset.forName("UTF-8");
   
@@ -121,7 +120,7 @@ public class HttpServerResponse
   private String _reason;
   private boolean _sentHeaders=false;
   private ServerOutputStream _outputStream;
-  private boolean _shouldClose=true;
+  private boolean _shouldClose=false;
   private boolean _chunkStream=false;
   private int _keepaliveSeconds=30;
   private Locale _locale;
@@ -161,6 +160,8 @@ public class HttpServerResponse
   public void setDebugSettings(DebugSettings debugSettings)
   {
     this.debugSettings=debugSettings;
+    this.debugProtocol=debugSettings.debugProtocol;
+    this.debugAPI=debugSettings.debugAPI;
     _outputStream.setDebugSettings(debugSettings);
   }
   
@@ -179,7 +180,7 @@ public class HttpServerResponse
     _status=0;
     _reason=null;
     _sentHeaders=false;
-    _shouldClose=true;
+    _shouldClose=false;
     _chunkStream=false;
     _keepaliveSeconds=30;
     _writer=null;
@@ -642,6 +643,16 @@ public class HttpServerResponse
         String connection=getHeader(HDR_CONNECTION);
         String length=getHeader(HDR_CONTENT_LENGTH);
         String requestConnection=_request.getHeader(HDR_CONNECTION);
+
+        if (debugProtocol)
+        { 
+          _log.debug("Commiting to HTTP/1.1 headers... "
+                    +"encoding="+encoding
+                    +", connection="+connection
+                    +", length="+length
+                    +", requestConnection="+requestConnection
+                    );
+        }
         
         boolean keepAliveOverride=false;
         if (_request.isSecure())
@@ -657,6 +668,9 @@ public class HttpServerResponse
 
         if (CONNECTION_CLOSE.equals(requestConnection))
         {
+          if (debugProtocol)
+          { _log.debug("Client requested Connection: close");
+          }
           // Always close if asked by client
           _shouldClose=true;
           setHeader(HDR_CONNECTION,CONNECTION_CLOSE);
@@ -664,10 +678,16 @@ public class HttpServerResponse
         else if (CONNECTION_CLOSE.equals(connection))
         {
           // Close if asked by Servlet, no need to set header.
+          if (debugProtocol)
+          { _log.debug("Servlet set Connection: close");
+          }
           _shouldClose=true;
         }
         else if (keepAliveOverride)
         {
+          if (debugProtocol)
+          { _log.debug("Keepalive is overriden, setting Connection: close");
+          }
           // Close if keep-alive is overridden
           _shouldClose=true;
           setHeader(HDR_CONNECTION,CONNECTION_CLOSE);
@@ -678,26 +698,27 @@ public class HttpServerResponse
           _shouldClose=false;
         }
 
-        if (_status!=304)
+        if (_status!=304 && _status!=204 && !(_status>=100 && _status<=199))
         {
           if (encoding!=null && encoding.equals(ENCODING_CHUNKED))
           { _chunkStream=true;
           }
           else if (length==null)
           {
-            if (!_shouldClose)
-            {
-              // Chunk by default if we aren't closing
-              setHeader(HDR_TRANSFER_ENCODING
-                       ,ENCODING_CHUNKED
-                       );
-              _chunkStream=true;
-            }
-            else
-            { 
-              // Close signals end of stream, no need to chunk
-              _chunkStream=false;
-            }
+           
+            // Chunk always if no content length.
+            //
+            // Closing the stream to complete the response 
+            //   causes problems with TLS (2025-08-06)
+            
+            setHeader(HDR_TRANSFER_ENCODING
+                     ,ENCODING_CHUNKED
+                     );
+            _chunkStream=true;
+
+          }
+          else 
+          { _chunkStream=false;
           }
 		    }
         else
@@ -705,13 +726,14 @@ public class HttpServerResponse
           // No-entity responses must not contain entity-headers.
           _chunkStream=false;
         }
+        // / http1.1 section
 	    }
 	    else
 	    { 
         String connection=getHeader(HDR_CONNECTION);
         String requestConnection=_request.getHeader(HDR_CONNECTION);
         String length=getHeader(HDR_CONTENT_LENGTH);
-        if (CONNECTION_KEEP_ALIVE.equals(requestConnection)
+        if ((requestConnection==null || CONNECTION_KEEP_ALIVE.equals(requestConnection))
             && (length!=null || _status==304)
             &&!CONNECTION_CLOSE.equals(connection)
            )
@@ -721,6 +743,9 @@ public class HttpServerResponse
         }
         else
         {
+          if (debugProtocol)
+          { _log.debug("Setting Connection: close on header commit");
+          }
           setHeader(HDR_CONNECTION,CONNECTION_CLOSE);
           _shouldClose=true;
         }
@@ -885,6 +910,29 @@ public class HttpServerResponse
 
     if (_shouldClose)
     {
+      if (_chunkStream)
+      {
+        if (debugProtocol)
+        {
+          _log.log(Level.DEBUG
+                  ,"Finishing chunked response before closing connection from "
+                  +_socket.getInetAddress().getHostAddress()
+                  );
+        }
+        try
+        {
+          _outputStream.finish();
+        }
+        catch (IOException x)
+        {
+          _log.log(Level.INFO
+                  ,"Exception Finishing response before closing connection from "
+                  +_socket.getInetAddress().getHostAddress()
+                  +": "+x.toString()
+                  );
+        }
+      }
+      
       if (debugProtocol)
       {
         _log.log(Level.DEBUG
@@ -894,7 +942,10 @@ public class HttpServerResponse
       }
 
       try
-      { _socket.close();
+      { 
+        // This is just informative, actual shutdown happens at
+        //   a higher level
+        _outputStream.close();
       }
       catch (IOException x)
       { }
@@ -910,9 +961,7 @@ public class HttpServerResponse
       }
       try
       {
-        _outputStream.setChunking(false);
-        _outputStream.write(END_CHUNK);
-        _outputStream.flush();
+        _outputStream.finish();
       }
       catch (IOException x)
       {
@@ -923,6 +972,8 @@ public class HttpServerResponse
                 );
       }
     }
+
+
   }
 
   public int getByteCount()
@@ -1032,9 +1083,10 @@ public class HttpServerResponse
       if (connection!=null && connection.length()>0)
       { setHeader(HDR_CONNECTION,connection);
       }
-      else
+      else if ("HTTP/1.0".equals(_version))
       { 
-        // Don't set empty header value
+        // Don't set empty header value for http/1.0
+        // For HTTP/1.1 - DO NOT SET IT TO CLOSE, default is keepalive
         setHeader(HDR_CONNECTION,"close");
       }
       

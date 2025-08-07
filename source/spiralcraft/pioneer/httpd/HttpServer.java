@@ -481,11 +481,7 @@ public class HttpServer
     {
       if (!ensureRunning())
       { 
-        try
-        { socket.close();
-        }
-        catch (IOException x)
-        { }
+        factory.closeSocket(socket);
         return;
       }
 
@@ -507,14 +503,14 @@ public class HttpServer
         _request.setTraceStream(traceStream);
         _response.setTraceStream(traceStream);
 
-
+        
         socket.setSoTimeout(_socketTimeout);
         factory.configureConnectedSocket(socket);
 
         if (debugSettings.debugProtocol)
         { 
           _log.log(Level.DEBUG,"Got HTTP connection from "
-            +socket.getInetAddress().getHostAddress());
+            +socket.getInetAddress().getHostAddress()+": timeout="+_socketTimeout);
         }
 
         boolean done=false;
@@ -534,11 +530,6 @@ public class HttpServer
                         +socket.getInetAddress().getHostAddress()
                         );
               }
-              try
-              { socket.close();
-              }
-              catch (Exception x2)
-              { }
               done=true;
             }
           
@@ -581,7 +572,11 @@ public class HttpServer
               { done=true;
               }
               else
-              { socket.setSoTimeout(_response.getKeepaliveSeconds()*1000);
+              { 
+                if (debugSettings.debugProtocol)
+                { log.fine("Timeout for next request is "+_response.getKeepaliveSeconds()+"s");
+                }
+                socket.setSoTimeout(_response.getKeepaliveSeconds()*1000);
               }
             }
           }
@@ -607,13 +602,8 @@ public class HttpServer
           // If request is not started, don't log anything because
           //    client closed keepalive connection, which is normal.
           String addr="(unknown)";
-          try
-          { 
-            addr=socket.getInetAddress().getHostAddress();
-            socket.close();
-          }
-          catch (IOException x2)
-          { }
+          addr=socket.getInetAddress().getHostAddress();
+          factory.closeSocket(socket);
           if (_log.canLog(Level.INFO))
           { _log.log(Level.INFO,"IOException handling connection from "+addr+": "+x.toString()+": "+x.getCause());
           }
@@ -625,6 +615,7 @@ public class HttpServer
         { _activeConnectionsRegister.decrementValue();
         }
 
+        log.fine("Cleaning up connection");
         _request.cleanup();
         _response.cleanup();
         try
@@ -636,17 +627,8 @@ public class HttpServer
         catch (Exception x)
         { }
 
-        try
-        {
-          // 2009-02-11 mike: Fix FD leak
-          if (!socket.isClosed())
-          { socket.close();
-          }
-        }
-        catch (IOException x)
-        { 
-          _log.log(Level.INFO,"Normal socket close threw Exception",x);
-        }
+        log.fine("Closing socket");
+        factory.closeSocket(socket);
         
         
         if (debugSettings.debugProtocol)

@@ -225,6 +225,7 @@ public final class ServerInputStream
   @Override
   public final void close()
     throws IOException
-  { _in.close();
+  { 
+    // Don't close anything here. This messes up the low level protocol
   }
 }

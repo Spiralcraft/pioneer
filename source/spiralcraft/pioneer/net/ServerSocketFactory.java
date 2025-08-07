@@ -30,4 +30,5 @@ public interface ServerSocketFactory
   public void configureConnectedSocket(Socket socket)
     throws IOException;
   
+  public void closeSocket(Socket socket);
 }
