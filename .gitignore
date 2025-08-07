@@ -1,7 +1,6 @@
 build.number
 *.class
 out
-bin
 *.local
 $jarplug.work
 /packages/
