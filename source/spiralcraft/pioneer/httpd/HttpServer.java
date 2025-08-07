@@ -615,7 +615,6 @@ public class HttpServer
         { _activeConnectionsRegister.decrementValue();
         }
 
-        log.fine("Cleaning up connection");
         _request.cleanup();
         _response.cleanup();
         try
@@ -627,7 +626,6 @@ public class HttpServer
         catch (Exception x)
         { }
 
-        log.fine("Closing socket");
         factory.closeSocket(socket);
         
         
