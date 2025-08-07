@@ -21,6 +21,38 @@
         </path>
 
         <resources>
+          <URI>http/HttpServer.java
+          </URI>
+          <URI>http/HttpServerResponse.java
+          </URI>
+          <URI>http/ServerInputStream.java
+          </URI>
+          <URI>http/ServerOutputStream.java
+          </URI>
+          <URI>net/SecureServerSocketFactory.java
+          </URI>
+          <URI>net/ServerSocketFactory.java
+          </URI>
+          <URI>net/StandardServerSocketFactory.java
+          </URI>
+        </resources>
+        
+        <notes>
+          <scm:Note>Ensure timely flushing and proper TLS termination 
+          </scm:Note>
+        </notes>
+                
+      </scm:Change>
+      
+      
+      <scm:Change>
+        <revision>-dev33
+        </revision>
+                
+        <path>source/spiralcraft/pioneer
+        </path>
+
+        <resources>
           <URI>httpd/HttpServer.java
           </URI>
           <URI>httpd/HttpServerContext.java
