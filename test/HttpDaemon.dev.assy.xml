@@ -49,14 +49,17 @@
         </httpd:RotatingFileAccessLog>
       </serviceContext.accessLog>
       
-      <debugService>false
+      <debugService>true
       </debugService>
-      <debugProtocol>false
+      <debugProtocol>true
       </debugProtocol>
-      <debugAPI>false
+      <debugAPI>true
       </debugAPI>
-      <debugIO>false
-      </debugIO>        
+      <debugIO>true
+      </debugIO>   
+      
+      <logLevel>FINE
+      </logLevel>     
     </here:HttpService>
   </services>
 </service:Daemon>

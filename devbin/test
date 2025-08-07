@@ -2,5 +2,5 @@
 source $(dirname $0)/common.sh
 echo $0
 pushd test
-"$JAVA" -jar ../lib/spiralcraft.jar httpd.dev
+"$JAVA" -Djavax.net.debug=ssl,handshake -jar ../lib/spiralcraft.jar  httpd.dev
 popd
