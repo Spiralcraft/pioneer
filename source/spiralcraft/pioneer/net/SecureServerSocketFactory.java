@@ -435,14 +435,17 @@ public class SecureServerSocketFactory
   public void closeSocket(Socket sock)
   { 
     SSLSocket sslSocket=(SSLSocket ) sock;
-    try
+    if (!sslSocket.isClosed())
     {
-      sslSocket.getOutputStream().flush();
-      sslSocket.shutdownOutput();
-      sslSocket.close();
-    }
-    catch (IOException x)
-    { log.fine("Error closing socket "+sock+" : "+x);
+      try
+      {
+        sslSocket.getOutputStream().flush();
+        sslSocket.shutdownOutput();
+        sslSocket.close();
+      }
+      catch (IOException x)
+      { log.fine("Error closing socket "+sock+" : "+x);
+      }
     }
   }
 }
