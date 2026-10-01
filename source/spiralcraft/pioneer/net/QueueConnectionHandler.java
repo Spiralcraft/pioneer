@@ -38,6 +38,7 @@ import spiralcraft.log.Level;
 import spiralcraft.log.ClassLog;
 
 import spiralcraft.pioneer.util.ThrowableUtil;
+import spiralcraft.time.Clock;
 
 import java.io.IOException;
 
@@ -49,6 +50,8 @@ public class QueueConnectionHandler
 	implements ConnectionHandler
 {
 
+  protected final  Clock clock=Clock.instance();
+  
   private ClassLog _log=ClassLog.getInstance(QueueConnectionHandler.class);
 
 	protected ConnectionHandlerFactory _factory;
@@ -57,12 +60,16 @@ public class QueueConnectionHandler
     =new LinkedList<>();
   private final Object _queueMonitor=new Object();
   private final DispatchThread _dispatchThread=new DispatchThread();
-//  private int _maxQueueLength=500;
   private boolean _initialized=false;
   private boolean _finished=false;
   private Meter _meter;
   private Register _queueSizeRegister;
   private Register _connectsRegister;
+  private Register _capRejectsRegister;
+  private Register _expirationsRegister;
+  
+  private int _queueLengthCap=500;
+  private long _expirationMs=30000;
 
 
   public QueueConnectionHandler()
@@ -78,7 +85,9 @@ public class QueueConnectionHandler
     _meter=meterContext.meter("requestQueue");
     _queueSizeRegister=_meter.register("queueSize");
     _connectsRegister=_meter.register("connects");
-
+    _capRejectsRegister=_meter.register("capacityRejects");
+    _expirationsRegister=_meter.register("expirations");
+    
     _threadPool.installMeter(meterContext);
   }
 
@@ -129,6 +138,19 @@ public class QueueConnectionHandler
   { _threadPool.setMinAvailable(threads);
   }
 
+  /**
+   * The maximum size of the queue before incoming connections will be
+   *   closed.
+   * @param cap
+   */
+  public void setQueueLengthCap(int cap)
+  { this._queueLengthCap=cap;
+  }
+  
+  public void setExpirationMs(long expirationMs)
+  { this._expirationMs=expirationMs;
+  }
+
   public void setDebug(boolean debug)
   { _threadPool.setDebug(debug);
   }
@@ -154,28 +176,40 @@ public class QueueConnectionHandler
     
     assertInit();
     if (_finished)
-    { 
-      try
-      { sock.close();
-      }
-      catch (IOException x)
-      { }
+    { factory.abortSocket(sock);
     }
     else
     {
       if (_meter!=null)
       { _connectsRegister.incrementValue();
       }
+      boolean abort=false;
       synchronized (_queueMonitor)
       { 
-        _queue.add(new SocketRef(sock,factory));
-        if (_meter!=null)
-        { _queueSizeRegister.incrementValue();
+        if (_queueLengthCap>0 && _queue.size() >=_queueLengthCap)
+        { abort=true;
         }
-        _queueMonitor.notify();
+        else
+        {
+          _queue.add(new SocketRef(sock,factory,clock.approxTimeMillis()));
+          if (_meter!=null)
+          { _queueSizeRegister.incrementValue();
+          }
+          _queueMonitor.notify();
+        }
+      }
+      if (abort)
+      { 
+        if (_meter!=null)
+        { _capRejectsRegister.incrementValue();
+        }
+        factory.abortSocket(sock);
       }
     }
+    
+    
   }
+  
 
   private static final AtomicInteger _handlerCount
     =new AtomicInteger(0);
@@ -215,21 +249,28 @@ public class QueueConnectionHandler
           {
             if (!_finished)
             {
-              // Handle the connection
-              ConnectionHandlerThread thread
-                =(ConnectionHandlerThread) _threadPool.checkout();
-        
-              thread.handleConnection(sock);
+              if (_expirationMs>0 && clock.approxTimeMillis()-sock.acceptedAt > _expirationMs)
+              {
+                if (_meter!=null)
+                { _expirationsRegister.incrementValue();
+                }
+                sock.factory.abortSocket(sock.socket);
+              }
+              else
+              {
+                
+                // Handle the connection
+                ConnectionHandlerThread thread
+                  =(ConnectionHandlerThread) _threadPool.checkout();
+          
+                thread.handleConnection(sock);
+              }
             }
             else
             {
               // Ignore the request
               // Close the socket
-              try
-              { sock.socket.close();
-              }
-              catch (IOException x)
-              { }
+              sock.factory.abortSocket(sock.socket);
             }
           }
         }
@@ -243,11 +284,7 @@ public class QueueConnectionHandler
           if (_meter!=null)
           { _queueSizeRegister.decrementValue();
           }
-          try
-          { sock.socket.close();
-          }
-          catch (IOException x)
-          { }
+          sock.factory.abortSocket(sock.socket);
         }
       }
       catch (InterruptedException x)
@@ -255,7 +292,7 @@ public class QueueConnectionHandler
       }
     }
 
-    
+
   }
 
   class ThreadFactory
@@ -369,10 +406,12 @@ class SocketRef
 {
   final Socket socket;
   final ServerSocketFactory factory;
+  long acceptedAt;
   
-  SocketRef(Socket socket,ServerSocketFactory factory)
+  SocketRef(Socket socket,ServerSocketFactory factory,long acceptedAt)
   { 
     this.socket=socket;
     this.factory=factory;
+    this.acceptedAt=acceptedAt;
   }
 }

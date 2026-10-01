@@ -31,4 +31,6 @@ public interface ServerSocketFactory
     throws IOException;
   
   public void closeSocket(Socket socket);
+  
+  public void abortSocket(Socket socket);
 }

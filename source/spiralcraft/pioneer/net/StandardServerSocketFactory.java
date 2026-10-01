@@ -16,16 +16,33 @@ package spiralcraft.pioneer.net;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+
 import java.net.InetAddress;
 import java.io.IOException;
 import spiralcraft.log.ClassLog;
+import spiralcraft.log.Level;
 
 public class StandardServerSocketFactory
   implements ServerSocketFactory
 {
 
   private static ClassLog log=ClassLog.getInstance(StandardServerSocketFactory.class);
-  
+
+  private Level logLevel=ClassLog.getInitialDebugLevel
+      (getClass(),Level.INFO);
+
+  private int closeTimeoutMs=2000;
+
+  /**
+   * Maximum time, in milliseconds, that closeSocket() spends draining inbound
+   * data to consume the peer's close_notify. Bounds the close path against
+   * peers that have gone away. Default 2000.
+   */
+  public void setCloseTimeoutMs(int ms)
+  { this.closeTimeoutMs=ms;
+  }
+
   @Override
   public ServerSocket createServerSocket(int port)
     throws IOException
@@ -63,10 +80,63 @@ public class StandardServerSocketFactory
   {
   }
   
-  public void closeSocket(Socket sock)
-  { 
+  
+  public void abortSocket(Socket sock)
+  {
+    try
+    { sock.setSoTimeout(closeTimeoutMs);
+    }
+    catch (SocketException x)
+    { /* best effort */
+    }
+    try
+    { sock.setSoLinger(true,0);
+    }
+    catch (SocketException x)
+    { /* best effort */ 
+    }
     try
     { sock.close();
+    }
+    catch (IOException x)
+    { log.fine("Error aborting socket "+sock+" : "+x);
+    }
+    if (logLevel.isFine())
+    { log.fine("Aborted socket "+sock);
+    }
+      
+  }
+  
+  @Override
+  public void closeSocket(Socket sock)
+  { 
+  
+    if (sock.isClosed())
+    { return;
+    }
+
+
+    try
+    {
+      sock.getOutputStream().flush();
+    }
+    catch (IOException x)
+    {
+    }
+    
+    try
+    { 
+      sock.shutdownOutput();
+    }
+    catch (IOException x)
+    {
+    }
+    
+    try
+    {
+      if (!sock.isClosed())
+      { sock.close();
+      }
     }
     catch (IOException x)
     { log.fine("Error closing socket "+sock+" : "+x);

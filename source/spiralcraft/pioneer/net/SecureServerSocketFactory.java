@@ -18,6 +18,7 @@ package spiralcraft.pioneer.net;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
+import java.net.SocketException;
 
 import java.io.IOException;
 
@@ -43,6 +44,11 @@ import spiralcraft.util.ArrayUtil;
 
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 public class SecureServerSocketFactory
   implements ServerSocketFactory
@@ -65,6 +71,10 @@ public class SecureServerSocketFactory
 
   private String[] enableAdditionalProtocols;
   private String[] enabledApplicationProtocols=new String[] {"http/1.1"};
+
+  private int handshakeTimeoutMs=5000;
+  private int closeTimeoutMs=2000;
+  private ScheduledExecutorService _handshakeWatchdog;
   
   public void setLogLevel(Level logLevel)
   { this.logLevel=logLevel;
@@ -119,6 +129,26 @@ public class SecureServerSocketFactory
   public void setEnableAdditionalProtocols(String[] protocols)
   { this.enableAdditionalProtocols=protocols;
   }
+
+  /**
+   * Maximum wall-clock time permitted for the TLS handshake on an accepted
+   * connection, in milliseconds, enforced as an absolute deadline by a
+   * watchdog independent of the per-read SO_TIMEOUT. A slow-drip client that
+   * resets the per-read timer cannot exceed this bound. Default 5000.
+   */
+  public void setHandshakeTimeoutMs(int ms)
+  { this.handshakeTimeoutMs=ms;
+  }
+
+  /**
+   * Maximum time, in milliseconds, that closeSocket() spends draining inbound
+   * data to consume the peer's close_notify. Bounds the close path against
+   * peers that have gone away. Default 2000.
+   */
+  public void setCloseTimeoutMs(int ms)
+  { this.closeTimeoutMs=ms;
+  }
+
   
   public void setKeyAlias(String val)
   { 
@@ -160,6 +190,16 @@ public class SecureServerSocketFactory
     catch (IOException x)
     { throw new LifecycleException("Error starting socket factory",x);
     }
+
+    _handshakeWatchdog=new ScheduledThreadPoolExecutor
+      (2
+      ,(ThreadFactory) r ->
+        {
+          Thread t=new Thread(r,"SSLHandshakeWatchdog");
+          t.setDaemon(true);
+          return t;
+        }
+      );
     
   }
 
@@ -171,6 +211,12 @@ public class SecureServerSocketFactory
       for (KeyContext kc: keyContexts)
       { kc.stop();
       }
+    }
+
+    if (_handshakeWatchdog!=null)
+    {
+      _handshakeWatchdog.shutdownNow();
+      _handshakeWatchdog=null;
     }
   
     _delegate=null;
@@ -355,7 +401,31 @@ public class SecureServerSocketFactory
           }
         }
       );
-    sslSocket.startHandshake();
+    // Enforce an absolute deadline on the handshake. The per-read SO_TIMEOUT
+    // (set by the caller immediately before this method) only bounds the time
+    // between reads; a client that dribbles one byte within each timeout
+    // window holds the handler thread indefinitely. This watchdog closes the
+    // socket after a fixed wall-clock budget regardless of per-read progress,
+    // unblocking the parked handshake read so the handler returns to the pool.
+    final SSLSocket watchedSocket=sslSocket;
+    ScheduledFuture<?> handshakeWatchdog=null;
+    if (_handshakeWatchdog!=null && handshakeTimeoutMs>0)
+    {
+      handshakeWatchdog=_handshakeWatchdog.schedule
+        (() -> abortSocket(watchedSocket)
+        ,handshakeTimeoutMs
+        ,TimeUnit.MILLISECONDS
+        );
+    }
+    try
+    { sslSocket.startHandshake();
+    }
+    finally
+    {
+      if (handshakeWatchdog!=null)
+      { handshakeWatchdog.cancel(false);
+      }
+    }
 
     if (logLevel.isFine())
     {
@@ -431,24 +501,85 @@ public class SecureServerSocketFactory
     //return 15*1024;
   }
 
+  /**
+   * Abortively close a socket whose handshake exceeded its deadline. Called
+   * from the watchdog thread, possibly while a handler thread is parked in
+   * startHandshake() on the same socket: closing the socket unblocks that
+   * read. Uses SO_LINGER=0 (RST) and a bounded read timeout so the close
+   * itself cannot block the watchdog.
+   */
+  public void abortSocket(Socket sock)
+  {
+    SSLSocket sslSocket=(SSLSocket ) sock;
+
+    if (sslSocket.isClosed())
+    { return;
+    }
+    try
+    { sslSocket.setSoTimeout(closeTimeoutMs);
+    }
+    catch (SocketException x)
+    { /* best effort */ }
+    try
+    { sslSocket.setSoLinger(true,0);
+    }
+    catch (SocketException x)
+    { /* best effort */ }
+    try
+    { sslSocket.close();
+    }
+    catch (IOException x)
+    { log.fine("Error aborting socket "+sslSocket+" : "+x);
+    }
+    if (logLevel.isFine())
+    { log.fine("Aborted socket "+sslSocket);
+    }
+      
+  }
+  
   @Override
   public void closeSocket(Socket sock)
   { 
     SSLSocket sslSocket=(SSLSocket ) sock;
-    if (!sslSocket.isClosed())
+    if (sslSocket.isClosed())
+    { return;
+    }
+
+    // Bound the inbound drain that SSLSocket.close() performs to consume the
+    // peer's close_notify. Without this, a peer that has gone away leaves
+    // close() blocking up to the connection's SO_TIMEOUT (observed: handlers
+    // stuck in bruteForceCloseInput during the flood).
+    try
+    { sslSocket.setSoTimeout(closeTimeoutMs);
+    }
+    catch (SocketException x)
+    { /* best effort */ 
+    }
+
+    try
     {
-      try
-      {
-        sslSocket.getOutputStream().flush();
-        sslSocket.shutdownOutput();
-        if (!sslSocket.isClosed())
-        { sslSocket.close();
-        }
+      sslSocket.getOutputStream().flush();
+    }
+    catch (IOException x)
+    {
+    }
+    
+    try
+    {
+      sslSocket.shutdownOutput();
+    }
+    catch (IOException x)
+    {
+    }
+    
+    try
+    {
+      if (!sslSocket.isClosed())
+      { sslSocket.close();
       }
-      catch (IOException x)
-      { log.fine("Error closing socket "+sock+" : "+x);
-      }
+    }
+    catch (IOException x)
+    { log.fine("Error closing socket "+sock+" : "+x);
     }
   }
 }
-

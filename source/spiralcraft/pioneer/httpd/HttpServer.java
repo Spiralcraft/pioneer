@@ -481,7 +481,7 @@ public class HttpServer
     {
       if (!ensureRunning())
       { 
-        factory.closeSocket(socket);
+        factory.abortSocket(socket);
         return;
       }
 
