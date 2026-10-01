@@ -441,7 +441,9 @@ public class SecureServerSocketFactory
       {
         sslSocket.getOutputStream().flush();
         sslSocket.shutdownOutput();
-        sslSocket.close();
+        if (!sslSocket.isClosed())
+        { sslSocket.close();
+        }
       }
       catch (IOException x)
       { log.fine("Error closing socket "+sock+" : "+x);
