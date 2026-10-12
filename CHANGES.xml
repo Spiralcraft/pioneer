@@ -14,6 +14,61 @@
     <details>
     
       <scm:Change>
+        <revision>-dev34
+        </revision>
+                
+        <path>source/spiralcraft/pioneer
+        </path>
+        
+        <resources>
+          <URI>http/AbstractHttpServerRequest.java
+          </URI>
+          <URI>http/HttpServer.java
+          </URI>
+          <URI>http/HttpServerRequest.java
+          </URI>
+          <URI>http/HttpServerResponse.java
+          </URI>
+          <URI>http/ServerInputStream.java
+          </URI>
+        </resources>
+        
+        <notes>
+          <scm:Note>Clean up connection draining logic
+          </scm:Note>
+        </notes>
+                
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev34
+        </revision>
+                
+        <path>source/spiralcraft/pioneer
+        </path>
+        
+        <resources>
+          <URI>http/HttpServer.java
+          </URI>
+          <URI>net/QueueConnectionHandler.java
+          </URI>
+          <URI>net/SecureServerSocketFactory.java
+          </URI>
+          <URI>net/ServerSocketFactory.java
+          </URI>
+          <URI>net/StandardServerSocketFactory.java
+          </URI>
+        </resources>
+        
+        <notes>
+          <scm:Note>Tuning connection timings, timeouts. and queue levels for 
+            malicious client swarm resistance
+          </scm:Note>
+        </notes>
+                
+      </scm:Change>
+
+      <scm:Change>
         <revision>-dev33
         </revision>
                 
