@@ -36,6 +36,7 @@ public final class ServerInputStream
     =ClassLog.getInstance(ServerInputStream.class);
 //  private final HttpServer server;
   
+  private InputStream _raw;
   private InputStream _in;
 
   private byte[] _byteBuffer=new byte[256];
@@ -65,17 +66,18 @@ public final class ServerInputStream
 
   public void start(InputStream in)
   { 
-    _in=new BufferedInputStream(in,8192);
+    if (in!=_raw)
+    {
+      // New connection: wrap its socket stream once. On later requests
+      // over the same connection, keep _in so bytes already buffered
+      // ahead (the start of the next request) are not lost.
+      _raw=in;
+      _in=new BufferedInputStream(in,8192);
+    }
     _count=0;
   }
 
-  /**
-   * Read and discard b bytes
-   */
-  public void discard(int bytes)
-    throws IOException
-  { StreamUtil.copyRaw(_in,new NullOutputStream(),16384,bytes);
-  }
+
 
   @Override
   public final int read()
@@ -100,18 +102,17 @@ public final class ServerInputStream
     throws IOException
   {
     final int count=_in.read(b,start,len);
-    if (_count>-1)
+    if (count>0)
     { _count+=count;
     }
     
     if (_trace!=null)
     { 
-      if (start>-1 && start<b.length && start+count<=b.length)
-      { 
-        _trace.write(b,start,count);
-      }
-      else if (count==-1)
+      if (count==-1)
       { _trace.write("[EOS]".getBytes());
+      }
+      else if (start>-1 && start<b.length && start+count<=b.length)
+      { _trace.write(b,start,count);
       }
       else 
       { 
@@ -227,5 +228,12 @@ public final class ServerInputStream
     throws IOException
   { 
     // Don't close anything here. This messes up the low level protocol
+  }
+  
+  public final void cleanup()
+  { 
+    _in=null;
+    _raw=null;
+    
   }
 }

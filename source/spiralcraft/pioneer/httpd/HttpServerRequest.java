@@ -76,6 +76,7 @@ public class HttpServerRequest
 
   private static final String SECURE_SESSION_TAG_ATTRIBUTE_NAME
     ="spiralcraft.httpd.secureSessionTag";
+  private static final int MAX_DRAIN_BYTES=1024*64;
   
   private HttpServerResponse _response;
   private HttpSession _session;
@@ -129,6 +130,7 @@ public class HttpServerRequest
   
   private boolean _started;
   private boolean _headersRead;
+  private boolean _badRequest;
   
   private boolean debugProtocol;
   private boolean debugAPI;
@@ -147,6 +149,10 @@ public class HttpServerRequest
   public boolean isDispatch()
   { return false;
   }
+  
+  public boolean isBadRequest()
+  { return _badRequest;
+  } 
   
   public void setTraceStream(OutputStream traceStream)
   { _inputStream.setTraceStream(traceStream);
@@ -170,6 +176,7 @@ public class HttpServerRequest
     _secure=_socket instanceof SSLSocket;    
     _remoteInetAddress=sock.getInetAddress();
     _inputStream.start(sock.getInputStream());
+    _apiInputStream=null;
     
 
     _session=null;
@@ -183,7 +190,10 @@ public class HttpServerRequest
     _requestURL=null;
     _sessionFromCookie=false;
     _sessionFromUrl=false;
-
+    _secureSessionTag=null;
+    _badRequest=false;
+    
+    
     _protocol=null;
     _remoteAddr=null;
     _rawRemoteAddr=null;
@@ -246,27 +256,51 @@ public class HttpServerRequest
   /**
    * Ensure that any stray input data is discarded, after each request
    */
-  public void finish()
+  public boolean finish()
   {
     _apiInputStream=null;
+
+    // If the response is already closing, there is no next request to reach,
+    // so don't read the body at all.
+    if (_response.shouldClose())
+    { return false; 
+    }
+
+    // No body, unknown length, or a malformed length already rejected:
+    // nothing to drain. (Chunked requests are rejected in readHeaders, so a
+    // missing Content-Length here means no body.)
+    int contentLength=getContentLength();
+    if (contentLength<=0)
+    { return true; 
+    }
+
+    // readHeaders() reset the count at the end of the headers, so getCount()
+    // is the number of body bytes the handler actually consumed.
+    long remaining=(long) contentLength-_inputStream.getCount();
+    if (remaining<=0)
+    { return true; 
+    }
+    
+    if (remaining>MAX_DRAIN_BYTES)
+    { return false; 
+    }
+    
     try
     {
-      if (_inputStream.getCount()<getContentLength())
-      { 
-        if (debugSettings.getDebugProtocol())
-        { 
-          log.fine
-            ("Discarding "
-            +(getContentLength()-_inputStream.getCount())
-            +" bytes of unread unput"
-            );
-        }
-        
-        _inputStream.discard(getContentLength()-_inputStream.getCount());
+      byte[] buf=new byte[8192];
+      while (remaining>0)
+      {
+        int n=_inputStream.read(buf,0,(int) Math.min(buf.length,remaining));
+        if (n<0)
+        { return false; }
+        remaining-=n;
       }
+      return true;
     }
     catch (IOException x)
-    { _log.log(Level.DEBUG,">>> IOException draining input stream "+x);
+    {
+      _log.log(Level.DEBUG,">>> IOException draining input stream "+x);
+      return false;
     }
   }
 
@@ -278,6 +312,7 @@ public class HttpServerRequest
   public void cleanup()
   { 
     super.cleanup();
+    _inputStream.cleanup();
     _session=null;
     _cookieList.clear();
     _headers.clear();
@@ -464,6 +499,9 @@ public class HttpServerRequest
   { return val!=null?val.toString():null;
   }
 
+  protected HttpSession currentSession()
+  { return _session;
+  }
   
   @Override
   public HttpSession getSession(boolean create)
@@ -761,7 +799,27 @@ public class HttpServerRequest
        }
      }
     _inputStream.resetCount();
+    
+    
+    if (getHeader("Transfer-Encoding")!=null)
+    {
+      // Not supported; a chunked body would be misparsed as the next request.
+      _response.sendError(501,"Transfer-Encoding not supported");
+      _response.setHeader(HttpServerResponse.HDR_CONNECTION,HttpServerResponse.CONNECTION_CLOSE);
+      _badRequest=true;
+      return;
+    }
+        
     int contentLength=getContentLength();
+    if (contentLength< -1)
+    {
+      // -2 from getIntHeader: malformed Content-Length
+      _response.sendError(400,"Bad Content-Length");
+      _response.setHeader(HttpServerResponse.HDR_CONNECTION,HttpServerResponse.CONNECTION_CLOSE);
+      _badRequest=true;
+      return;
+    }
+
     if (contentLength>0)
     { 
       _apiInputStream

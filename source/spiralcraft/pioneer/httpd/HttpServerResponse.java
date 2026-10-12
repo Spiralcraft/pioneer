@@ -16,6 +16,7 @@
 package spiralcraft.pioneer.httpd;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.servlet.http.Cookie;
 import javax.servlet.ServletOutputStream;
 
@@ -112,6 +113,16 @@ public class HttpServerResponse
 
   private static final Charset UTF_8=Charset.forName("UTF-8");
   
+  public enum CloseReason 
+  { 
+    CLIENT, 
+    APPLICATION, 
+    PROTOCOL, 
+    STATUS, 
+    LIMIT, 
+    PRESSURE 
+  }
+  
   private Socket _socket;
   private HttpServerRequest _request;
   private ArrayList<Cookie> _cookies;
@@ -122,7 +133,7 @@ public class HttpServerResponse
   private ServerOutputStream _outputStream;
   private boolean _shouldClose=false;
   private boolean _chunkStream=false;
-  private int _keepaliveSeconds=30;
+  private int _keepaliveSeconds=10;
   private Locale _locale;
   private PrintWriter _writer;
   private boolean debugProtocol;
@@ -130,6 +141,10 @@ public class HttpServerResponse
   private String contentType;
   private String characterEncoding="UTF-8";
   private DebugSettings debugSettings;
+  private int _defaultKeepaliveSeconds=10;
+  private int _newSessionKeepaliveSeconds=2;
+  
+  private CloseReason _closeReason;  
 
   private final MappedList _headers=new MappedList(new ArrayList<Variable>());
   private final ListMap _headerMap
@@ -172,21 +187,11 @@ public class HttpServerResponse
   
   public void recycle()
   {
+    resetResponseState();
 
-    if (_cookies!=null)
-    { _cookies.clear();
-    }
     _version=null;
-    _status=0;
-    _reason=null;
     _sentHeaders=false;
-    _shouldClose=false;
-    _chunkStream=false;
-    _keepaliveSeconds=30;
     _writer=null;
-    contentType=null;
-    characterEncoding="UTF-8";
-    _headers.clear();
   }
 
   @Override
@@ -196,21 +201,52 @@ public class HttpServerResponse
     { _log.fine("Resetting");
     }
     resetBuffer();
+    resetResponseState();    
+    
+  }
+  
+  /** Request-scoped response state, restored to defaults. */
+  private void resetResponseState()
+  {
     if (_cookies!=null)
     { _cookies.clear();
     }
     _status=200;
     _reason=null;
-    _sentHeaders=false;
+    _headers.clear();
     contentType=null;
     characterEncoding="UTF-8";
-    _headers.clear();
+    _locale=null;
+    _shouldClose=false;
+    _chunkStream=false;
+    _keepaliveSeconds=_defaultKeepaliveSeconds;
+    _closeReason=null;
+  }  
     
+  /** Keep-alive idle time applied when no rule lowers it. Set by HttpServer. */
+  public void setDefaultKeepaliveSeconds(int seconds)
+  { _defaultKeepaliveSeconds=seconds;
   }
-  
+
+  /**
+   * Lower the keep-alive idle time for this response; never raises it.
+   * Zero or less requests a close. Applications call this (e.g. the session
+   * manager on session creation) before headers are sent.
+   */
+  public void limitKeepalive(int seconds)
+  {
+    if (seconds<_keepaliveSeconds)
+    { _keepaliveSeconds=seconds;
+    }
+  }
+
+  public CloseReason getCloseReason()
+  { return _closeReason;
+  }
+    
   /**
    * Called by the ConnectionHandler to reset this response at the beginning
-   *   of a connection, in preparation for multiple requests
+   *   of a request
    * 
    * @param socket
    * @throws IOException
@@ -250,7 +286,7 @@ public class HttpServerResponse
     throws IOException
   { 
     if (debugAPI)
-    { _log.fine("Flushing buffer: "+_writer!=null?"writer+stream":"writer");
+    { _log.fine("Flushing buffer: "+(_writer!=null?"writer+stream":"stream"));
     }
     
     if (_writer!=null)
@@ -634,6 +670,7 @@ public class HttpServerResponse
 
       defaultHeaders();
 
+      decideConnection();
       
       // Determine chunking and keepalive status
 	    if (PROTOCOL_HTTP_1_1.equals(_version))
@@ -651,52 +688,13 @@ public class HttpServerResponse
                     +", connection="+connection
                     +", length="+length
                     +", requestConnection="+requestConnection
+                    +", shouldClose="+_shouldClose
+                    +", keepaliveSeconds="+_keepaliveSeconds
+                    +", closeReason="+_closeReason
                     );
         }
         
-        boolean keepAliveOverride=false;
-        if (_request.isSecure())
-        {
-          String userAgent=_request.getHeader(HDR_USER_AGENT);
-          if (userAgent!=null)
-          {
-            if (userAgent.indexOf("MSIE")>-1)
-            { keepAliveOverride=true;
-            }
-          }
-        }
 
-        if (CONNECTION_CLOSE.equals(requestConnection))
-        {
-          if (debugProtocol)
-          { _log.debug("Client requested Connection: close");
-          }
-          // Always close if asked by client
-          _shouldClose=true;
-          setHeader(HDR_CONNECTION,CONNECTION_CLOSE);
-        }
-        else if (CONNECTION_CLOSE.equals(connection))
-        {
-          // Close if asked by Servlet, no need to set header.
-          if (debugProtocol)
-          { _log.debug("Servlet set Connection: close");
-          }
-          _shouldClose=true;
-        }
-        else if (keepAliveOverride)
-        {
-          if (debugProtocol)
-          { _log.debug("Keepalive is overriden, setting Connection: close");
-          }
-          // Close if keep-alive is overridden
-          _shouldClose=true;
-          setHeader(HDR_CONNECTION,CONNECTION_CLOSE);
-        }
-        else
-        { 
-          // Keep open by default
-          _shouldClose=false;
-        }
 
         if (_status!=304 && _status!=204 && !(_status>=100 && _status<=199))
         {
@@ -730,25 +728,7 @@ public class HttpServerResponse
 	    }
 	    else
 	    { 
-        String connection=getHeader(HDR_CONNECTION);
-        String requestConnection=_request.getHeader(HDR_CONNECTION);
-        String length=getHeader(HDR_CONTENT_LENGTH);
-        if ((requestConnection==null || CONNECTION_KEEP_ALIVE.equals(requestConnection))
-            && (length!=null || _status==304)
-            &&!CONNECTION_CLOSE.equals(connection)
-           )
-        {
-          _shouldClose=false;
-          _keepaliveSeconds=5;
-        }
-        else
-        {
-          if (debugProtocol)
-          { _log.debug("Setting Connection: close on header commit");
-          }
-          setHeader(HDR_CONNECTION,CONNECTION_CLOSE);
-          _shouldClose=true;
-        }
+	      // HTTP 1.0
         _chunkStream=false;
 	    }
 	    
@@ -986,6 +966,12 @@ public class HttpServerResponse
     if (debugAPI)
     { _log.fine("Resetting buffer: sentHeaders="+_sentHeaders);
     }
+    if (_writer!=null)
+    { _writer.flush();
+    }
+    if (isCommitted())
+    { throw new IllegalStateException("Response already committed");
+    }
     _outputStream.resetBuffer();
     _sentHeaders=false;
   }
@@ -1003,6 +989,42 @@ public class HttpServerResponse
 
   private final ClockFormat _formatTimeWatcher
     =new ClockFormat(_headerDateFormat,1000);
+
+  /** Responses after which the connection is not worth keeping. */
+  private static boolean statusClosesConnection(int status)
+  {
+    if (status>=500)
+    { return true;
+    }
+    switch (status)
+    {
+      case 400: case 403: case 405: case 408: case 411:
+      case 413: case 414: case 429: case 431:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /** Short keep-alive for statuses browsers hit mid-page-load (favicons etc). */
+  private static int statusKeepaliveLimit(int status)
+  { return status==404?2:Integer.MAX_VALUE;
+  }
+
+  /** Case-insensitive match of a token in a comma-separated header value. */
+  private static boolean hasToken(String headerValue,String token)
+  {
+    if (headerValue==null)
+    { return false;
+    }
+    for (String part : headerValue.split(","))
+    {
+      if (part.trim().equalsIgnoreCase(token))
+      { return true;
+      }
+    }
+    return false;
+  }
 
   private final static HashMap<Integer,String> _statusMap 
     = new HashMap<Integer,String>();
@@ -1052,8 +1074,14 @@ public class HttpServerResponse
   }
 
 
-
-
+  private void markClose(CloseReason reason)
+  {
+    _shouldClose=true;
+    if (_closeReason==null)
+    { _closeReason=reason;
+    }
+  }
+  
   private final void defaultHeaders()
   {
     if (_status==0)
@@ -1076,24 +1104,53 @@ public class HttpServerResponse
     { _version=_request.getProtocol();
     }
 
-    if (getHeader(HDR_CONNECTION)==null)
-    {
-      
-      String connection=_request.getHeader(HDR_CONNECTION);
-      if (connection!=null && connection.length()>0)
-      { setHeader(HDR_CONNECTION,connection);
-      }
-      else if ("HTTP/1.0".equals(_version))
-      { 
-        // Don't set empty header value for http/1.0
-        // For HTTP/1.1 - DO NOT SET IT TO CLOSE, default is keepalive
-        setHeader(HDR_CONNECTION,"close");
-      }
-      
-    }
     
   }
 
+  private void decideConnection()
+  {
+    boolean http11=PROTOCOL_HTTP_1_1.equals(_version);
+    String requestConnection=_request.getHeader(HDR_CONNECTION);
 
+    if (hasToken(requestConnection,CONNECTION_CLOSE))
+    { markClose(CloseReason.CLIENT);
+    }
+    else if (hasToken(getHeader(HDR_CONNECTION),CONNECTION_CLOSE))
+    { markClose(CloseReason.APPLICATION);
+    }
+    else if (!http11
+             && (!hasToken(requestConnection,"keep-alive")
+                 || (getHeader(HDR_CONTENT_LENGTH)==null && _status!=304)
+                )
+            )
+    { markClose(CloseReason.PROTOCOL); // 1.0: opt-in only, and needs a length
+    }
+    else if (statusClosesConnection(_status))
+    { markClose(CloseReason.STATUS);
+    }
+    else
+    {
+      limitKeepalive(statusKeepaliveLimit(_status));
+      if (!http11)
+      { limitKeepalive(5);
+      }
+      
+      HttpSession session=_request.currentSession();
+      if (session!=null && session.isNew())
+      { limitKeepalive(_newSessionKeepaliveSeconds);
+      }
+            
+      if (_keepaliveSeconds<=0)
+      { markClose(CloseReason.LIMIT);
+      }
+    }
+
+    if (_shouldClose)
+    { setHeader(HDR_CONNECTION,CONNECTION_CLOSE);
+    }
+    else if (!http11)
+    { setHeader(HDR_CONNECTION,"keep-alive");
+    }
+  }
 
 }

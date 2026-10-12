@@ -309,8 +309,11 @@ public abstract class AbstractHttpServletRequest
     if (var==null)
     { return -1;
     }
-    else
+    try
     { return Integer.parseInt(var); 
+    }
+    catch (NumberFormatException x)
+    { return -2;
     }
   }
   
@@ -465,7 +468,9 @@ public abstract class AbstractHttpServletRequest
   
 	@Override
   public int getContentLength()
-	{ return getIntHeader("Content-Length");
+	{ 
+	  String value=getHeader("Content-Length");
+	  return getIntHeader("Content-Length");
 	}
 	
 	@Override

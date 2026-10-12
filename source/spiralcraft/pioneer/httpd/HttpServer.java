@@ -541,13 +541,18 @@ public class HttpServer
               try
               { 
                 _request.readHeaders();
-
-                HttpServerContext context=mapHost(_request);
-                if (context!=null)
-                { context.service(_request,_response);
+                if (_request.isBadRequest())
+                { // skip
                 }
                 else
-                { _response.sendError(503,"Service unavailable");
+                {
+                  HttpServerContext context=mapHost(_request);
+                  if (context!=null)
+                  { context.service(_request,_response);
+                  }
+                  else
+                  { _response.sendError(503,"Service unavailable");
+                  }
                 }
               }
               catch (ServletException x)
@@ -566,13 +571,15 @@ public class HttpServer
                 _log.log(Level.SEVERE,"Runtime Exception: "+ThrowableUtil.getStackTrace(x));                
                 _response.sendError(500,"Internal Server Error");
               }
-              _request.finish();
               _response.finish();
-              if (_response.shouldClose())
+
+              boolean reusable=_request.finish();
+
+              if (_response.shouldClose() || !reusable)
               { done=true;
               }
               else
-              { 
+              {
                 if (debugSettings.debugProtocol)
                 { log.fine("Timeout for next request is "+_response.getKeepaliveSeconds()+"s");
                 }
