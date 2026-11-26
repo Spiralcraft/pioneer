@@ -109,8 +109,9 @@ public class HttpServerResponse
   public final static byte[] COOKIE_PATH="path".getBytes();
   public final static byte[] COOKIE_SECURE="secure".getBytes();
   public final static byte[] COOKIE_VERSION="version".getBytes();
-
-
+  public final static byte[] COOKIE_CROSS_SITE_FRAME
+  ="SameSite=None; Partitioned".getBytes();
+  
   private static final Charset UTF_8=Charset.forName("UTF-8");
   
   public enum CloseReason 
@@ -764,6 +765,7 @@ public class HttpServerResponse
       }
       if (_cookies!=null)
       {
+        boolean crossSiteFrame=isCrossSiteFrame();
         for (Cookie cookie : _cookies)
         {
 
@@ -825,7 +827,7 @@ public class HttpServerResponse
             _outputStream.write(EQUALS);
             _outputStream.write(cookie.getPath());
           }
-          if (cookie.getSecure())
+          if (cookie.getSecure() || crossSiteFrame)
           { 
             _outputStream.write(SEMICOLON);
             _outputStream.write(SPACE);
@@ -839,6 +841,12 @@ public class HttpServerResponse
             _outputStream.write(EQUALS);
             _outputStream.write(Integer.toString(cookie.getVersion()));
           }
+          if (crossSiteFrame)
+          {
+            _outputStream.write(SEMICOLON);
+            _outputStream.write(SPACE);
+            _outputStream.write(COOKIE_CROSS_SITE_FRAME);
+          }          
            
           _outputStream.write(EOL);
         }
@@ -1073,6 +1081,19 @@ public class HttpServerResponse
    
   }
 
+  /**
+   * True when this response is going over TLS to a cross-site iframe, where
+   *   browsers drop cookies that don't have SameSite=None.
+   */
+  private boolean isCrossSiteFrame()
+  {
+    if (!_request.isSecure())
+    { return false;
+    }
+    String dest=_request.getHeader("Sec-Fetch-Dest");
+    return "cross-site".equals(_request.getHeader("Sec-Fetch-Site"))
+      && ("iframe".equals(dest) || "frame".equals(dest));
+  }
 
   private void markClose(CloseReason reason)
   {
