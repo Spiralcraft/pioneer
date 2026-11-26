@@ -17,6 +17,21 @@
         <revision>-dev34
         </revision>
                 
+        <path>source/spiralcraft/pioneer/httpd/HttpServerResponse.java
+        </path>
+        
+        <notes>
+          <scm:Note>Emit a cross-site partitioned cookie when the request
+            indicates it's from a secure cross-site iframe'
+          </scm:Note>
+        </notes>
+                
+      </scm:Change>
+
+      <scm:Change>
+        <revision>-dev34
+        </revision>
+                
         <path>source/spiralcraft/pioneer
         </path>
         
